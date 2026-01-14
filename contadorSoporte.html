@@ -1068,6 +1068,24 @@ function actualizarTotal(){
   document.getElementById('total').textContent=total; 
 }
 
+
+function editarValor(tipo){
+  const actual = datos[tipo] ?? 0;
+  const input = prompt(`Ingresa el valor para "${tipo}":`, String(actual));
+  if (input === null) return; // canceló
+
+  const n = parseInt(String(input).replace(/[^\d-]/g, ''), 10);
+  if (isNaN(n) || n < 0) {
+    return mostrarAlerta("⚠️", "Ingresa un número válido (0 o mayor).");
+  }
+
+  datos[tipo] = n;
+  const el = document.getElementById(tipo);
+  if (el) el.textContent = n;
+  actualizarTotal();
+}
+
+  
 /* === SUBIR ASISTENCIA MEJORADA === */
 async function subirAsistencia(){
   if(!usuarioGlobal) return mostrarAlerta("⚠️", "Debes iniciar sesión primero.");
@@ -1237,10 +1255,17 @@ function escapeHTML(s){
   const savedTheme = localStorage.getItem('theme') || 'claro';
   document.documentElement.setAttribute('data-theme', savedTheme);
   document.getElementById('themeSelect').value = savedTheme;
+
+    // ✅ Permitir escribir valor tocando el número
+  document.querySelectorAll('.value').forEach(el => {
+    el.addEventListener('click', () => editarValor(el.id));
+  });
+
 })();
 </script>
 </body>
 </html>
+
 
 
 
