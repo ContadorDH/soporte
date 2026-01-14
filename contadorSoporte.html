@@ -645,6 +645,59 @@ main {
       cursor: pointer;
       transition: transform 0.2s ease, background 0.3s ease;
     }
+
+
+/* ✅ PARCHE RESPONSIVE (mínimo, sin tocar HTML/JS) */
+html, body {
+  height: 100%;
+}
+
+/* Evita cortes por barras del sistema (iOS/Android modernos) */
+body {
+  min-height: 100dvh; /* mejor que 100vh en móviles */
+  overflow-x: hidden;
+}
+
+/* El main en tu HTML tiene overflow:hidden inline. 
+   Forzamos scroll vertical cuando haga falta. */
+#principal {
+  height: calc(100dvh - 64px) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+
+/* Permite que los controles no "exploten" horizontalmente */
+.controls {
+  width: 100%;
+  justify-content: space-between;
+  gap: 12px !important; /* en vez de 30px/108px, solo si el ancho aprieta */
+  padding: 0 12px;
+}
+
+/* Mantiene botones grandes, pero adaptables en pantallas pequeñas */
+.counterBtn {
+  width: clamp(54px, 18vw, 70px) !important;
+  height: clamp(54px, 18vw, 70px) !important;
+  font-size: clamp(26px, 7vw, 40px) !important;
+}
+
+/* Reduce un poco tipografías solo en pantallas bajas */
+@media (max-height: 700px) {
+  .totalCard { font-size: 22px !important; }
+  .totalCard #total { font-size: 3rem !important; }
+  .label { font-size: 1.05rem !important; }
+  .value { font-size: 2.1rem !important; }
+}
+
+/* En pantallas MUY angostas, evitamos overflow horizontal */
+@media (max-width: 360px) {
+  .controls { padding: 0 8px; gap: 8px !important; }
+  .value { min-width: 34px; }
+}
+
+
+    
   </style>
 </head>
 <body>
@@ -1145,6 +1198,7 @@ function escapeHTML(s){
 </script>
 </body>
 </html>
+
 
 
 
