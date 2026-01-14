@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Asistencia Bochica Sur</title>
+  
+  <!-- === PWA y Iconos para Android e iOS === -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Iconos para Android (Chrome) -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  
+  <!-- Meta tags para iOS (Safari) -->
+  <link rel="apple-touch-icon" href="apple-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Asistencia Bochica Sur">
+  
+  <!-- Tema color para barra de estado -->
+  <meta name="theme-color" content="#0066ff">
+
+  <style>
+    /* 🎨 Definición de temas en tonos pastel */
+    :root {
+      /* Tema Claro (por defecto, actual) */
+      --primary: #0066ff;
+      --primary-dark: #004ecc;
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --muted: #7b7b7b;
+      --radius: 14px;
+      --text: #222;
+      --shadow: rgba(12, 30, 60, 0.06);
+      --shadow-dark: rgba(2, 20, 80, 0.04);
+      --menu-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      --popup-bg: #ffffff;
+      --button-minus: linear-gradient(135deg, #e57373, #b71c1c);
+      --button-plus: linear-gradient(135deg, #4d94ff, #004ecc);
+      --spinner-border: #e6eefc;
+    }
+
+    /* 🌙 Tema Oscuro */
+    [data-theme="oscuro"] {
+      --primary: #4b5e7a;
+      --primary-dark: #3a4b63;
+      --bg: #2c2f33;
+      --card: #3a3f44;
+      --muted: #a0a4a8;
+      --text: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.3);
+      --shadow-dark: rgba(0, 0, 0, 0.2);
+      --menu-bg: linear-gradient(180deg, #3a3f44 0%, #2c2f33 100%);
+      --popup-bg: #3a3f44;
+      --button-minus: linear-gradient(135deg, #f28b82, #b71c1c);
+      --button-plus: linear-gradient(135deg, #6b7280, #4b5e7a);
+      --spinner-border: #4b5e7a;
+    }
+
+    /* Tema Lila */
+    [data-theme="lila"] {
+      --primary: #a78bfa;
+      --primary-dark: #7c3aed;
+      --bg: #f5f3ff;
+      --card: #faf5ff;
+      --muted: #9ca3af;
+      --text: #4b0082;
+      --shadow: rgba(76, 29, 149, 0.1);
+      --shadow-dark: rgba(76, 29, 149, 0.08);
+      --menu-bg: linear-gradient(180deg, #faf5ff 0%, #f5f3ff 100%);
+      --popup-bg: #faf5ff;
+      --button-minus: linear-gradient(135deg, #f3e8ff, #c084fc);
+      --button-plus: linear-gradient(135deg, #c4b5fd, #7c3aed);
+      --spinner-border: #ede9fe;
+    }
+
+    /* Tema Rosa */
+    [data-theme="rosa"] {
+      --primary: #f472b6;
+      --primary-dark: #db2777;
+      --bg: #fff1f2;
+      --card: #fef2f2;
+      --muted: #9ca3af;
+      --text: #831843;
+      --shadow: rgba(157, 23, 77, 0.1);
+      --shadow-dark: rgba(157, 23, 77, 0.08);
+      --menu-bg: linear-gradient(180deg, #fef2f2 0%, #fff1f2 100%);
+      --popup-bg: #fef2f2;
+      --button-minus: linear-gradient(135deg, #fce7f3, #f9a8d4);
+      --button-plus: linear-gradient(135deg, #f9a8d4, #db2777);
+      --spinner-border: #fce7f3;
+    }
+
+    /* Tema Beige */
+    [data-theme="beige"] {
+      --primary: #d2b48c;
+      --primary-dark: #b89778;
+      --bg: #f5f5dc;
+      --card: #faf9f0;
+      --muted: #8b7e66;
+      --text: #4a3728;
+      --shadow: rgba(74, 55, 40, 0.1);
+      --shadow-dark: rgba(74, 55, 40, 0.08);
+      --menu-bg: linear-gradient(180deg, #faf9f0 0%, #f5f5dc 100%);
+      --popup-bg: #faf9f0;
+      --button-minus: linear-gradient(135deg, #f5e7d4, #d2b48c);
+      --button-plus: linear-gradient(135deg, #e6d5b8, #b89778);
+      --spinner-border: #f5e7d4;
+    }
+
+    /* Tema Verde */
+    [data-theme="verde"] {
+      --primary: #4ade80;
+      --primary-dark: #22c55e;
+      --bg: #ecfdf5;
+      --card: #f0fdf4;
+      --muted: #6b7280;
+      --text: #14532d;
+      --shadow: rgba(20, 83, 45, 0.1);
+      --shadow-dark: rgba(20, 83, 45, 0.08);
+      --menu-bg: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+      --popup-bg: #f0fdf4;
+      --button-minus: linear-gradient(135deg, #d1fae5, #4ade80);
+      --button-plus: linear-gradient(135deg, #a7f3d0, #22c55e);
+      --spinner-border: #d1fae5;
+    }
+
+    /* Tema Naranja */
+    [data-theme="naranja"] {
+      --primary: #fb923c;
+      --primary-dark: #f97316;
+      --bg: #fff7ed;
+      --card: #ffedd5;
+      --muted: #78716c;
+      --text: #7c2d12;
+      --shadow: rgba(124, 45, 18, 0.1);
+      --shadow-dark: rgba(124, 45, 18, 0.08);
+      --menu-bg: linear-gradient(180deg, #ffedd5 0%, #fff7ed 100%);
+      --popup-bg: #ffedd5;
+      --button-minus: linear-gradient(135deg, #fed7aa, #fb923c);
+      --button-plus: linear-gradient(135deg, #fdba74, #f97316);
+      --spinner-border: #fed7aa;
+    }
+
+    /* Tema Gris */
+    [data-theme="gris"] {
+      --primary: #6b7280;
+      --primary-dark: #4b5563;
+      --bg: #f3f4f6;
+      --card: #e5e7eb;
+      --muted: #9ca3af;
+      --text: #374151;
+      --shadow: rgba(55, 65, 81, 0.1);
+      --shadow-dark: rgba(55, 65, 81, 0.08);
+      --menu-bg: linear-gradient(180deg, #e5e7eb 0%, #f3f4f6 100%);
+      --popup-bg: #e5e7eb;
+      --button-minus: linear-gradient(135deg, #d1d5db, #6b7280);
+      --button-plus: linear-gradient(135deg, #9ca3af, #4b5563);
+      --spinner-border: #d1d5db;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* === Header moderno y centrado === */
+    header {
+      position: relative;
+      height: 64px;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      font-weight: 600;
+      box-shadow: 0 2px 10px var(--shadow);
+    }
+    header button {
+      background: none;
+      border: 0;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    header .title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+      animation: fadeInTitle 0.6s ease-in-out;
+    }
+    @keyframes fadeInTitle {
+      from { opacity: 0; transform: translateX(-50%) translateY(-5px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    #menuOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 80;
+      backdrop-filter: blur(8px);
+    }
+    #menuOverlay.active { display: block; }
+
+    #menu {
+      position: fixed;
+      top: 0;
+      left: -240px;
+      width: 240px;
+      height: 100%;
+      background: var(--menu-bg);
+      box-shadow: 4px 0 20px var(--shadow);
+      transition: left .25s ease;
+      z-index: 90;
+      padding: 24px 0 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    #menu.active { left: 0; }
+    #menu .item {
+      padding: 16px 16px;
+      margin: 0 4px;
+      border-radius: 10px;
+      background: transparent;
+      text-align: left;
+      font-size: 1rem;
+      color: var(--text);
+      border: 0;
+      cursor: pointer;
+      margin-bottom: 1px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all .18s ease;
+      position: relative;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+    #menu .item:active {
+      background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #fff;
+      transform: scale(0.98);
+    }
+    #menu .item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--primary);
+      transform: scaleY(0);
+      transition: transform .18s ease;
+    }
+    #menu .item:hover, #menu .item:focus {
+      background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #fff;
+    }
+    #menu .item:hover::before, #menu .item:focus::before { transform: scaleY(1); }
+    #menu .item:last-child { margin-bottom: 0; }
+    #themeSelect {
+      margin: 16px 16px 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--muted);
+      background: var(--card);
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    main {
+      height: calc(100vh - 64px);
+      overflow: auto;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+/* Ajustar las tarjetas para ocupar más espacio y reducir márgenes */
+.card {
+  width: 95%;
+  max-width: 440px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 2px 0;
+  box-shadow: 0 2px 6px var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Ajustar tamaño de etiquetas (solo "Hermanos", "Hermanas", etc.) */
+.label {
+  font-size: 10px; /* Reducido a la mitad de 19px (aproximadamente 9.5px, redondeado a 10px) */
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+  color: var(--text);
+  line-height: 1.1;
+  margin: 0;
+}
+
+/* Ajustar los controles (contenedor de botones y valor) */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 108px;
+}
+
+/* Aumentar tamaño de los botones de contador con efectos restaurados */
+.counterBtn {
+  width: 18vw; /* Aumentado de 15vw para hacer los iconos más grandes (aprox. 72px en 360px de ancho) */
+  height: 18vw; /* Aumentado para mantener proporción circular */
+  max-width: 70px; /* Aumentado de 56px para permitir mayor tamaño en pantallas grandes */
+  max-height: 70px; /* Aumentado para mantener proporción */
+  border-radius: 50%;
+  border: none;
+  color: #fff;
+  font-size: 35px; /* Aumentado de 28px para que los iconos sean más grandes */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.counterBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25), 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.counterBtn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.counterBtn.minus {
+  background: var(--button-minus);
+}
+
+.counterBtn.plus {
+  background: var(--button-plus);
+}
+
+.counterBtn.ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--muted);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 24px;
+  box-shadow: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.counterBtn.ghost:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Ajustar el valor del contador */
+.value {
+  min-width: 44px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+/* Ajustar la tarjeta de total */
+.totalCard {
+  width: 95%;
+  max-width: 440px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  text-align: center;
+  font-weight: 700;
+  box-shadow: 0 4px 12px var(--shadow-dark);
+  font-size: 1.1rem;
+  color: var(--text);
+  margin: 2px 0;
+}
+
+.totalCard #total {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+/* Asegurar que el contenedor principal use todo el espacio */
+main {
+  height: calc(100vh - 64px);
+  overflow: auto;
+  padding: 1px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+    #verPantalla {
+      position: fixed;
+      inset: 64px 0 0 0;
+      background: var(--bg);
+      z-index: 70;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 12px;
+      overflow: auto;
+      transform: translateX(12px);
+      opacity: 0;
+      transition: all .32s ease;
+    }
+    #verPantalla.active {
+      display: flex;
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    #verHeader {
+      width: 100%;
+      max-width: 820px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    #verHeader .left {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    #verHeader .left button {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: 600;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    }
+    #verHeader .left button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    }
+    #verHeader .left button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+    #verHeader select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 0;
+      font-weight: 600;
+      background: var(--card);
+      color: var(--text);
+    }
+    #verHeader button:not(.left button) {
+      background: transparent;
+      border: 0;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+
+    #listado {
+      width: 92%;
+      max-width: 820px;
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .row {
+      background: var(--card);
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px var(--shadow);
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+    .row small {
+      color: var(--muted);
+      display: block;
+      margin-top: 6px;
+      font-size: 0.85rem;
+    }
+
+    #loginScreen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 120;
+      gap: 16px;
+    }
+    #loginBox {
+      background: var(--card);
+      padding: 28px;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px var(--shadow);
+      text-align: center;
+      color: var(--text);
+    }
+    #loginBox input {
+      width: 220px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--muted);
+      font-size: 1rem;
+      background: var(--card);
+      color: var(--text);
+    }
+    #loginBox button {
+      margin-top: 12px;
+      background: var(--primary);
+      color: #fff;
+      border: 0;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 4px solid var(--spinner-border);
+      border-top-color: var(--primary);
+      animation: spin .9s linear infinite;
+      margin-left: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes popupFade {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Popups */
+    #popupConfirm, #popupAlert, #popupUsuario {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 210;
+    }
+    #popupConfirm > div, #popupAlert > div, #popupUsuario > div {
+      background: var(--popup-bg);
+      border-radius: 16px;
+      padding: 24px 28px;
+      text-align: center;
+      box-shadow: 0 6px 26px var(--shadow);
+      width: 80%;
+      max-width: 300px;
+      animation: popupFade .3s ease;
+      color: var(--text);
+    }
+    #popupConfirm h3, #popupAlert h3, #popupUsuario h3 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+    #popupConfirm p, #popupAlert p, #popupUsuario p {
+      font-size: 1rem;
+      color: var(--muted);
+      margin: 0 0 18px;
+    }
+    #popupConfirm button, #popupAlert button, #popupUsuario button {
+      background: var(--primary);
+      color: #fff;
+      border: 0;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #popupConfirmNo {
+      background: var(--muted);
+      color: var(--text);
+    }
+
+    #userCircle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      border: 2px solid rgba(255, 255, 255, 0.33);
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Popup de confirmación -->
+<div id="popupConfirm">
+  <div>
+    <h3 id="popupConfirmTitle">Confirmar</h3>
+    <p id="popupConfirmMsg"></p>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button id="popupConfirmNo">Cancelar</button>
+      <button id="popupConfirmYes">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Popup de alerta moderno -->
+<div id="popupAlert">
+  <div>
+    <h3 id="popupAlertTitle">Información</h3>
+    <p id="popupAlertMsg"></p>
+    <button id="popupAlertOk">OK</button>
+  </div>
+</div>
+
+<!-- Popup de usuario -->
+<div id="popupUsuario">
+  <div>
+    <h3>Usuario actual</h3>
+    <p id="popupNombre"></p>
+    <button onclick="cerrarPopupUsuario()">Cerrar</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div id="loginBox">
+    <h2>Inicio de sesión</h2>
+    <p>Ingresa tu nombre para registrar asistencias</p>
+    <input type="text" id="nombreUsuario" placeholder="Tu nombre completo">
+    <br>
+    <button onclick="iniciarSesion()">Entrar</button>
+  </div>
+</div>
+
+<header>
+  <button aria-label="menu" onclick="toggleMenu()">☰</button>
+  <div class="title">📋 Asistencia Bochica Sur</div>
+  <div id="userCircle" onclick="mostrarNombreUsuario()" title=""></div>
+</header>
+
+<div id="menuOverlay" onclick="closeMenuIfOpen(event)"></div>
+
+<nav id="menu" aria-hidden="true">
+  <button class="item" onclick="abrirVerPantalla()">👁️ Ver asistencia</button>
+  <button class="item" onclick="cerrarSesion()">🔒 Cerrar sesión</button>
+  <button class="item" onclick="refrescarPagina()">🔄 Refrescar</button>
+  <button class="item" onclick="contactarSoporte()">📞 Soporte</button>
+  <div style="flex:1"></div>
+  <!-- Desplegable para seleccionar tema -->
+  <select id="themeSelect" onchange="changeTheme(this.value)">
+    <option value="claro">Tema Claro</option>
+    <option value="oscuro">Tema Oscuro</option>
+    <option value="lila">Tema Lila</option>
+    <option value="rosa">Tema Rosa</option>
+    <option value="beige">Tema Beige</option>
+    <option value="verde">Tema Verde</option>
+    <option value="naranja">Tema Naranja</option>
+    <option value="gris">Tema Gris</option>
+  </select>
+  <button class="item" onclick="toggleMenu()">Cerrar</button>
+</nav>
+
+
+
+
+<main id="principal" style="
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+  overflow: hidden;
+  gap: 2px;
+">
+
+  <div class="totalCard" style="
+    font-size: 28px;
+    font-weight: 700;
+    background: var(--card);
+    border-radius: 10px;
+    padding: 8px 10px;
+    width: 98%;
+    text-align: center;
+    margin: 2px 0;
+  ">
+    Total asistencia: <span id="total" style="font-size: 3.5rem;">0</span>
+  </div>
+
+  <!-- Tarjeta Hermanos -->
+  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
+    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Hermanos</div>
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
+      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanos', -1)">−</button>
+      <div class="value" id="hermanos" style="font-size: 2.5rem; font-weight: 700;">0</div>
+      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanos', 1)">+</button>
+    </div>
+  </div>
+
+  <!-- Tarjeta Hermanas -->
+  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
+    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Hermanas</div>
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
+      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanas', -1)">−</button>
+      <div class="value" id="hermanas" style="font-size: 2.5rem; font-weight: 700;">0</div>
+      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanas', 1)">+</button>
+    </div>
+  </div>
+
+  <!-- Tarjeta Amigos -->
+  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
+    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Amigos</div>
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
+      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('amigos', -1)">−</button>
+      <div class="value" id="amigos" style="font-size: 2.5rem; font-weight: 700;">0</div>
+      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('amigos', 1)">+</button>
+    </div>
+  </div>
+
+  <!-- Tarjeta Adolescentes -->
+  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
+    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Adolescentes</div>
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
+      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('adolescentes', -1)">−</button>
+      <div class="value" id="adolescentes" style="font-size: 2.5rem; font-weight: 700;">0</div>
+      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('adolescentes', 1)">+</button>
+    </div>
+  </div>
+
+  <!-- Tarjeta Niños -->
+  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
+    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Niños</div>
+    <div class="controls" style="display: flex; justify-content: center; align-items: center;gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
+      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('niños', -1)">−</button>
+      <div class="value" id="niños" style="font-size: 2.5rem; font-weight: 700;">0</div>
+      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('niños', 1)">+</button>
+    </div>
+  </div>
+
+  <div style="text-align: center; width: 98%; margin: 2px 0;">
+    <button 
+      onclick="subirAsistencia()" 
+      id="btn-subir"
+      style="
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        padding: 12px 0;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.5rem;
+        cursor: pointer;
+        width: 100%;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        white-space: nowrap;
+      "
+    >📤 Subir asistencia</button>
+  </div>
+
+</main>
+
+
+
+
+
+<section id="verPantalla" aria-hidden="true">
+  <div id="verHeader">
+    <div class="left"><button onclick="cerrarVerPantalla()">←</button><div id="tituloMes" style="font-weight:700; font-size:1rem">Asistencia</div></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <select id="selectMes" aria-label="Seleccionar mes" onchange="mesSeleccionado()"></select>
+      <button title="Refrescar" onclick="refrescarMes()">⟳</button>
+      <div id="loadingIndicator" style="display:none"><div class="spinner"></div></div>
+    </div>
+  </div>
+  <div id="listado"></div>
+</section>
+
+<script>
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwuad6LbOg5k2TFzphjhPTm-NwMJwURzhfFPsEb8a5oB9KXuXIhWxe5QzrR2xLnDjYVlA/exec";
+const datos = { hermanos:0, hermanas:0, amigos:0, adolescentes:0, niños:0 };
+const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+let mesActual = meses[(new Date()).getMonth()];
+let usuarioGlobal = localStorage.getItem("usuarioCelula") || "";
+
+// 🎨 Función para cambiar el tema
+function changeTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme); // Guardar tema seleccionado
+}
+ function refrescarPagina() {
+    try {
+      // Limpia el almacenamiento local y de sesión
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Limpia caché del navegador si es posible (moderno)
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) caches.delete(name);
+        });
+      }
+
+      // Forzar recarga total desde el servidor (no desde caché)
+      location.reload(true);
+    } catch (e) {
+      console.error("Error al refrescar:", e);
+      location.reload();
+    }
+  }
+
+  
+/* === LOGIN === */
+function iniciarSesion(){
+  const nombre = document.getElementById("nombreUsuario").value.trim();
+  if(!nombre) return mostrarAlerta("⚠️", "Ingresa tu nombre para continuar.");
+  localStorage.setItem("usuarioCelula", nombre);
+  usuarioGlobal = nombre;
+  document.getElementById("loginScreen").style.display="none";
+  actualizarUserCircle();
+  // close menu if open
+  const menu = document.getElementById('menu');
+  const overlay = document.getElementById('menuOverlay');
+  if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
+}
+function cerrarSesion(){
+  mostrarPopupConfirm("Confirmar", "¿Cerrar sesión?", () => {
+    localStorage.removeItem("usuarioCelula");
+    usuarioGlobal="";
+    document.getElementById("loginScreen").style.display="flex";
+    // close menu if open
+    const menu=document.getElementById('menu');
+    const overlay=document.getElementById('menuOverlay');
+    if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
+  });
+}
+if(usuarioGlobal){
+  document.getElementById("loginScreen").style.display="none";
+  actualizarUserCircle();
+}
+
+function actualizarUserCircle(){
+  const circle = document.getElementById("userCircle");
+  if(!circle) return;
+  if(!usuarioGlobal){
+    circle.textContent = "";
+    circle.style.display = "none";
+    return;
+  }
+  const partes = usuarioGlobal.trim().split(" ");
+  const iniciales = partes.length > 1
+    ? (partes[0][0] + partes[partes.length-1][0])
+    : partes[0][0];
+  circle.textContent = iniciales.toUpperCase();
+  circle.style.display = "flex";
+}
+
+function mostrarNombreUsuario(){
+  if(!usuarioGlobal) return;
+  document.getElementById("popupNombre").textContent = usuarioGlobal;
+  document.getElementById("popupUsuario").style.display = "flex";
+}
+
+function cerrarPopupUsuario(){
+  document.getElementById("popupUsuario").style.display = "none";
+}
+
+/* === ALERTA MODERNA === */
+function mostrarAlerta(titulo, mensaje){
+  const popup = document.getElementById('popupAlert');
+  document.getElementById('popupAlertTitle').textContent = titulo || "Información";
+  document.getElementById('popupAlertMsg').textContent = mensaje || "";
+  popup.style.display = "flex";
+
+  const btnOk = document.getElementById('popupAlertOk');
+  btnOk.onclick = () => { popup.style.display = "none"; };
+}
+
+/* === POPUP MODERNO === */
+function mostrarPopupConfirm(titulo, mensaje, callback){
+  const popup = document.getElementById('popupConfirm');
+  document.getElementById('popupConfirmTitle').textContent = titulo || "Confirmar";
+  document.getElementById('popupConfirmMsg').textContent = mensaje || "";
+  popup.style.display = "flex";
+
+  const btnYes = document.getElementById('popupConfirmYes');
+  const btnNo = document.getElementById('popupConfirmNo');
+
+  const cerrar = () => { popup.style.display = "none"; btnYes.onclick = null; btnNo.onclick = null; };
+  btnNo.onclick = cerrar;
+  btnYes.onclick = () => { cerrar(); if(callback) callback(); };
+}
+
+/* === MENÚ === */
+function toggleMenu(){ 
+  const menu=document.getElementById('menu');
+  const overlay=document.getElementById('menuOverlay');
+  menu.classList.toggle('active');
+  overlay.classList.toggle('active');
+  menu.setAttribute('aria-hidden', !menu.classList.contains('active')); 
+}
+function closeMenuIfOpen(evt){ 
+  const menu=document.getElementById('menu'); 
+  if(menu.classList.contains('active')) toggleMenu(); 
+}
+
+/* === CONTADORES === */
+function changeCount(tipo, delta){ 
+  datos[tipo]=Math.max(0,(datos[tipo]||0)+delta); 
+  document.getElementById(tipo).textContent=datos[tipo]; 
+  actualizarTotal(); 
+}
+function actualizarTotal(){ 
+  const total=Object.values(datos).reduce((a,b)=>a+b,0); 
+  document.getElementById('total').textContent=total; 
+}
+
+/* === SUBIR ASISTENCIA MEJORADA === */
+async function subirAsistencia(){
+  if(!usuarioGlobal) return mostrarAlerta("⚠️", "Debes iniciar sesión primero.");
+  const total = Object.values(datos).reduce((a,b)=>a+b,0);
+  if(total === 0) return mostrarPopupConfirm("Sin registros", "No hay personas registradas.", null);
+
+  // 🔹 cerrar menú si está abierto
+  const menu = document.getElementById('menu');
+  const overlay = document.getElementById('menuOverlay');
+  if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
+
+  // 🔹 confirmar envío
+  mostrarPopupConfirm("Confirmar envío", "¿Deseas subir esta asistencia?", async () => {
+    const fecha = new Date().toLocaleString('es-CO', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+    });
+
+    const params = new URLSearchParams({
+      usuario: usuarioGlobal,
+      fecha,
+      hermanos: datos.hermanos,
+      hermanas: datos.hermanas,
+      amigos: datos.amigos,
+      adolescentes: datos.adolescentes,
+      niños: datos.niños,
+      total
+    });
+
+    try {
+      const res = await fetch(`${URL_SCRIPT}?${params.toString()}`);
+      const text = await res.text();
+
+      if (text.includes('OK')) {
+        mostrarPopupConfirm("✅ Enviado", "Asistencia registrada correctamente.", null);
+        // 🔄 Reiniciar contadores
+        for (const k in datos) { datos[k] = 0; document.getElementById(k).textContent = 0; }
+        document.getElementById('total').textContent = 0;
+      } else if (text.includes('DUPLICADO')) {
+        mostrarPopupConfirm("⚠️ Duplicado", "Ya se envió recientemente.", null);
+      } else {
+        mostrarPopupConfirm("ℹ️ Servidor", text, null);
+      }
+    } catch (e) {
+      mostrarPopupConfirm("⚠️ Error", "No se pudo conectar con el servidor.", null);
+    }
+  });
+}
+
+/* === VER === */
+function abrirVerPantalla(){ 
+  const menu=document.getElementById('menu');
+  if(menu.classList.contains('active'))toggleMenu();
+  const select=document.getElementById('selectMes');
+  if(select.options.length===0){
+    meses.forEach(m=>{
+      const o=document.createElement('option');
+      o.value=m;
+      o.text=m;
+      select.appendChild(o);
+    });
+  }
+  select.value=mesActual;
+  document.getElementById('tituloMes').textContent='Asistencia de: '+select.value;
+  document.getElementById('verPantalla').classList.add('active');
+  verAsistencia(select.value);
+}
+function cerrarVerPantalla(){
+  document.getElementById('verPantalla').classList.remove('active');
+}
+function mesSeleccionado(){
+  const select=document.getElementById('selectMes');
+  mesActual=select.value;
+  document.getElementById('tituloMes').textContent='Asistencia de: '+mesActual;
+  verAsistencia(mesActual);
+}
+function refrescarMes(){
+  verAsistencia(document.getElementById('selectMes').value);
+}
+function showLoading(s){
+  document.getElementById('loadingIndicator').style.display=s?'block':'none';
+}
+
+async function verAsistencia(mes){
+  showLoading(true);
+  const listado=document.getElementById('listado');
+  listado.innerHTML='';
+  try{
+    const res=await fetch(`${URL_SCRIPT}?accion=listar&mes=${encodeURIComponent(mes)}`);
+    const text=await res.text();
+    let data;
+    try{data=JSON.parse(text);}catch(e){data=[];}
+    if(!data||data.length<=1){
+      listado.innerHTML=`<div class="row">⚠️ No hay registros en ${mes}.</div>`;
+      showLoading(false);
+      return;
+    }
+    const filas=data.slice(1).reverse();
+    listado.innerHTML=filas.map(r=>{
+      const [usuario,fecha,h,hm,am,ad,ni,tot]=r;
+      const esPropio = usuarioGlobal && usuarioGlobal.toLowerCase()===String(usuario).toLowerCase();
+      const usuarioEsc = escapeHTML(String(usuario || ''));
+      const fechaEsc = escapeHTML(String(fecha || ''));
+      const usuarioEnc = encodeURIComponent(String(usuario || ''));
+      const fechaEnc = encodeURIComponent(String(fecha || ''));
+      return `<div class="row">
+        <strong>👤 ${usuarioEsc}</strong>
+        <small>📅 ${fechaEsc}</small>
+        <div style="margin-top:8px">🙋‍♂️ ${h} 🙋‍♀️ ${hm} 🤝 ${am} 👧 ${ad} 🧒 ${ni}</div>
+        <small>🔢 Total: <strong>${escapeHTML(tot)}</strong></small>
+        ${esPropio?`<button style="margin-top:8px;background:#ff4444;color:#fff;border:0;padding:6px 10px;border-radius:8px;cursor:pointer" onclick="eliminarAsistencia('${usuarioEnc}','${fechaEnc}')">🗑️ Eliminar</button>`:''}
+      </div>`;
+    }).join('');
+  }catch(e){
+    listado.innerHTML=`<div class="row">⚠️ Error obteniendo datos.</div>`;
+  }finally{
+    showLoading(false);
+  }
+}
+
+/* === ELIMINAR ASISTENCIA === */
+async function eliminarAsistencia(usuarioEnc,fechaEnc){
+  const usuario = decodeURIComponent(usuarioEnc);
+  const fecha = decodeURIComponent(fechaEnc);
+  mostrarPopupConfirm("Confirmar eliminación", `¿Eliminar el registro de ${usuario} en ${fecha}?`, async () => {
+    try{
+      const res=await fetch(`${URL_SCRIPT}?accion=eliminar&usuario=${encodeURIComponent(usuario)}&fecha=${encodeURIComponent(fecha)}`);
+      const text=await res.text();
+      if(text.includes("ELIMINADA") || text.startsWith("ELIMINADAS_")){ 
+        mostrarAlerta("🗑️", "Registro eliminado."); 
+        refrescarMes(); 
+      } else {
+        mostrarAlerta("⚠️", text);
+      }
+    }catch(e){
+      mostrarAlerta("⚠️", "Error al eliminar.");
+    }
+  });
+}
+/* === SOPORTE === */
+function contactarSoporte(){
+  const numero = "+573202897214";
+  const mensaje = encodeURIComponent("Hola, necesito soporte con la aplicación Asistencia Bochica Sur.");
+  window.open(`https://wa.me/${numero}?text=${mensaje}`, '_blank');
+  toggleMenu(); // Cerrar el menú después de seleccionar
+}
+/* === HELPERS === */
+function escapeHTML(s){
+  return (s+'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+(function init(){
+  actualizarTotal();
+  const select=document.getElementById('selectMes');
+  meses.forEach(m=>{
+    const o=document.createElement('option');
+    o.value=m;
+    o.text=m;
+    select.appendChild(o);
+  });
+  select.value=mesActual;
+  if(usuarioGlobal){
+    document.getElementById("loginScreen").style.display="none";
+  } else {
+    document.getElementById("loginScreen").style.display="flex";
+  }
+  // 🎨 Cargar tema guardado (si existe)
+  const savedTheme = localStorage.getItem('theme') || 'claro';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('themeSelect').value = savedTheme;
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
