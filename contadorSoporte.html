@@ -1073,6 +1073,11 @@ async function loginIglesia(){
   }
 }
 
+function validarToken_(iglesia, token){
+  if(!iglesia || !token) return false;
+  var val = CacheService.getScriptCache().get("tok_" + token);
+  return val === String(iglesia);
+}
 
 
 function cerrarSesion(){
@@ -1381,6 +1386,7 @@ function escapeHTML(s){
 </script>
 </body>
 </html>
+
 
 
 
