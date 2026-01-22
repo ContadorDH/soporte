@@ -1005,7 +1005,13 @@ function iniciarSesion(){
   const menu = document.getElementById('menu');
   const overlay = document.getElementById('menuOverlay');
   if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
+
+  // ✅ Pedir iglesia + PIN si aún no hay token
+  if(!iglesiaId || !tokenIglesia){
+    mostrarPantallaIglesia();
+  }
 }
+
 
 
 
@@ -1076,6 +1082,13 @@ async function loginIglesia(){
 function cerrarSesion(){
   mostrarPopupConfirm("Confirmar", "¿Cerrar sesión?", () => {
     localStorage.removeItem("usuarioCelula");
+
+    // ✅ borrar iglesia también
+    localStorage.removeItem("iglesiaId");
+    localStorage.removeItem("tokenIglesia");
+    iglesiaId = "";
+    tokenIglesia = "";
+
     usuarioGlobal="";
     document.getElementById("loginScreen").style.display="flex";
     // close menu if open
@@ -1084,10 +1097,17 @@ function cerrarSesion(){
     if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
   });
 }
+
 if(usuarioGlobal){
   document.getElementById("loginScreen").style.display="none";
   actualizarUserCircle();
+
+  // ✅ Si no hay iglesia/token guardado, pedirlo
+  if(!iglesiaId || !tokenIglesia){
+    mostrarPantallaIglesia();
+  }
 }
+
 
 function actualizarUserCircle(){
   const circle = document.getElementById("userCircle");
@@ -1338,6 +1358,7 @@ function escapeHTML(s){
 </script>
 </body>
 </html>
+
 
 
 
