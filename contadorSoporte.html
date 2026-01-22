@@ -1,8 +1,8 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Asistencia Bochica Sur</title>
   
   <!-- === PWA y Iconos para Android e iOS === -->
@@ -296,130 +296,135 @@
       gap: 12px;
     }
 
-    /* Ajustar las tarjetas para ocupar más espacio y reducir márgenes */
-    .card {
-      width: 95%;
-      max-width: 440px;
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 2px 0;
-      box-shadow: 0 2px 6px var(--shadow);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
+/* Ajustar las tarjetas para ocupar más espacio y reducir márgenes */
+.card {
+  width: 95%;
+  max-width: 440px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 2px 0;
+  box-shadow: 0 2px 6px var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
 
-    /* Ajustar tamaño de etiquetas (solo "Hermanos", "Hermanas", etc.) */
-    .label {
-      font-size: 10px;
-      font-weight: 600;
-      text-align: center;
-      width: 100%;
-      color: var(--text);
-      line-height: 1.1;
-      margin: 0;
-    }
+/* Ajustar tamaño de etiquetas (solo "Hermanos", "Hermanas", etc.) */
+.label {
+  font-size: 10px; /* Reducido a la mitad de 19px (aproximadamente 9.5px, redondeado a 10px) */
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+  color: var(--text);
+  line-height: 1.1;
+  margin: 0;
+}
 
-    /* Ajustar los controles (contenedor de botones y valor) */
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 108px;
-    }
+/* Ajustar los controles (contenedor de botones y valor) */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 108px;
+}
 
-    /* Aumentar tamaño de los botones de contador con efectos restaurados */
-    .counterBtn {
-      width: 18vw;
-      height: 18vw;
-      max-width: 70px;
-      max-height: 70px;
-      border-radius: 50%;
-      border: none;
-      color: #fff;
-      font-size: 35px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      outline: none;
-      -webkit-tap-highlight-color: transparent;
-    }
+/* Aumentar tamaño de los botones de contador con efectos restaurados */
+.counterBtn {
+  width: 18vw; /* Aumentado de 15vw para hacer los iconos más grandes (aprox. 72px en 360px de ancho) */
+  height: 18vw; /* Aumentado para mantener proporción circular */
+  max-width: 70px; /* Aumentado de 56px para permitir mayor tamaño en pantallas grandes */
+  max-height: 70px; /* Aumentado para mantener proporción */
+  border-radius: 50%;
+  border: none;
+  color: #fff;
+  font-size: 35px; /* Aumentado de 28px para que los iconos sean más grandes */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
 
-    .counterBtn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25), 0 3px 8px rgba(0, 0, 0, 0.15);
-    }
+.counterBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25), 0 3px 8px rgba(0, 0, 0, 0.15);
+}
 
-    .counterBtn:active {
-      transform: translateY(1px);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    }
+.counterBtn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
 
-    .counterBtn.minus { background: var(--button-minus); }
-    .counterBtn.plus { background: var(--button-plus); }
+.counterBtn.minus {
+  background: var(--button-minus);
+}
 
-    .counterBtn.ghost {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--muted);
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      font-size: 24px;
-      box-shadow: none;
-      outline: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .counterBtn.ghost:hover {
-      transform: none;
-      box-shadow: none;
-    }
+.counterBtn.plus {
+  background: var(--button-plus);
+}
 
-    /* Ajustar el valor del contador */
-    .value {
-      min-width: 44px;
-      text-align: center;
-      font-weight: 700;
-      font-size: 1.2rem;
-      color: var(--text);
-      cursor: pointer;
-      user-select: none;
-    }
+.counterBtn.ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--muted);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 24px;
+  box-shadow: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
 
-    /* Ajustar la tarjeta de total */
-    .totalCard {
-      width: 95%;
-      max-width: 440px;
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 6px 8px;
-      text-align: center;
-      font-weight: 700;
-      box-shadow: 0 4px 12px var(--shadow-dark);
-      font-size: 1.1rem;
-      color: var(--text);
-      margin: 2px 0;
-    }
-    .totalCard #total {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: var(--primary);
-      line-height: 1.2;
-    }
+.counterBtn.ghost:hover {
+  transform: none;
+  box-shadow: none;
+}
 
-    /* Asegurar que el contenedor principal use todo el espacio */
-    main {
-      height: calc(100vh - 64px);
-      overflow: auto;
-      padding: 1px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1px;
-    }
+/* Ajustar el valor del contador */
+.value {
+  min-width: 44px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+/* Ajustar la tarjeta de total */
+.totalCard {
+  width: 95%;
+  max-width: 440px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  text-align: center;
+  font-weight: 700;
+  box-shadow: 0 4px 12px var(--shadow-dark);
+  font-size: 1.1rem;
+  color: var(--text);
+  margin: 2px 0;
+}
+
+.totalCard #total {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+/* Asegurar que el contenedor principal use todo el espacio */
+main {
+  height: calc(100vh - 64px);
+  overflow: auto;
+  padding: 1px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
 
     #verPantalla {
       position: fixed;
@@ -641,50 +646,103 @@
       transition: transform 0.2s ease, background 0.3s ease;
     }
 
+
+/* ✅ PARCHE RESPONSIVE (mínimo, sin tocar HTML/JS) */
+html, body {
+  height: 100%;
+}
+
+/* Evita cortes por barras del sistema (iOS/Android modernos) */
+body {
+  min-height: 100dvh; /* mejor que 100vh en móviles */
+  overflow-x: hidden;
+}
+
+/* El main en tu HTML tiene overflow:hidden inline. 
+   Forzamos scroll vertical cuando haga falta. */
+#principal {
+  height: calc(100dvh - 64px) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+
+/* Permite que los controles no "exploten" horizontalmente */
+.controls {
+  width: 100%;
+  justify-content: space-between;
+  gap: 12px !important; /* en vez de 30px/108px, solo si el ancho aprieta */
+  padding: 0 12px;
+}
+
+/* Mantiene botones grandes, pero adaptables en pantallas pequeñas */
+.counterBtn {
+  width: clamp(54px, 18vw, 70px) !important;
+  height: clamp(54px, 18vw, 70px) !important;
+  font-size: clamp(26px, 7vw, 40px) !important;
+}
+
+/* Reduce un poco tipografías solo en pantallas bajas */
+@media (max-height: 700px) {
+  .totalCard { font-size: 22px !important; }
+  .totalCard #total { font-size: 3rem !important; }
+  .label { font-size: 1.05rem !important; }
+  .value { font-size: 2.1rem !important; }
+}
+
+/* En pantallas MUY angostas, evitamos overflow horizontal */
+@media (max-width: 360px) {
+  .controls { padding: 0 8px; gap: 8px !important; }
+  .value { min-width: 34px; }
+}
+
+
+
     /* ✅ Fix iPhone 11 + Huawei: viewport real + no cortar contenido */
-    html {
-      height: -webkit-fill-available; /* iOS */
-    }
+html {
+  height: -webkit-fill-available; /* iOS */
+}
 
-    body {
-      min-height: 100vh;                 /* fallback */
-      min-height: 100dvh;                /* moderno: alto real */
-      min-height: -webkit-fill-available;/* iOS Safari */
-      overflow-x: hidden;
-    }
+body {
+  min-height: 100vh;       /* fallback */
+  min-height: 100dvh;      /* moderno: alto real */
+  min-height: -webkit-fill-available; /* iOS Safari */
+  overflow-x: hidden;
+}
 
-    /* Tu main tiene overflow:hidden inline. Esto evita que se corte en pantallas bajas. */
-    #principal {
-      height: calc(100vh - 64px) !important;   /* fallback */
-      height: calc(100dvh - 64px) !important;  /* moderno */
-      overflow-y: auto !important;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: max(12px, env(safe-area-inset-bottom));
-    }
+/* Tu main tiene overflow:hidden inline. Esto evita que se corte en pantallas bajas. */
+#principal {
+  height: calc(100vh - 64px) !important;   /* fallback */
+  height: calc(100dvh - 64px) !important;  /* moderno */
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
 
-    /* Evita que los controles “revienten” en pantallas angostas */
-    .controls {
-      width: 100%;
-      justify-content: space-between;
-      padding: 0 12px;
-      gap: 12px !important;
-    }
+/* Evita que los controles “revienten” en pantallas angostas */
+.controls {
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 12px;
+  gap: 12px !important;
+}
 
-    /* Botones adaptables: mantiene 70px, pero se encoge si el teléfono es pequeño */
-    .counterBtn {
-      width: clamp(54px, 18vw, 70px) !important;
-      height: clamp(54px, 18vw, 70px) !important;
-      font-size: clamp(26px, 7vw, 40px) !important;
-    }
+/* Botones adaptables: mantiene 70px, pero se encoge si el teléfono es pequeño */
+.counterBtn {
+  width: clamp(54px, 18vw, 70px) !important;
+  height: clamp(54px, 18vw, 70px) !important;
+  font-size: clamp(26px, 7vw, 40px) !important;
+}
 
-    /* Ajuste ligero solo en pantallas bajas */
-    @media (max-height: 700px) {
-      .totalCard #total { font-size: 3rem !important; }
-      .value { font-size: 2.2rem !important; }
-    }
+/* Ajuste ligero solo en pantallas bajas (iPhone 11 en algunos modos / Huawei con barra visible) */
+@media (max-height: 700px) {
+  .totalCard #total { font-size: 3rem !important; }
+  .value { font-size: 2.2rem !important; }
+}
+
+    
   </style>
 </head>
-
 <body>
 
 <!-- Popup de confirmación -->
@@ -728,6 +786,27 @@
   </div>
 </div>
 
+<!-- LOGIN IGLESIA (Paso 1 - NO activo aún) -->
+<div id="churchScreen" style="position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:130;">
+  <div style="background:var(--card);padding:28px;border-radius:14px;box-shadow:0 8px 24px var(--shadow);text-align:center;color:var(--text);width:320px;max-width:92vw;">
+    <h2>Selecciona tu iglesia</h2>
+    <p style="color:var(--muted);margin-top:6px;">Elige la iglesia y escribe el PIN</p>
+
+    <select id="iglesiaSelect" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--muted);background:var(--card);color:var(--text);font-size:1rem;"></select>
+
+    <div style="height:10px"></div>
+
+    <input id="pinIglesia" type="password" placeholder="PIN"
+      style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--muted);font-size:1rem;background:var(--card);color:var(--text);" />
+
+    <button onclick="loginIglesia()"
+      style="margin-top:12px;background:var(--primary);color:#fff;border:0;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600;width:100%;">
+      Entrar
+    </button>
+  </div>
+</div>
+
+
 <header>
   <button aria-label="menu" onclick="toggleMenu()">☰</button>
   <div class="title">📋 Asistencia Bochica Sur</div>
@@ -754,7 +833,14 @@
     <option value="gris">Tema Gris</option>
   </select>
   <button class="item" onclick="toggleMenu()">Cerrar</button>
+  <button class="item" type="button" disabled style="opacity:.75; cursor:default;">
+    DECOM 2026
+  </button>
 </nav>
+
+
+
+
 
 <main id="principal" style="
   height: calc(100vh - 64px);
@@ -783,7 +869,7 @@
   <!-- Tarjeta Hermanos -->
   <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
     <div class="label" style="font-size: 1.2rem; font-weight: 600;">Hermanos</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;">
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
       <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanos', -1)">−</button>
       <div class="value" id="hermanos" style="font-size: 2.5rem; font-weight: 700;">0</div>
       <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanos', 1)">+</button>
@@ -793,7 +879,7 @@
   <!-- Tarjeta Hermanas -->
   <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
     <div class="label" style="font-size: 1.2rem; font-weight: 600;">Hermanas</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;">
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
       <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanas', -1)">−</button>
       <div class="value" id="hermanas" style="font-size: 2.5rem; font-weight: 700;">0</div>
       <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanas', 1)">+</button>
@@ -803,7 +889,7 @@
   <!-- Tarjeta Amigos -->
   <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
     <div class="label" style="font-size: 1.2rem; font-weight: 600;">Amigos</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;">
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
       <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('amigos', -1)">−</button>
       <div class="value" id="amigos" style="font-size: 2.5rem; font-weight: 700;">0</div>
       <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('amigos', 1)">+</button>
@@ -813,7 +899,7 @@
   <!-- Tarjeta Adolescentes -->
   <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
     <div class="label" style="font-size: 1.2rem; font-weight: 600;">Adolescentes</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;">
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
       <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('adolescentes', -1)">−</button>
       <div class="value" id="adolescentes" style="font-size: 2.5rem; font-weight: 700;">0</div>
       <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('adolescentes', 1)">+</button>
@@ -823,7 +909,7 @@
   <!-- Tarjeta Niños -->
   <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
     <div class="label" style="font-size: 1.2rem; font-weight: 600;">Niños</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;">
+    <div class="controls" style="display: flex; justify-content: center; align-items: center;gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
       <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('niños', -1)">−</button>
       <div class="value" id="niños" style="font-size: 2.5rem; font-weight: 700;">0</div>
       <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('niños', 1)">+</button>
@@ -852,6 +938,10 @@
 
 </main>
 
+
+
+
+
 <section id="verPantalla" aria-hidden="true">
   <div id="verHeader">
     <div class="left"><button onclick="cerrarVerPantalla()">←</button><div id="tituloMes" style="font-weight:700; font-size:1rem">Asistencia</div></div>
@@ -871,27 +961,38 @@ const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto"
 let mesActual = meses[(new Date()).getMonth()];
 let usuarioGlobal = localStorage.getItem("usuarioCelula") || "";
 
+// === MULTI-IGLESIA (Paso 1) ===
+let iglesiaId = localStorage.getItem("iglesiaId") || "";
+let tokenIglesia = localStorage.getItem("tokenIglesia") || "";
+
+
 // 🎨 Función para cambiar el tema
 function changeTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('theme', theme); // Guardar tema seleccionado
 }
-function refrescarPagina() {
-  try {
-    localStorage.clear();
-    sessionStorage.clear();
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        for (let name of names) caches.delete(name);
-      });
-    }
-    location.reload(true);
-  } catch (e) {
-    console.error("Error al refrescar:", e);
-    location.reload();
-  }
-}
+ function refrescarPagina() {
+    try {
+      // Limpia el almacenamiento local y de sesión
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Limpia caché del navegador si es posible (moderno)
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) caches.delete(name);
+        });
+      }
 
+      // Forzar recarga total desde el servidor (no desde caché)
+      location.reload(true);
+    } catch (e) {
+      console.error("Error al refrescar:", e);
+      location.reload();
+    }
+  }
+
+  
 /* === LOGIN === */
 function iniciarSesion(){
   const nombre = document.getElementById("nombreUsuario").value.trim();
@@ -900,15 +1001,84 @@ function iniciarSesion(){
   usuarioGlobal = nombre;
   document.getElementById("loginScreen").style.display="none";
   actualizarUserCircle();
+  // close menu if open
   const menu = document.getElementById('menu');
   const overlay = document.getElementById('menuOverlay');
   if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
 }
+
+
+
+// === MULTI-IGLESIA (Paso 1 - NO activo aún) ===
+async function cargarIglesias(){
+  // IMPORTANTE: esto aún no se usa hasta que el Apps Script esté listo
+  try{
+    const res = await fetch(`${URL_SCRIPT}?accion=iglesias`);
+    const text = await res.text();
+    const data = JSON.parse(text); // [{id, nombre}]
+    const sel = document.getElementById("iglesiaSelect");
+    sel.innerHTML = "";
+    data.forEach(it=>{
+      const o=document.createElement("option");
+      o.value=it.id;
+      o.textContent=it.nombre;
+      sel.appendChild(o);
+    });
+  }catch(e){
+    mostrarAlerta("⚠️", "No se pudo cargar la lista de iglesias (aún no está activo).");
+  }
+}
+
+function mostrarPantallaIglesia(){
+  document.getElementById("churchScreen").style.display = "flex";
+  cargarIglesias();
+}
+
+function ocultarPantallaIglesia(){
+  document.getElementById("churchScreen").style.display = "none";
+}
+
+async function loginIglesia(){
+  // IMPORTANTE: esto aún no se usa hasta que el Apps Script esté listo
+  const sel = document.getElementById("iglesiaSelect");
+  const pin = (document.getElementById("pinIglesia").value || "").trim();
+  const id = sel.value;
+
+  if(!id) return mostrarAlerta("⚠️", "Selecciona una iglesia.");
+  if(!pin) return mostrarAlerta("⚠️", "Ingresa el PIN.");
+
+  try{
+    const res = await fetch(`${URL_SCRIPT}?accion=login&iglesia=${encodeURIComponent(id)}&pin=${encodeURIComponent(pin)}`);
+    const text = await res.text();
+    const obj = JSON.parse(text); // {ok:true, token:"...", iglesiaNombre:"..."}
+
+    if(!obj.ok){
+      return mostrarAlerta("⚠️", obj.mensaje || "PIN incorrecto.");
+    }
+
+    iglesiaId = id;
+    tokenIglesia = obj.token;
+    localStorage.setItem("iglesiaId", iglesiaId);
+    localStorage.setItem("tokenIglesia", tokenIglesia);
+
+    // (opcional) cambia el título visible cuando el backend ya responda nombre
+    const titleEl = document.querySelector("header .title");
+    if(titleEl && obj.iglesiaNombre) titleEl.textContent = `📋 Asistencia ${obj.iglesiaNombre}`;
+
+    ocultarPantallaIglesia();
+  }catch(e){
+    mostrarAlerta("⚠️", "Error iniciando en la iglesia (aún no está activo).");
+  }
+}
+
+
+
 function cerrarSesion(){
   mostrarPopupConfirm("Confirmar", "¿Cerrar sesión?", () => {
     localStorage.removeItem("usuarioCelula");
     usuarioGlobal="";
     document.getElementById("loginScreen").style.display="flex";
+    // close menu if open
     const menu=document.getElementById('menu');
     const overlay=document.getElementById('menuOverlay');
     if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
@@ -951,6 +1121,7 @@ function mostrarAlerta(titulo, mensaje){
   document.getElementById('popupAlertTitle').textContent = titulo || "Información";
   document.getElementById('popupAlertMsg').textContent = mensaje || "";
   popup.style.display = "flex";
+
   const btnOk = document.getElementById('popupAlertOk');
   btnOk.onclick = () => { popup.style.display = "none"; };
 }
@@ -994,33 +1165,18 @@ function actualizarTotal(){
   document.getElementById('total').textContent=total; 
 }
 
-/* ✅ Permitir editar el número tocando el valor */
-function editarValor(tipo){
-  const actual = datos[tipo] ?? 0;
-  const input = prompt(`Ingresa el valor para "${tipo}":`, String(actual));
-  if (input === null) return;
-
-  const n = parseInt(String(input).replace(/[^\d-]/g, ''), 10);
-  if (isNaN(n) || n < 0) {
-    return mostrarAlerta("⚠️", "Ingresa un número válido (0 o mayor).");
-  }
-
-  datos[tipo] = n;
-  const el = document.getElementById(tipo);
-  if (el) el.textContent = n;
-  actualizarTotal();
-}
-
 /* === SUBIR ASISTENCIA MEJORADA === */
 async function subirAsistencia(){
   if(!usuarioGlobal) return mostrarAlerta("⚠️", "Debes iniciar sesión primero.");
   const total = Object.values(datos).reduce((a,b)=>a+b,0);
   if(total === 0) return mostrarPopupConfirm("Sin registros", "No hay personas registradas.", null);
 
+  // 🔹 cerrar menú si está abierto
   const menu = document.getElementById('menu');
   const overlay = document.getElementById('menuOverlay');
   if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
 
+  // 🔹 confirmar envío
   mostrarPopupConfirm("Confirmar envío", "¿Deseas subir esta asistencia?", async () => {
     const fecha = new Date().toLocaleString('es-CO', {
       day: '2-digit', month: '2-digit', year: 'numeric',
@@ -1044,6 +1200,7 @@ async function subirAsistencia(){
 
       if (text.includes('OK')) {
         mostrarPopupConfirm("✅ Enviado", "Asistencia registrada correctamente.", null);
+        // 🔄 Reiniciar contadores
         for (const k in datos) { datos[k] = 0; document.getElementById(k).textContent = 0; }
         document.getElementById('total').textContent = 0;
       } else if (text.includes('DUPLICADO')) {
@@ -1147,20 +1304,17 @@ async function eliminarAsistencia(usuarioEnc,fechaEnc){
     }
   });
 }
-
 /* === SOPORTE === */
 function contactarSoporte(){
   const numero = "+573202897214";
   const mensaje = encodeURIComponent("Hola, necesito soporte con la aplicación Asistencia Bochica Sur.");
   window.open(`https://wa.me/${numero}?text=${mensaje}`, '_blank');
-  toggleMenu();
+  toggleMenu(); // Cerrar el menú después de seleccionar
 }
-
 /* === HELPERS === */
 function escapeHTML(s){
   return (s+'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-
 (function init(){
   actualizarTotal();
   const select=document.getElementById('selectMes');
@@ -1171,22 +1325,19 @@ function escapeHTML(s){
     select.appendChild(o);
   });
   select.value=mesActual;
-
   if(usuarioGlobal){
     document.getElementById("loginScreen").style.display="none";
   } else {
     document.getElementById("loginScreen").style.display="flex";
   }
-
+  // 🎨 Cargar tema guardado (si existe)
   const savedTheme = localStorage.getItem('theme') || 'claro';
   document.documentElement.setAttribute('data-theme', savedTheme);
   document.getElementById('themeSelect').value = savedTheme;
-
-  /* ✅ Activar click para editar números */
-  document.querySelectorAll('.value').forEach(el => {
-    el.addEventListener('click', () => editarValor(el.id));
-  });
 })();
 </script>
 </body>
 </html>
+
+
+
