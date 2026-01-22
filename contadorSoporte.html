@@ -1005,12 +1005,8 @@ function iniciarSesion(){
   const menu = document.getElementById('menu');
   const overlay = document.getElementById('menuOverlay');
   if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
-
-  // ✅ Pedir iglesia + PIN si aún no hay token
-  if(!iglesiaId || !tokenIglesia){
-    mostrarPantallaIglesia();
-  }
 }
+
 
 
 
@@ -1102,10 +1098,7 @@ if(usuarioGlobal){
   document.getElementById("loginScreen").style.display="none";
   actualizarUserCircle();
 
-  // ✅ Si no hay iglesia/token guardado, pedirlo
-  if(!iglesiaId || !tokenIglesia){
-    mostrarPantallaIglesia();
-  }
+
 }
 
 
@@ -1185,9 +1178,23 @@ function actualizarTotal(){
   document.getElementById('total').textContent=total; 
 }
 
+
+// ✅ Requiere iglesia + token antes de permitir acciones
+function asegurarIglesia(){
+  if(!iglesiaId || !tokenIglesia){
+    mostrarPantallaIglesia();
+    mostrarAlerta("🔒", "Selecciona tu iglesia e ingresa el PIN para continuar.");
+    return false;
+  }
+  return true;
+}
+
+
 /* === SUBIR ASISTENCIA MEJORADA === */
 async function subirAsistencia(){
   if(!usuarioGlobal) return mostrarAlerta("⚠️", "Debes iniciar sesión primero.");
+  if(!asegurarIglesia()) return;
+
   const total = Object.values(datos).reduce((a,b)=>a+b,0);
   if(total === 0) return mostrarPopupConfirm("Sin registros", "No hay personas registradas.", null);
 
@@ -1204,6 +1211,11 @@ async function subirAsistencia(){
     });
 
     const params = new URLSearchParams({
+      // ✅ multi-iglesia
+      iglesia: iglesiaId,
+      token: tokenIglesia,
+
+      // legacy
       usuario: usuarioGlobal,
       fecha,
       hermanos: datos.hermanos,
@@ -1217,6 +1229,15 @@ async function subirAsistencia(){
     try {
       const res = await fetch(`${URL_SCRIPT}?${params.toString()}`);
       const text = await res.text();
+
+      // Si en el futuro el backend responde NOAUTH
+      if(String(text).includes("NOAUTH")){
+        localStorage.removeItem("iglesiaId");
+        localStorage.removeItem("tokenIglesia");
+        iglesiaId=""; tokenIglesia="";
+        mostrarPantallaIglesia();
+        return mostrarAlerta("🔒", "Tu sesión de iglesia expiró. Ingresa el PIN nuevamente.");
+      }
 
       if (text.includes('OK')) {
         mostrarPopupConfirm("✅ Enviado", "Asistencia registrada correctamente.", null);
@@ -1273,7 +1294,8 @@ async function verAsistencia(mes){
   const listado=document.getElementById('listado');
   listado.innerHTML='';
   try{
-    const res=await fetch(`${URL_SCRIPT}?accion=listar&mes=${encodeURIComponent(mes)}`);
+    if(!asegurarIglesia()) { showLoading(false); return; }
+const res=await fetch(`${URL_SCRIPT}?accion=listar&iglesia=${encodeURIComponent(iglesiaId)}&token=${encodeURIComponent(tokenIglesia)}&mes=${encodeURIComponent(mes)}`);
     const text=await res.text();
     let data;
     try{data=JSON.parse(text);}catch(e){data=[];}
@@ -1311,7 +1333,8 @@ async function eliminarAsistencia(usuarioEnc,fechaEnc){
   const fecha = decodeURIComponent(fechaEnc);
   mostrarPopupConfirm("Confirmar eliminación", `¿Eliminar el registro de ${usuario} en ${fecha}?`, async () => {
     try{
-      const res=await fetch(`${URL_SCRIPT}?accion=eliminar&usuario=${encodeURIComponent(usuario)}&fecha=${encodeURIComponent(fecha)}`);
+      if(!asegurarIglesia()) return;
+const res=await fetch(`${URL_SCRIPT}?accion=eliminar&iglesia=${encodeURIComponent(iglesiaId)}&token=${encodeURIComponent(tokenIglesia)}&usuario=${encodeURIComponent(usuario)}&fecha=${encodeURIComponent(fecha)}`);
       const text=await res.text();
       if(text.includes("ELIMINADA") || text.startsWith("ELIMINADAS_")){ 
         mostrarAlerta("🗑️", "Registro eliminado."); 
@@ -1358,7 +1381,6 @@ function escapeHTML(s){
 </script>
 </body>
 </html>
-
 
 
 
