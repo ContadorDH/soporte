@@ -1196,6 +1196,7 @@ function asegurarIglesia(){
 
 
 /* === SUBIR ASISTENCIA MEJORADA === */
+/* === SUBIR ASISTENCIA MEJORADA === */
 async function subirAsistencia(){
   if(!usuarioGlobal) return mostrarAlerta("⚠️", "Debes iniciar sesión primero.");
   if(!asegurarIglesia()) return;
@@ -1215,30 +1216,29 @@ async function subirAsistencia(){
       hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
     });
 
- const params = new URLSearchParams({
-  // ✅ IMPORTANTE
-  accion: "insertar",
+    const params = new URLSearchParams({
+      // ✅ IMPORTANTE
+      accion: "insertar",
 
-  // ✅ multi-iglesia
-  iglesia: iglesiaId,
-  token: tokenIglesia,
+      // ✅ multi-iglesia
+      iglesia: iglesiaId,
+      token: tokenIglesia,
 
-  usuario: usuarioGlobal,
-  fecha,
-  hermanos: datos.hermanos,
-  hermanas: datos.hermanas,
-  amigos: datos.amigos,
-  adolescentes: datos.adolescentes,
-  niños: datos.niños,
-  total
-});
-
+      usuario: usuarioGlobal,
+      fecha,
+      hermanos: datos.hermanos,
+      hermanas: datos.hermanas,
+      amigos: datos.amigos,
+      adolescentes: datos.adolescentes,
+      niños: datos.niños,
+      total
+    });
 
     try {
-      const res = await fetch(`${URL_SCRIPT}?${params.toString()}`);
+      const res = await fetch(`${URL_SCRIPT}?${params.toString()}`, { cache: "no-store" });
       const text = await res.text();
 
-      // Si en el futuro el backend responde NOAUTH
+      // Si el backend responde NOAUTH
       if(String(text).includes("NOAUTH")){
         localStorage.removeItem("iglesiaId");
         localStorage.removeItem("tokenIglesia");
@@ -1247,22 +1247,22 @@ async function subirAsistencia(){
         return mostrarAlerta("🔒", "Tu sesión de iglesia expiró. Ingresa el PIN nuevamente.");
       }
 
-    if (String(text).trim() === 'OK') {
-
+      if (String(text).trim() === "OK") {
         mostrarPopupConfirm("✅ Enviado", "Asistencia registrada correctamente.", null);
         // 🔄 Reiniciar contadores
         for (const k in datos) { datos[k] = 0; document.getElementById(k).textContent = 0; }
         document.getElementById('total').textContent = 0;
-      } else if (text.includes('DUPLICADO')) {
+      } else if (String(text).includes("DUPLICADO")) {
         mostrarPopupConfirm("⚠️ Duplicado", "Ya se envió recientemente.", null);
       } else {
         mostrarPopupConfirm("ℹ️ Servidor", text, null);
       }
     } catch (e) {
-      mostrarPopupConfirm("⚠️ Error", "No se pudo conectar con el servidor.", null);
+      mostrarPopupConfirm("⚠️ Error", "No se pudo conectar con el servidor.\n" + (e?.message || String(e)), null);
     }
   });
 }
+
 
 /* === VER === */
 function abrirVerPantalla(){ 
@@ -1390,6 +1390,7 @@ function escapeHTML(s){
 </script>
 </body>
 </html>
+
 
 
 
