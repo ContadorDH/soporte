@@ -1215,21 +1215,24 @@ async function subirAsistencia(){
       hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
     });
 
-    const params = new URLSearchParams({
-      // ✅ multi-iglesia
-      iglesia: iglesiaId,
-      token: tokenIglesia,
+ const params = new URLSearchParams({
+  // ✅ IMPORTANTE
+  accion: "insertar",
 
-      // legacy
-      usuario: usuarioGlobal,
-      fecha,
-      hermanos: datos.hermanos,
-      hermanas: datos.hermanas,
-      amigos: datos.amigos,
-      adolescentes: datos.adolescentes,
-      niños: datos.niños,
-      total
-    });
+  // ✅ multi-iglesia
+  iglesia: iglesiaId,
+  token: tokenIglesia,
+
+  usuario: usuarioGlobal,
+  fecha,
+  hermanos: datos.hermanos,
+  hermanas: datos.hermanas,
+  amigos: datos.amigos,
+  adolescentes: datos.adolescentes,
+  niños: datos.niños,
+  total
+});
+
 
     try {
       const res = await fetch(`${URL_SCRIPT}?${params.toString()}`);
@@ -1244,7 +1247,8 @@ async function subirAsistencia(){
         return mostrarAlerta("🔒", "Tu sesión de iglesia expiró. Ingresa el PIN nuevamente.");
       }
 
-      if (text.includes('OK')) {
+    if (String(text).trim() === 'OK') {
+
         mostrarPopupConfirm("✅ Enviado", "Asistencia registrada correctamente.", null);
         // 🔄 Reiniciar contadores
         for (const k in datos) { datos[k] = 0; document.getElementById(k).textContent = 0; }
@@ -1386,6 +1390,7 @@ function escapeHTML(s){
 </script>
 </body>
 </html>
+
 
 
 
