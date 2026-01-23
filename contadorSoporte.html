@@ -930,6 +930,7 @@ body {
 <nav id="menu" aria-hidden="true">
   <button class="item" onclick="abrirVerPantalla()">👁️ Ver asistencia</button>
   <button class="item" onclick="descargarMesCSV()">⬇️ Descargar (CSV)</button>
+  <button class="item" onclick="descargarMesXLSX()">⬇️ Descargar (Excel)</button>
   <button class="item" onclick="refrescarPagina()">🔄 Refrescar</button>
   <button class="item" onclick="contactarSoporte()">📞 Soporte</button>
    <button class="item" onclick="cerrarSesion()">🔒 Cerrar sesión</button>
@@ -1461,6 +1462,67 @@ function showLoading(s){
   document.getElementById('loadingIndicator').style.display=s?'block':'none';
 }
 
+
+
+
+async function descargarMesXLSX(){
+  showBusy("Preparando Excel…", "Estamos generando el archivo de tu iglesia");
+  try{
+    if(!asegurarIglesia()) return;
+
+    const mes = (document.getElementById('selectMes')?.value) || mesActual;
+
+    // Cerrar menú si está abierto
+    const menu = document.getElementById('menu');
+    const overlay = document.getElementById('menuOverlay');
+    if(menu?.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
+
+    const url = `${URL_SCRIPT}?accion=descargarXLSX&iglesia=${encodeURIComponent(iglesiaId)}&token=${encodeURIComponent(tokenIglesia)}&mes=${encodeURIComponent(mes)}`;
+    const res = await fetch(url, { cache:"no-store" });
+    const text = await res.text();
+
+    if(text.includes("NOAUTH")){
+      localStorage.removeItem("iglesiaId");
+      localStorage.removeItem("tokenIglesia");
+      iglesiaId=""; tokenIglesia="";
+      mostrarPantallaIglesia();
+      return mostrarAlerta("🔒", "Tu sesión de iglesia expiró. Ingresa el PIN nuevamente.");
+    }
+
+    const obj = JSON.parse(text);
+
+    if(!obj.ok){
+      if(obj.error === "MES_REQUERIDO") return mostrarAlerta("⚠️", "Selecciona un mes para descargar.");
+      if(obj.error === "HOJA_NO_ENCONTRADA") return mostrarAlerta("⚠️", "No existe ese mes en la hoja.");
+      return mostrarAlerta("⚠️", "No se pudo generar el Excel.");
+    }
+
+    // ✅ Base64 -> bytes
+    const binary = atob(obj.data);
+    const bytes = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+
+    const blob = new Blob([bytes], { type: obj.mime || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = obj.filename || `Asistencia_${iglesiaId}_${mes}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+
+    mostrarAlerta("✅", `Excel listo: ${mes}`);
+  }catch(e){
+    mostrarAlerta("⚠️", "No se pudo descargar el Excel.\n" + (e?.message || String(e)));
+  }finally{
+    hideBusy();
+  }
+}
+
+
+  
+
 async function descargarMesCSV(){
   showBusy("Preparando descarga…", "Estamos generando el archivo de tu iglesia");
   try{
@@ -1606,6 +1668,7 @@ function escapeHTML(s){
 </script>
 </body>
 </html>
+
 
 
 
