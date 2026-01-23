@@ -647,6 +647,66 @@ main {
     }
 
 
+
+
+/* ✅ LOADER GLOBAL (overlay pro) */
+#busyOverlay{
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 300; /* encima de popups (210) */
+}
+
+#busyOverlay.active{ display:flex; }
+
+.busyCard{
+  width: min(320px, 88vw);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 18px;
+  padding: 22px 18px;
+  box-shadow: 0 14px 40px var(--shadow);
+  text-align: center;
+  transform: translateY(4px);
+  animation: busyIn .18s ease-out;
+}
+
+@keyframes busyIn{
+  from{ opacity:0; transform: translateY(12px) scale(.98); }
+  to{ opacity:1; transform: translateY(4px) scale(1); }
+}
+
+.busySpinner{
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 5px solid var(--spinner-border);
+  border-top-color: var(--primary);
+  margin: 0 auto 12px;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin{ to{ transform: rotate(360deg); } }
+
+.busyTitle{
+  font-weight: 800;
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+
+.busySub{
+  color: var(--muted);
+  font-size: .95rem;
+}
+
+
+    
+
 /* ✅ PARCHE RESPONSIVE (mínimo, sin tocar HTML/JS) */
 html, body {
   height: 100%;
@@ -775,6 +835,17 @@ body {
   </div>
 </div>
 
+
+  <!-- ✅ LOADER GLOBAL (overlay) -->
+<div id="busyOverlay" aria-hidden="true">
+  <div class="busyCard" role="status" aria-live="polite">
+    <div class="busySpinner"></div>
+    <div class="busyTitle" id="busyTitle">Procesando…</div>
+    <div class="busySub" id="busySub">Por favor espera</div>
+  </div>
+</div>
+
+
 <!-- Popup Sobre Nosotros -->
 <div id="popupSobre" style="position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:220;">
   <div style="background:var(--popup-bg);border-radius:16px;padding:22px 22px;text-align:left;box-shadow:0 6px 26px var(--shadow);width:85%;max-width:360px;animation: popupFade .3s ease;color:var(--text);">
@@ -839,10 +910,11 @@ body {
     <input id="pinIglesia" type="password" placeholder="PIN"
       style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--muted);font-size:1rem;background:var(--card);color:var(--text);" />
 
-    <button onclick="loginIglesia()"
-      style="margin-top:12px;background:var(--primary);color:#fff;border:0;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600;width:100%;">
-      Entrar
-    </button>
+ <button id="btnLoginIglesia" onclick="loginIglesia()"
+  style="margin-top:12px;background:var(--primary);color:#fff;border:0;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600;width:100%;">
+  Entrar
+</button>
+
   </div>
 </div>
 
@@ -1084,7 +1156,6 @@ function ocultarPantallaIglesia(){
 }
 
 async function loginIglesia(){
-  // IMPORTANTE: esto aún no se usa hasta que el Apps Script esté listo
   const sel = document.getElementById("iglesiaSelect");
   const pin = (document.getElementById("pinIglesia").value || "").trim();
   const id = sel.value;
@@ -1092,8 +1163,17 @@ async function loginIglesia(){
   if(!id) return mostrarAlerta("⚠️", "Selecciona una iglesia.");
   if(!pin) return mostrarAlerta("⚠️", "Ingresa el PIN.");
 
+  const btn = document.getElementById("btnLoginIglesia");
+  if(btn){
+    btn.disabled = true;
+    btn.style.opacity = "0.75";
+    btn.style.cursor = "not-allowed";
+  }
+
+  showBusy("Verificando PIN…", "Validando acceso a tu iglesia");
+
   try{
-    const res = await fetch(`${URL_SCRIPT}?accion=login&iglesia=${encodeURIComponent(id)}&pin=${encodeURIComponent(pin)}`);
+    const res = await fetch(`${URL_SCRIPT}?accion=login&iglesia=${encodeURIComponent(id)}&pin=${encodeURIComponent(pin)}`, { cache: "no-store" });
     const text = await res.text();
     const obj = JSON.parse(text); // {ok:true, token:"...", iglesiaNombre:"..."}
 
@@ -1112,7 +1192,14 @@ async function loginIglesia(){
 
     ocultarPantallaIglesia();
   }catch(e){
-    mostrarAlerta("⚠️", "Error iniciando en la iglesia (aún no está activo).");
+    mostrarAlerta("⚠️", "Error iniciando en la iglesia. Intenta de nuevo.");
+  }finally{
+    hideBusy();
+    if(btn){
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      btn.style.cursor = "pointer";
+    }
   }
 }
 
@@ -1193,6 +1280,19 @@ function cerrarSobreNosotros(){
 }
 
 
+function showBusy(titulo="Procesando…", subtitulo="Por favor espera"){
+  const ov = document.getElementById("busyOverlay");
+  document.getElementById("busyTitle").textContent = titulo;
+  document.getElementById("busySub").textContent = subtitulo;
+  ov.classList.add("active");
+  ov.setAttribute("aria-hidden", "false");
+}
+
+function hideBusy(){
+  const ov = document.getElementById("busyOverlay");
+  ov.classList.remove("active");
+  ov.setAttribute("aria-hidden", "true");
+}
 
 
   
@@ -1362,6 +1462,7 @@ function showLoading(s){
 }
 
 async function descargarMesCSV(){
+  showBusy("Preparando descarga…", "Estamos generando el archivo de tu iglesia");
   try{
     if(!asegurarIglesia()) return;
 
@@ -1405,8 +1506,11 @@ async function descargarMesCSV(){
     mostrarAlerta("✅", `Descarga lista: ${mes}`);
   }catch(e){
     mostrarAlerta("⚠️", "No se pudo descargar.\n" + (e?.message || String(e)));
+  }finally{
+    hideBusy();
   }
 }
+
 
 
   
@@ -1502,6 +1606,7 @@ function escapeHTML(s){
 </script>
 </body>
 </html>
+
 
 
 
