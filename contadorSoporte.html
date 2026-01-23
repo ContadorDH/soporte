@@ -775,6 +775,46 @@ body {
   </div>
 </div>
 
+<!-- Popup Sobre Nosotros -->
+<div id="popupSobre" style="position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:220;">
+  <div style="background:var(--popup-bg);border-radius:16px;padding:22px 22px;text-align:left;box-shadow:0 6px 26px var(--shadow);width:85%;max-width:360px;animation: popupFade .3s ease;color:var(--text);">
+    
+    <h3 style="margin:0 0 10px;font-size:1.2rem;text-align:center;">ℹ️ Sobre nosotros</h3>
+
+    <p style="margin:0 0 10px;color:var(--muted);line-height:1.4;">
+      Somos el <strong>Departamento de Comunicaciones</strong> de la
+      <strong>IPUC Bochica Sur</strong>.  
+      Trabajamos para servir con excelencia, apoyando la organización, la información y el crecimiento de la iglesia.
+    </p>
+
+    <div style="background:rgba(0,0,0,0.04);padding:12px;border-radius:12px;margin:12px 0;">
+      <p style="margin:0;font-style:italic;line-height:1.4;">
+        “Y todo lo que hagáis, hacedlo de corazón, como para el Señor y no para los hombres.”
+      </p>
+      <small style="display:block;margin-top:8px;color:var(--muted);font-weight:600;">
+        Colosenses 3:23
+      </small>
+    </div>
+
+    <p style="margin:0 0 10px;color:var(--muted);line-height:1.4;">
+      Esta aplicación fue creada para apoyar el <strong>registro y control de asistencia</strong>
+      de manera ordenada, rápida y segura.
+    </p>
+
+    <small style="display:block;margin-top:10px;color:var(--muted);text-align:center;">
+      Desarrollado por: <strong>Deimer Herrera</strong>
+      <br>
+      DECOM 2026
+    </small>
+
+    <button onclick="cerrarSobreNosotros()" style="margin-top:14px;background:var(--primary);color:#fff;border:0;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer;width:100%;">
+      Cerrar
+    </button>
+  </div>
+</div>
+
+  
+
 <!-- LOGIN -->
 <div id="loginScreen">
   <div id="loginBox">
@@ -817,9 +857,12 @@ body {
 
 <nav id="menu" aria-hidden="true">
   <button class="item" onclick="abrirVerPantalla()">👁️ Ver asistencia</button>
-  <button class="item" onclick="cerrarSesion()">🔒 Cerrar sesión</button>
+  <button class="item" onclick="descargarMesCSV()">⬇️ Descargar (CSV)</button>
   <button class="item" onclick="refrescarPagina()">🔄 Refrescar</button>
   <button class="item" onclick="contactarSoporte()">📞 Soporte</button>
+   <button class="item" onclick="cerrarSesion()">🔒 Cerrar sesión</button>
+  <button class="item" onclick="abrirSobreNosotros()">ℹ️ Sobre nosotros</button>
+
   <div style="flex:1"></div>
   <!-- Desplegable para seleccionar tema -->
   <select id="themeSelect" onchange="changeTheme(this.value)">
@@ -1129,6 +1172,30 @@ function cerrarPopupUsuario(){
   document.getElementById("popupUsuario").style.display = "none";
 }
 
+
+
+function abrirSobreNosotros(){
+  const popup = document.getElementById("popupSobre");
+  if(popup) popup.style.display = "flex";
+
+  // cerrar menú si está abierto
+  const menu = document.getElementById("menu");
+  const overlay = document.getElementById("menuOverlay");
+  if(menu && overlay && menu.classList.contains("active")){
+    menu.classList.remove("active");
+    overlay.classList.remove("active");
+  }
+}
+
+function cerrarSobreNosotros(){
+  const popup = document.getElementById("popupSobre");
+  if(popup) popup.style.display = "none";
+}
+
+
+
+
+  
 /* === ALERTA MODERNA === */
 function mostrarAlerta(titulo, mensaje){
   const popup = document.getElementById('popupAlert');
@@ -1294,6 +1361,53 @@ function showLoading(s){
   document.getElementById('loadingIndicator').style.display=s?'block':'none';
 }
 
+async function descargarMesCSV(){
+  try{
+    if(!asegurarIglesia()) return;
+
+    // Toma el mes seleccionado si estás en "Ver", si no usa mesActual
+    const mes = (document.getElementById('selectMes')?.value) || mesActual;
+
+    // Cerrar menú si está abierto
+    const menu = document.getElementById('menu');
+    const overlay = document.getElementById('menuOverlay');
+    if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
+
+    const url = `${URL_SCRIPT}?accion=descargar&iglesia=${encodeURIComponent(iglesiaId)}&token=${encodeURIComponent(tokenIglesia)}&mes=${encodeURIComponent(mes)}`;
+    const res = await fetch(url, { cache: "no-store" });
+    const text = await res.text();
+
+    // Manejo NOAUTH igual que haces al subir asistencia (sesión expirada)
+    if(String(text).includes("NOAUTH")){
+      localStorage.removeItem("iglesiaId");
+      localStorage.removeItem("tokenIglesia");
+      iglesiaId=""; tokenIglesia="";
+      mostrarPantallaIglesia();
+      return mostrarAlerta("🔒", "Tu sesión de iglesia expiró. Ingresa el PIN nuevamente.");
+    }
+
+    if(String(text).includes("MES_REQUERIDO")){
+      return mostrarAlerta("⚠️", "Selecciona un mes para descargar.");
+    }
+
+    // Crear descarga
+    const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `Asistencia_${iglesiaId}_${mes}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+
+    mostrarAlerta("✅", `Descarga lista: ${mes}`);
+  }catch(e){
+    mostrarAlerta("⚠️", "No se pudo descargar.\n" + (e?.message || String(e)));
+  }
+}
+
+
+  
 async function verAsistencia(mes){
   showLoading(true);
   const listado=document.getElementById('listado');
@@ -1386,7 +1500,6 @@ function escapeHTML(s){
 </script>
 </body>
 </html>
-
 
 
 
