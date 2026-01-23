@@ -1365,20 +1365,21 @@ async function descargarMesCSV(){
   try{
     if(!asegurarIglesia()) return;
 
-    // Toma el mes seleccionado si estás en "Ver", si no usa mesActual
     const mes = (document.getElementById('selectMes')?.value) || mesActual;
 
     // Cerrar menú si está abierto
     const menu = document.getElementById('menu');
     const overlay = document.getElementById('menuOverlay');
-    if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
+    if(menu?.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
 
     const url = `${URL_SCRIPT}?accion=descargar&iglesia=${encodeURIComponent(iglesiaId)}&token=${encodeURIComponent(tokenIglesia)}&mes=${encodeURIComponent(mes)}`;
-    const res = await fetch(url, { cache: "no-store" });
-    const text = await res.text();
 
-    // Manejo NOAUTH igual que haces al subir asistencia (sesión expirada)
-    if(String(text).includes("NOAUTH")){
+    const res = await fetch(url, { cache: "no-store" });
+
+    // 👇 Leemos una copia como texto SOLO para detectar NOAUTH/MES_REQUERIDO
+    const textCheck = await res.clone().text();
+
+    if(textCheck.includes("NOAUTH")){
       localStorage.removeItem("iglesiaId");
       localStorage.removeItem("tokenIglesia");
       iglesiaId=""; tokenIglesia="";
@@ -1386,12 +1387,13 @@ async function descargarMesCSV(){
       return mostrarAlerta("🔒", "Tu sesión de iglesia expiró. Ingresa el PIN nuevamente.");
     }
 
-    if(String(text).includes("MES_REQUERIDO")){
+    if(textCheck.includes("MES_REQUERIDO")){
       return mostrarAlerta("⚠️", "Selecciona un mes para descargar.");
     }
 
-    // Crear descarga
-    const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
+    // ✅ Descarga REAL como bytes (con BOM intacto)
+    const blob = await res.blob();
+
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `Asistencia_${iglesiaId}_${mes}.csv`;
@@ -1500,6 +1502,7 @@ function escapeHTML(s){
 </script>
 </body>
 </html>
+
 
 
 
