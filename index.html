@@ -1763,32 +1763,7 @@ function viewMiembros(){
                     </div>
                   </div>
 
-<!-- ✅ Foto del acudiente (centrada, antes de Nombre del padre) -->
-<div style="margin-top:10px;">
-  <label class="small muted" style="display:block; margin-bottom:8px; text-align:center;">
-    Foto del acudiente (papá/mamá)
-  </label>
 
-  <div style="display:flex; justify-content:center;">
-    <div class="avatar" id="guardianPhotoBox" style="width:150px;height:150px;">
-      <div class="small">Sin foto</div>
-    </div>
-  </div>
-
-  <div class="hint" id="guardianPhotoInfo" style="text-align:center;">
-    Se mostrará aquí como vista previa.
-  </div>
-
-  <div class="filebox" id="guardianPhotoFileBox" style="margin-top:10px;">
-    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-      <button class="btn ok" type="button" id="btnTakeGuardianPhoto">📷 Tomar foto</button>
-      <button class="btn" type="button" id="btnPickGuardianPhoto">🖼️ Elegir archivo</button>
-    </div>
-
-    <input id="guardianPhotoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
-    <input id="guardianPhotoInput" type="file" accept="image/*" style="display:none;" />
-  </div>
-</div>
 
                   <div class="row" style="margin-top:10px;">
                     <div class="col">
@@ -1840,6 +1815,33 @@ function viewMiembros(){
                       <input id="church_role" />
                     </div>
                   </div>
+
+<!-- ✅ Foto del acudiente (centrada, antes de Nombre del padre) -->
+<div style="margin-top:10px;">
+  <label class="small muted" style="display:block; margin-bottom:8px; text-align:center;">
+    Foto del acudiente (papá/mamá)
+  </label>
+
+  <div style="display:flex; justify-content:center;">
+    <div class="avatar" id="guardianPhotoBox" style="width:150px;height:150px;">
+      <div class="small">Sin foto</div>
+    </div>
+  </div>
+
+  <div class="hint" id="guardianPhotoInfo" style="text-align:center;">
+    Se mostrará aquí como vista previa.
+  </div>
+
+  <div class="filebox" id="guardianPhotoFileBox" style="margin-top:10px;">
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button class="btn ok" type="button" id="btnTakeGuardianPhoto">📷 Tomar foto</button>
+      <button class="btn" type="button" id="btnPickGuardianPhoto">🖼️ Elegir archivo</button>
+    </div>
+
+    <input id="guardianPhotoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
+    <input id="guardianPhotoInput" type="file" accept="image/*" style="display:none;" />
+  </div>
+</div>
 
                   <div class="row" style="margin-top:10px;">
                     <div class="col">
