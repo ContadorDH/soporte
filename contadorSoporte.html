@@ -1246,6 +1246,9 @@ async function withAuthRetry(fn){
       let photo = { path:null, url:null };
 
       if (photoFile) photo = await uploadFile("member-photos", photoFile, prefix);
+            let guardianPhoto = { path:null, url:null };
+      const guardianFile = state.memberDraft?.guardian_photo_file || null;
+      if (guardianFile) guardianPhoto = await uploadFile("member-photos", guardianFile, `guardian_${prefix}`);
 
       const payload = {
         first_names: member.first_names,
@@ -1257,6 +1260,13 @@ async function withAuthRetry(fn){
         address: member.address || null,
         city: member.city || null,
         phone: member.phone || null,
+        email: member.email || null,
+        father_phone: member.father_phone || null,
+        mother_phone: member.mother_phone || null,
+        father_birth_date: member.father_birth_date || null,
+        mother_birth_date: member.mother_birth_date || null,
+        guardian_photo_path: guardianPhoto.path,
+        guardian_photo_url: guardianPhoto.url,
         birth_date: member.birth_date || null,
         father_name: member.father_name || null,
         mother_name: member.mother_name || null,
@@ -1289,6 +1299,10 @@ async function withAuthRetry(fn){
       let photo = { path: member.photo_path || null, url: member.photo_url || null };
       if (photoFile) photo = await uploadFile("member-photos", photoFile, prefix);
 
+            let guardianPhoto = { path: member.guardian_photo_path || null, url: member.guardian_photo_url || null };
+      const guardianFile = state.memberDraft?.guardian_photo_file || null;
+      if (guardianFile) guardianPhoto = await uploadFile("member-photos", guardianFile, `guardian_${prefix}`);
+
       const payload = {
         first_names: member.first_names,
         last_names: member.last_names,
@@ -1299,6 +1313,13 @@ async function withAuthRetry(fn){
         address: member.address || null,
         city: member.city || null,
         phone: member.phone || null,
+        email: member.email || null,
+        father_phone: member.father_phone || null,
+        mother_phone: member.mother_phone || null,
+        father_birth_date: member.father_birth_date || null,
+        mother_birth_date: member.mother_birth_date || null,
+        guardian_photo_path: guardianPhoto.path,
+        guardian_photo_url: guardianPhoto.url,
         birth_date: member.birth_date || null,
         father_name: member.father_name || null,
         mother_name: member.mother_name || null,
@@ -1377,6 +1398,15 @@ auth: {
   first_names: "", last_names: "", identification: "",
   address: "", city: "", birth_date: "",
   phone: "",
+    email: "",
+  father_phone: "",
+  mother_phone: "",
+  father_birth_date: "",
+  mother_birth_date: "",
+  guardian_photo_file: null,
+  guardian_photo_preview_url: "",
+  guardian_photo_path: "",
+  guardian_photo_url: "",
   father_name: "", mother_name: "", congregation_name: "",
   conversion_time: "", baptism_date: "", holy_spirit_date: "",
   event_place: "", officiant_pastor: "",
@@ -1566,7 +1596,7 @@ btnLogout?.addEventListener("click", async ()=>{
 function viewMiembros(){
   if (!state.memberDraft) state.memberDraft = blankMember();
 
-  const node = el(`
+ const node = el(`
     <div class="container">
       <div class="card">
 
@@ -1606,7 +1636,7 @@ function viewMiembros(){
 
   <button class="btn" id="btnSendBirthday" style="display:none;">🎂</button>
 
-<button class="btn" id="btnShareForm">🔗 Compartir formulario</button>
+  <button class="btn" id="btnShareForm">🔗 Compartir formulario</button>
 
   <button class="btn primary" id="btnSave">Guardar</button>
 </div>
@@ -1652,22 +1682,37 @@ function viewMiembros(){
                   <div class="avatar" id="photoBox">
                     <div class="small">Sin foto</div>
                   </div>
+
                   <div style="margin-top:10px;" class="filebox" id="photoFileBox">
-              <label>Foto del miembro (JPG/PNG/WebP)</label>
+                    <label>Foto del miembro (JPG/PNG/WebP)</label>
 
-<div style="display:flex; gap:10px; flex-wrap:wrap;">
-  <button class="btn ok" type="button" id="btnTakePhoto">📷 Tomar foto</button>
-  <button class="btn" type="button" id="btnPickPhoto">🖼️ Elegir archivo</button>
-</div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                      <button class="btn ok" type="button" id="btnTakePhoto">📷 Tomar foto</button>
+                      <button class="btn" type="button" id="btnPickPhoto">🖼️ Elegir archivo</button>
+                    </div>
 
-<!-- ✅ Cámara (Android): abre cámara -->
-<input id="photoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
+                    <!-- ✅ Cámara (Android): abre cámara -->
+                    <input id="photoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
 
-<!-- ✅ Archivo (galería/archivos): el que ya tenías -->
-<input id="photoInput" type="file" accept="image/*" style="display:none;" />
+                    <!-- ✅ Archivo (galería/archivos): el que ya tenías -->
+                    <input id="photoInput" type="file" accept="image/*" style="display:none;" />
 
-<div class="hint" id="photoInfo">Se mostrará aquí como vista previa.</div>
+                    <div class="hint" id="photoInfo">Se mostrará aquí como vista previa.</div>
+                  </div>
 
+                  <!-- ✅ NUEVO: Foto del acudiente (papá/mamá) -->
+                  <div style="margin-top:10px;" class="filebox" id="guardianPhotoFileBox">
+                    <label>Foto del acudiente (papá/mamá)</label>
+
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                      <button class="btn ok" type="button" id="btnTakeGuardianPhoto">📷 Tomar foto</button>
+                      <button class="btn" type="button" id="btnPickGuardianPhoto">🖼️ Elegir archivo</button>
+                    </div>
+
+                    <input id="guardianPhotoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
+                    <input id="guardianPhotoInput" type="file" accept="image/*" style="display:none;" />
+
+                    <div class="hint" id="guardianPhotoInfo">Se mostrará aquí como vista previa.</div>
                   </div>
                 </div>
 
@@ -1703,12 +1748,19 @@ function viewMiembros(){
                   </div>
 
                   <div class="row" style="margin-top:10px;">
-  <div class="col">
-    <label>Teléfono</label>
-    <input id="phone" placeholder="Ej: 3001234567" inputmode="tel" />
-  </div>
-</div>
+                    <div class="col">
+                      <label>Teléfono</label>
+                      <input id="phone" placeholder="Ej: 3001234567" inputmode="tel" />
+                    </div>
+                  </div>
 
+                  <!-- ✅ NUEVO: Correo electrónico -->
+                  <div class="row" style="margin-top:10px;">
+                    <div class="col">
+                      <label>Correo electrónico</label>
+                      <input id="email" type="email" placeholder="correo@dominio.com" autocomplete="email" />
+                    </div>
+                  </div>
 
                   <div class="row" style="margin-top:10px;">
                     <div class="col">
@@ -1745,6 +1797,30 @@ function viewMiembros(){
                       <input id="congregation_name"/>
                     </div>
                   </div>
+
+                  <!-- ✅ NUEVO: Celulares y cumpleaños de papás -->
+                  <div class="row" style="margin-top:10px;">
+                    <div class="col">
+                      <label>Celular del padre</label>
+                      <input id="father_phone" placeholder="Ej: 3001234567" inputmode="tel" />
+                    </div>
+                    <div class="col">
+                      <label>Celular de la madre</label>
+                      <input id="mother_phone" placeholder="Ej: 3001234567" inputmode="tel" />
+                    </div>
+                    <div class="col">
+                      <label>Cumpleaños del padre</label>
+                      <input id="father_birth_date" type="date" />
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top:10px;">
+                    <div class="col">
+                      <label>Cumpleaños de la madre</label>
+                      <input id="mother_birth_date" type="date" />
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
@@ -1909,6 +1985,11 @@ function viewMiembros(){
     $("#address").value = m.address || "";
     $("#city").value = m.city || "";
     $("#phone").value = m.phone || "";
+    $("#email").value = m.email || "";
+    $("#father_phone").value = m.father_phone || "";
+    $("#mother_phone").value = m.mother_phone || "";
+    $("#father_birth_date").value = m.father_birth_date || "";
+    $("#mother_birth_date").value = m.mother_birth_date || "";
     $("#birth_date").value = m.birth_date || "";
     $("#father_name").value = m.father_name || "";
     $("#mother_name").value = m.mother_name || "";
@@ -1940,6 +2021,11 @@ function viewMiembros(){
     m.address = $("#address").value.trim();
     m.city = $("#city").value.trim();
     m.phone = ($("#phone")?.value || "").trim();
+    m.email = ($("#email")?.value || "").trim();
+    m.father_phone = ($("#father_phone")?.value || "").trim();
+    m.mother_phone = ($("#mother_phone")?.value || "").trim();
+    m.father_birth_date = $("#father_birth_date")?.value || "";
+    m.mother_birth_date = $("#mother_birth_date")?.value || "";
     m.birth_date = $("#birth_date").value || "";
     m.father_name = $("#father_name").value.trim();
     m.mother_name = $("#mother_name").value.trim();
@@ -2093,6 +2179,34 @@ $("#photoInputCamera").addEventListener("change", ()=>{
 $("#btnPickPhoto").addEventListener("click", ()=> $("#photoInput").click());
 $("#btnTakePhoto").addEventListener("click", ()=> $("#photoInputCamera").click());
 
+
+// ✅ Foto del acudiente (Archivo + Cámara)
+function handlePickedGuardianPhoto(file){
+  state.memberDraft.guardian_photo_file = file;
+
+  if (!file){
+    state.memberDraft.guardian_photo_preview_url = "";
+    $("#guardianPhotoInfo").textContent = "Se mostrará aquí como vista previa.";
+    return;
+  }
+
+  const url = URL.createObjectURL(file);
+  state.memberDraft.guardian_photo_preview_url = url;
+  $("#guardianPhotoInfo").textContent = `${file.name} · vista previa lista`;
+}
+
+$("#guardianPhotoInput")?.addEventListener("change", ()=>{
+  const file = $("#guardianPhotoInput").files?.[0] || null;
+  handlePickedGuardianPhoto(file);
+});
+
+$("#guardianPhotoInputCamera")?.addEventListener("change", ()=>{
+  const file = $("#guardianPhotoInputCamera").files?.[0] || null;
+  handlePickedGuardianPhoto(file);
+});
+
+$("#btnPickGuardianPhoto")?.addEventListener("click", ()=> $("#guardianPhotoInput")?.click());
+$("#btnTakeGuardianPhoto")?.addEventListener("click", ()=> $("#guardianPhotoInputCamera")?.click());
 
   [
     "first_names","last_names","identification","address","city","phone","birth_date",
