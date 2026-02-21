@@ -599,7 +599,12 @@ function hideLoader(){
       setTimeout(()=>{ node.remove(); }, 3500);
     }
 
-
+function publicUrlFromPath(bucket, path){
+  const p = String(path || "").trim();
+  if (!p) return "";
+  const { data } = supabase.storage.from(bucket).getPublicUrl(p);
+  return data?.publicUrl || "";
+}
 
 function normalizePhoneToE164CO(raw){
   // Convierte teléfonos colombianos comunes a +57XXXXXXXXXX
@@ -1700,23 +1705,27 @@ function viewMiembros(){
                     <div class="hint" id="photoInfo">Se mostrará aquí como vista previa.</div>
                   </div>
 
-                  <!-- ✅ NUEVO: Foto del acudiente (papá/mamá) -->
-                  <div style="margin-top:10px;" class="filebox" id="guardianPhotoFileBox">
-                    <label>Foto del acudiente (papá/mamá)</label>
+            <!-- ✅ Foto del acudiente (papá/mamá) -->
+<div style="margin-top:10px;">
+  <label class="small muted" style="display:block; margin-bottom:8px;">Foto del acudiente (papá/mamá)</label>
 
-                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                      <button class="btn ok" type="button" id="btnTakeGuardianPhoto">📷 Tomar foto</button>
-                      <button class="btn" type="button" id="btnPickGuardianPhoto">🖼️ Elegir archivo</button>
-                    </div>
+  <!-- ✅ Vista previa SIEMPRE visible (como la del miembro) -->
+  <div class="avatar" id="guardianPhotoBox" style="width:120px;height:120px;">
+    <div class="small">Sin foto</div>
+  </div>
+  <div class="hint" id="guardianPhotoInfo">Se mostrará aquí como vista previa.</div>
 
-                    <input id="guardianPhotoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
-                    <input id="guardianPhotoInput" type="file" accept="image/*" style="display:none;" />
+  <!-- ✅ Controles (estos sí se ocultan en modo vista) -->
+  <div style="margin-top:10px;" class="filebox" id="guardianPhotoFileBox">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn ok" type="button" id="btnTakeGuardianPhoto">📷 Tomar foto</button>
+      <button class="btn" type="button" id="btnPickGuardianPhoto">🖼️ Elegir archivo</button>
+    </div>
 
-                   <div class="avatar" id="guardianPhotoBox" style="width:120px;height:120px;margin-top:10px;">
-  <div class="small">Sin foto</div>
+    <input id="guardianPhotoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
+    <input id="guardianPhotoInput" type="file" accept="image/*" style="display:none;" />
+  </div>
 </div>
-<div class="hint" id="guardianPhotoInfo">Se mostrará aquí como vista previa.</div>
-                  </div>
                 </div>
 
                 <div class="col">
@@ -2032,8 +2041,20 @@ function renderGuardianPhoto(url){
     $("#church_role").value = m.church_role || "";
     $("#gender").value = m.gender || "";
 
-    renderPhoto(m.photo_preview_url || m.photo_url || "");
-    renderGuardianPhoto(m.guardian_photo_preview_url || m.guardian_photo_url || "");
+   const memberPhotoUrl =
+  m.photo_preview_url ||
+  m.photo_url ||
+  publicUrlFromPath("member-photos", m.photo_path) ||
+  "";
+
+const guardianPhotoUrl =
+  m.guardian_photo_preview_url ||
+  m.guardian_photo_url ||
+  publicUrlFromPath("member-photos", m.guardian_photo_path) ||
+  "";
+
+renderPhoto(memberPhotoUrl);
+renderGuardianPhoto(guardianPhotoUrl);
   }
 
   function readForm(){
@@ -2124,11 +2145,22 @@ function renderGuardianPhoto(url){
 
         state.category = getCategoriaActual();
 
-        state.memberDraft = cloneMemberSafe(m);
-        state.memberDraft.photo_preview_url = m.photo_url || "";
-        state.memberDraft.guardian_photo_preview_url = m.guardian_photo_url || "";
-        state.selectedId = m.id || null;
-        state.viewMode = "view";
+     state.memberDraft = cloneMemberSafe(m);
+
+// ✅ Foto miembro: si falta URL, la construye con el PATH
+state.memberDraft.photo_preview_url =
+  m.photo_url ||
+  publicUrlFromPath("member-photos", m.photo_path) ||
+  "";
+
+// ✅ Foto acudiente: si falta URL, la construye con el PATH
+state.memberDraft.guardian_photo_preview_url =
+  m.guardian_photo_url ||
+  publicUrlFromPath("member-photos", m.guardian_photo_path) ||
+  "";
+
+state.selectedId = m.id || null;
+state.viewMode = "view";
 
         renderSuggestions([]);
         render();
