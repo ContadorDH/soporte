@@ -1,1680 +1,2869 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Asistencia Bochica Sur</title>
-  
-  <!-- === PWA y Iconos para Android e iOS === -->
-  <link rel="manifest" href="manifest.json">
-  
-  <!-- Iconos para Android (Chrome) -->
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>IPUC · Miembros (PWA)</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#0b1020" />
+
+  <!-- Iconos -->
+  <link rel="icon" sizes="192x192" href="./icono-192.png" />
+  <link rel="icon" sizes="512x512" href="./icono-512.png" />
+
   <!-- Meta tags para iOS (Safari) -->
-  <link rel="apple-touch-icon" href="apple-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Asistencia Bochica Sur">
-  
-  <!-- Tema color para barra de estado -->
-  <meta name="theme-color" content="#0066ff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IPUC Miembros">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
-    /* 🎨 Definición de temas en tonos pastel */
-    :root {
-      /* Tema Claro (por defecto, actual) */
-      --primary: #0066ff;
-      --primary-dark: #004ecc;
-      --bg: #f4f6fb;
-      --card: #ffffff;
-      --muted: #7b7b7b;
-      --radius: 14px;
-      --text: #222;
-      --shadow: rgba(12, 30, 60, 0.06);
-      --shadow-dark: rgba(2, 20, 80, 0.04);
-      --menu-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-      --popup-bg: #ffffff;
-      --button-minus: linear-gradient(135deg, #e57373, #b71c1c);
-      --button-plus: linear-gradient(135deg, #4d94ff, #004ecc);
-      --spinner-border: #e6eefc;
+    :root{
+      --bg:#0b1020;--card:#121a33;--muted:#9aa4c0;--text:#e9ecf6;
+      --accent:#4c7dff;--border:rgba(255,255,255,.08);--ok:#2dd4bf;--danger:#ff4c6a;
+      color-scheme: dark;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(76,125,255,0.25), transparent 60%),
+        radial-gradient(1000px 500px at 90% 30%, rgba(45,212,191,0.18), transparent 60%),
+        var(--bg);
+      overflow-x: hidden; /* ✅ evita que algo estire la pantalla */
     }
 
-    /* 🌙 Tema Oscuro */
-    [data-theme="oscuro"] {
-      --primary: #4b5e7a;
-      --primary-dark: #3a4b63;
-      --bg: #2c2f33;
-      --card: #3a3f44;
-      --muted: #a0a4a8;
-      --text: #ffffff;
-      --shadow: rgba(0, 0, 0, 0.3);
-      --shadow-dark: rgba(0, 0, 0, 0.2);
-      --menu-bg: linear-gradient(180deg, #3a3f44 0%, #2c2f33 100%);
-      --popup-bg: #3a3f44;
-      --button-minus: linear-gradient(135deg, #f28b82, #b71c1c);
-      --button-plus: linear-gradient(135deg, #6b7280, #4b5e7a);
-      --spinner-border: #4b5e7a;
-    }
+    .header{
+  position:sticky;
+  top:0;
+  backdrop-filter:blur(12px);
+  background:rgba(11,16,32,.75);
+  border-bottom:1px solid var(--border);
+  z-index: 20; /* ✅ antes era 5: ahora queda por encima del toolbar-sticky */
+}
 
-    /* Tema Lila */
-    [data-theme="lila"] {
-      --primary: #a78bfa;
-      --primary-dark: #7c3aed;
-      --bg: #f5f3ff;
-      --card: #faf5ff;
-      --muted: #9ca3af;
-      --text: #4b0082;
-      --shadow: rgba(76, 29, 149, 0.1);
-      --shadow-dark: rgba(76, 29, 149, 0.08);
-      --menu-bg: linear-gradient(180deg, #faf5ff 0%, #f5f3ff 100%);
-      --popup-bg: #faf5ff;
-      --button-minus: linear-gradient(135deg, #f3e8ff, #c084fc);
-      --button-plus: linear-gradient(135deg, #c4b5fd, #7c3aed);
-      --spinner-border: #ede9fe;
+    .header-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 20px}
+    .brand{display:flex;flex-direction:column;gap:2px}
+    .brand .title{font-weight:900;letter-spacing:.2px}
+    .small{font-size:12px;color:var(--muted)}
+    .nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .btn{
+      padding:10px 14px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(255,255,255,.06);color:var(--text);cursor:pointer;
+      font-weight: 600; letter-spacing:.2px;
+      transition: background .15s ease, border-color .15s ease, transform .05s ease;
     }
-
-    /* Tema Rosa */
-    [data-theme="rosa"] {
-      --primary: #f472b6;
-      --primary-dark: #db2777;
-      --bg: #fff1f2;
-      --card: #fef2f2;
-      --muted: #9ca3af;
-      --text: #831843;
-      --shadow: rgba(157, 23, 77, 0.1);
-      --shadow-dark: rgba(157, 23, 77, 0.08);
-      --menu-bg: linear-gradient(180deg, #fef2f2 0%, #fff1f2 100%);
-      --popup-bg: #fef2f2;
-      --button-minus: linear-gradient(135deg, #fce7f3, #f9a8d4);
-      --button-plus: linear-gradient(135deg, #f9a8d4, #db2777);
-      --spinner-border: #fce7f3;
-    }
-
-    /* Tema Beige */
-    [data-theme="beige"] {
-      --primary: #d2b48c;
-      --primary-dark: #b89778;
-      --bg: #f5f5dc;
-      --card: #faf9f0;
-      --muted: #8b7e66;
-      --text: #4a3728;
-      --shadow: rgba(74, 55, 40, 0.1);
-      --shadow-dark: rgba(74, 55, 40, 0.08);
-      --menu-bg: linear-gradient(180deg, #faf9f0 0%, #f5f5dc 100%);
-      --popup-bg: #faf9f0;
-      --button-minus: linear-gradient(135deg, #f5e7d4, #d2b48c);
-      --button-plus: linear-gradient(135deg, #e6d5b8, #b89778);
-      --spinner-border: #f5e7d4;
-    }
-
-    /* Tema Verde */
-    [data-theme="verde"] {
-      --primary: #4ade80;
-      --primary-dark: #22c55e;
-      --bg: #ecfdf5;
-      --card: #f0fdf4;
-      --muted: #6b7280;
-      --text: #14532d;
-      --shadow: rgba(20, 83, 45, 0.1);
-      --shadow-dark: rgba(20, 83, 45, 0.08);
-      --menu-bg: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
-      --popup-bg: #f0fdf4;
-      --button-minus: linear-gradient(135deg, #d1fae5, #4ade80);
-      --button-plus: linear-gradient(135deg, #a7f3d0, #22c55e);
-      --spinner-border: #d1fae5;
-    }
-
-    /* Tema Naranja */
-    [data-theme="naranja"] {
-      --primary: #fb923c;
-      --primary-dark: #f97316;
-      --bg: #fff7ed;
-      --card: #ffedd5;
-      --muted: #78716c;
-      --text: #7c2d12;
-      --shadow: rgba(124, 45, 18, 0.1);
-      --shadow-dark: rgba(124, 45, 18, 0.08);
-      --menu-bg: linear-gradient(180deg, #ffedd5 0%, #fff7ed 100%);
-      --popup-bg: #ffedd5;
-      --button-minus: linear-gradient(135deg, #fed7aa, #fb923c);
-      --button-plus: linear-gradient(135deg, #fdba74, #f97316);
-      --spinner-border: #fed7aa;
-    }
-
-    /* Tema Gris */
-    [data-theme="gris"] {
-      --primary: #6b7280;
-      --primary-dark: #4b5563;
-      --bg: #f3f4f6;
-      --card: #e5e7eb;
-      --muted: #9ca3af;
-      --text: #374151;
-      --shadow: rgba(55, 65, 81, 0.1);
-      --shadow-dark: rgba(55, 65, 81, 0.08);
-      --menu-bg: linear-gradient(180deg, #e5e7eb 0%, #f3f4f6 100%);
-      --popup-bg: #e5e7eb;
-      --button-minus: linear-gradient(135deg, #d1d5db, #6b7280);
-      --button-plus: linear-gradient(135deg, #9ca3af, #4b5563);
-      --spinner-border: #d1d5db;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: var(--bg);
+    .btn:hover{background:rgba(255,255,255,.10)}
+    .btn:active{ transform: translateY(1px); }
+    .btn.ok{
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
       color: var(--text);
-      height: 100vh;
-      overflow: hidden;
     }
-
-    /* === Header moderno y centrado === */
-    header {
-      position: relative;
-      height: 64px;
-      background: var(--primary);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 12px;
-      font-weight: 600;
-      box-shadow: 0 2px 10px var(--shadow);
-    }
-    header button {
-      background: none;
-      border: 0;
-      color: #fff;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    header .title {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-      text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
-      animation: fadeInTitle 0.6s ease-in-out;
-    }
-    @keyframes fadeInTitle {
-      from { opacity: 0; transform: translateX(-50%) translateY(-5px); }
-      to { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-
-    #menuOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      z-index: 80;
-      backdrop-filter: blur(8px);
-    }
-    #menuOverlay.active { display: block; }
-
-    #menu {
-      position: fixed;
-      top: 0;
-      left: -240px;
-      width: 240px;
-      height: 100%;
-      background: var(--menu-bg);
-      box-shadow: 4px 0 20px var(--shadow);
-      transition: left .25s ease;
-      z-index: 90;
-      padding: 24px 0 16px;
-      display: flex;
-      flex-direction: column;
-    }
-    #menu.active { left: 0; }
-    #menu .item {
-      padding: 16px 16px;
-      margin: 0 4px;
-      border-radius: 10px;
-      background: transparent;
-      text-align: left;
-      font-size: 1rem;
-      color: var(--text);
-      border: 0;
-      cursor: pointer;
-      margin-bottom: 1px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: all .18s ease;
-      position: relative;
-      overflow: hidden;
-      touch-action: manipulation;
-    }
-    #menu .item:active {
-      background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color: #fff;
-      transform: scale(0.98);
-    }
-    #menu .item::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: var(--primary);
-      transform: scaleY(0);
-      transition: transform .18s ease;
-    }
-    #menu .item:hover, #menu .item:focus {
-      background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color: #fff;
-    }
-    #menu .item:hover::before, #menu .item:focus::before { transform: scaleY(1); }
-    #menu .item:last-child { margin-bottom: 0; }
-    #themeSelect {
-      margin: 16px 16px 8px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--muted);
-      background: var(--card);
-      color: var(--text);
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-    }
-
-    main {
-      height: calc(100vh - 64px);
-      overflow: auto;
-      padding: 16px 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-    }
-
-/* Ajustar las tarjetas para ocupar más espacio y reducir márgenes */
-.card {
-  width: 95%;
-  max-width: 440px;
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 2px 0;
-  box-shadow: 0 2px 6px var(--shadow);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-/* Ajustar tamaño de etiquetas (solo "Hermanos", "Hermanas", etc.) */
-.label {
-  font-size: 10px; /* Reducido a la mitad de 19px (aproximadamente 9.5px, redondeado a 10px) */
-  font-weight: 600;
-  text-align: center;
-  width: 100%;
-  color: var(--text);
-  line-height: 1.1;
-  margin: 0;
-}
-
-/* Ajustar los controles (contenedor de botones y valor) */
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 108px;
-}
-
-/* Aumentar tamaño de los botones de contador con efectos restaurados */
-.counterBtn {
-  width: 18vw; /* Aumentado de 15vw para hacer los iconos más grandes (aprox. 72px en 360px de ancho) */
-  height: 18vw; /* Aumentado para mantener proporción circular */
-  max-width: 70px; /* Aumentado de 56px para permitir mayor tamaño en pantallas grandes */
-  max-height: 70px; /* Aumentado para mantener proporción */
-  border-radius: 50%;
-  border: none;
-  color: #fff;
-  font-size: 35px; /* Aumentado de 28px para que los iconos sean más grandes */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.counterBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25), 0 3px 8px rgba(0, 0, 0, 0.15);
-}
-
-.counterBtn:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-.counterBtn.minus {
-  background: var(--button-minus);
-}
-
-.counterBtn.plus {
-  background: var(--button-plus);
-}
-
-.counterBtn.ghost {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--muted);
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  font-size: 24px;
-  box-shadow: none;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.counterBtn.ghost:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-/* Ajustar el valor del contador */
-.value {
-  min-width: 44px;
-  text-align: center;
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: var(--text);
-}
-
-/* Ajustar la tarjeta de total */
-.totalCard {
-  width: 95%;
-  max-width: 440px;
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 6px 8px;
-  text-align: center;
-  font-weight: 700;
-  box-shadow: 0 4px 12px var(--shadow-dark);
-  font-size: 1.1rem;
-  color: var(--text);
-  margin: 2px 0;
-}
-
-.totalCard #total {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--primary);
-  line-height: 1.2;
-}
-
-/* Asegurar que el contenedor principal use todo el espacio */
-main {
-  height: calc(100vh - 64px);
-  overflow: auto;
-  padding: 1px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-}
-
-    #verPantalla {
-      position: fixed;
-      inset: 64px 0 0 0;
-      background: var(--bg);
-      z-index: 70;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      padding: 12px 12px;
-      overflow: auto;
-      transform: translateX(12px);
-      opacity: 0;
-      transition: all .32s ease;
-    }
-    #verPantalla.active {
-      display: flex;
-      transform: translateX(0);
-      opacity: 1;
-    }
-
-    #verHeader {
-      width: 100%;
-      max-width: 820px;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--primary);
-      color: #fff;
-      border-radius: 10px;
-      padding: 10px;
-    }
-    #verHeader .left {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    #verHeader .left button {
-      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    .btn.ok:hover{ background: rgba(255,255,255,.10); }
+    .btn.primary{
+      background: linear-gradient(180deg, #4c7dff, #3c68e0);
       border: none;
       color: #fff;
-      font-size: 1.2rem;
-      font-weight: 600;
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+      box-shadow: 0 6px 18px rgba(76,125,255,.25);
     }
-    #verHeader .left button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    .btn.primary:hover{
+      background: linear-gradient(180deg, #5a88ff, #4c7dff);
     }
-    #verHeader .left button:active {
-      transform: translateY(1px);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    }
-    #verHeader select {
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 0;
-      font-weight: 600;
-      background: var(--card);
-      color: var(--text);
-    }
-    #verHeader button:not(.left button) {
+    .btn.edit{
       background: transparent;
-      border: 0;
-      color: #fff;
-      font-size: 18px;
-      cursor: pointer;
-      padding: 6px 10px;
-      border-radius: 8px;
-    }
-
-    #listado {
-      width: 92%;
-      max-width: 820px;
-      margin-top: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .row {
-      background: var(--card);
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 0 6px 18px var(--shadow);
-      font-size: 0.95rem;
-      color: var(--text);
-    }
-    .row small {
+      border: 1px solid rgba(154,164,192,.35);
       color: var(--muted);
-      display: block;
-      margin-top: 6px;
-      font-size: 0.85rem;
     }
-
-    #loginScreen {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      z-index: 120;
-      gap: 16px;
-    }
-    #loginBox {
-      background: var(--card);
-      padding: 28px;
-      border-radius: var(--radius);
-      box-shadow: 0 8px 24px var(--shadow);
-      text-align: center;
+    .btn.edit:hover{
+      background: rgba(255,255,255,.05);
       color: var(--text);
     }
-    #loginBox input {
-      width: 220px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--muted);
-      font-size: 1rem;
-      background: var(--card);
-      color: var(--text);
+    .btn.danger{
+      background: rgba(255,76,106,.08);
+      border: 1px solid rgba(255,76,106,.35);
+      color: #ff8fa3;
     }
-    #loginBox button {
-      margin-top: 12px;
-      background: var(--primary);
-      color: #fff;
-      border: 0;
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
+    .btn.danger:hover{
+      background: rgba(255,76,106,.14);
+      color: #ffd1da;
     }
 
-    .spinner {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 4px solid var(--spinner-border);
-      border-top-color: var(--primary);
-      animation: spin .9s linear infinite;
-      margin-left: 8px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .container{max-width:1200px;margin:0 auto;padding:20px}
+.card{
+  background:rgba(18,26,51,.9);border:1px solid var(--border);border-radius:16px;
+  padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);
+  max-width: 100%;
+  overflow: visible; /* ✅ permite sticky y dropdowns */
+}
 
-    @keyframes popupFade {
-      from { transform: scale(0.9); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
 
-    /* Popups */
-    #popupConfirm, #popupAlert, #popupUsuario {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.45);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 210;
+    hr.sep{border:0;border-top:1px solid var(--border);margin:14px 0}
+    .row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:6px;}
+    .col{flex:1;min-width:220px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px;}
+    input,select,textarea{
+      width:100%;
+      padding:12px 14px;
+      font-size:14px;
+      background:rgba(0,0,0,.25);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:14px;
+      outline:none;
+      pointer-events:auto;
+      max-width: 100%;
     }
-    #popupConfirm > div, #popupAlert > div, #popupUsuario > div {
-      background: var(--popup-bg);
-      border-radius: 16px;
-      padding: 24px 28px;
-      text-align: center;
-      box-shadow: 0 6px 26px var(--shadow);
-      width: 80%;
-      max-width: 300px;
-      animation: popupFade .3s ease;
+    input::placeholder, textarea::placeholder{ color: rgba(154,164,192,.75); }
+    input[type="date"]{ color-scheme: dark; }
+    input[type="file"]{ color: var(--muted); }
+    input[type="file"]::-webkit-file-upload-button{
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--border);
       color: var(--text);
-    }
-    #popupConfirm h3, #popupAlert h3, #popupUsuario h3 {
-      margin: 0 0 10px;
-      font-size: 1.1rem;
-      color: var(--text);
-    }
-    #popupConfirm p, #popupAlert p, #popupUsuario p {
-      font-size: 1rem;
-      color: var(--muted);
-      margin: 0 0 18px;
-    }
-    #popupConfirm button, #popupAlert button, #popupUsuario button {
-      background: var(--primary);
-      color: #fff;
-      border: 0;
-      padding: 8px 14px;
       border-radius: 10px;
-      font-weight: 600;
+      padding: 8px 10px;
       cursor: pointer;
     }
-    #popupConfirmNo {
-      background: var(--muted);
+    input[type="file"]::-webkit-file-upload-button:hover{ background: rgba(255,255,255,.12); }
+
+    textarea{min-height:180px;resize:vertical}
+    .badge{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--muted);max-width:100%}
+    .panel{background:rgba(0,0,0,.15);border:1px solid var(--border);border-radius:16px;padding:14px;max-width:100%}
+    .muted{color:var(--muted)}
+    .hint{font-size:12px;color:var(--muted);margin-top:6px}
+    .avatar{
+      width:150px;height:150px;border-radius:18px;border:1px solid var(--border);
+      background: rgba(0,0,0,.35);
+      display:flex;align-items:center;justify-content:center;
+      overflow:hidden;
+    }
+    .avatar img{max-width:100%;max-height:100%;object-fit:contain;}
+
+    .filebox{border:1px dashed var(--border);border-radius:14px;padding:10px;background:rgba(255,255,255,.03);}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width: 980px){ .grid-2{grid-template-columns:1fr} }
+
+    .searchbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .searchbar input{padding:10px 12px;min-width:0;}
+    .search-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+
+    .suggestions{
+      position:absolute;top:calc(100% + 8px);left:0;right:0;
+      border:1px solid var(--border);border-radius:14px;background:rgba(0,0,0,.92);
+      display:none;z-index:9999;max-height:280px;overflow-y:auto;overflow-x:hidden;
+      box-shadow:0 18px 45px rgba(0,0,0,.45);
+    }
+    .suggestions::-webkit-scrollbar{width:8px}
+    .suggestions::-webkit-scrollbar-track{background:transparent}
+    .suggestions::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:10px}
+    .suggestions::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.25)}
+    .suggestions .item{
+      padding:10px 12px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;
+      border-top:1px solid var(--border);
+    }
+    .suggestions .item:first-child{border-top:none}
+    .suggestions .item:hover{background:rgba(255,255,255,.06)}
+    .suggestions .left{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .suggestions .right{color:var(--muted);font-size:12px;white-space:nowrap}
+
+    .toast-container{
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 9999; display:flex; flex-direction:column; align-items:center; pointer-events:none;
+    }
+    .toast{ pointer-events:auto; }
+    .toast{
+      background: rgba(18,26,51,.95);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      min-width: 260px;
+      max-width: 360px;
       color: var(--text);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      animation: toastIn .25s ease-out;
+      font-size: 14px;
+    }
+    .toast.error{ border-left: 4px solid var(--danger); }
+    .toast.success{ border-left: 4px solid var(--ok); }
+    .toast.info{ border-left: 4px solid var(--accent); }
+    @keyframes toastIn{ from{ opacity:0; transform: translateY(-6px);} to{ opacity:1; transform: translateY(0);} }
+
+    .aviso-contenedor{
+      position: fixed; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.5);
+      display:flex; justify-content:center; align-items:center;
+      z-index: 99999; opacity:0; visibility:hidden; transition: all .3s ease;
+      backdrop-filter: blur(4px);
+      padding: 16px; overflow:auto;
+    }
+    .aviso-contenedor.mostrar{ opacity:1; visibility:visible; }
+    .aviso{
+      background: rgba(18,26,51,.98);
+      padding: 28px 32px;
+      border-radius: 20px;
+      max-width: 90%;
+      width: 420px;
+      text-align: center;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+      transform: scale(0.9) translateY(20px);
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text);
+      border: 1px solid var(--border);
+      max-height: calc(100vh - 32px);
+      overflow: auto;
+    }
+    .aviso-contenedor.mostrar .aviso{ transform: scale(1) translateY(0); }
+
+    .select{
+      padding:10px 12px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(255,255,255,.06);color:var(--text);outline:none;cursor:pointer;
+      max-width: 100%;
+    }
+    .select:hover{ background:rgba(255,255,255,.10); }
+    .select option{ background:#0b1020;color:var(--text); }
+
+    .count-badge{flex:0 0 auto;white-space:nowrap;max-width:100%}
+    .count-number{display:inline-block;min-width:3ch;text-align:right}
+
+    .auth-area{ position: relative; display:flex; align-items:center; gap:8px; }
+    .avatar-btn{
+      width: 36px; height: 36px; border-radius: 999px;
+      border: 1px solid var(--border); background: rgba(255,255,255,.06); color: var(--text);
+      display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; font-weight:800;
+    }
+    .avatar-btn:hover{ background: rgba(255,255,255,.10); }
+    .avatar-btn img{ width:100%; height:100%; border-radius:999px; object-fit:cover; display:block; }
+    .auth-menu{
+      position:absolute; top: calc(100% + 10px); right: 0; width: 280px;
+      border:1px solid var(--border); border-radius:16px; background: rgba(0,0,0,.92);
+      box-shadow:0 18px 45px rgba(0,0,0,.45);
+      padding:12px; display:none; z-index:9999;
+    }
+    .auth-menu.show{ display:block; }
+    .auth-menu .line{ border-top:1px solid var(--border); margin:10px 0; }
+    .auth-menu .email{ font-size:13px; color: var(--text); word-break: break-all; }
+
+    /* Layout ficha */
+    .panel .row{ display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:18px; }
+    .panel .row[style*="align-items:flex-start"]{ display:flex; gap:12px; flex-wrap:wrap; }
+    @media (max-width: 980px){ .panel .row{ grid-template-columns: repeat(1, minmax(0, 1fr)); } }
+
+    input[disabled], textarea[disabled]{
+      opacity: 1 !important;
+      -webkit-text-fill-color: var(--text);
+      cursor: not-allowed;
+    }
+    .no-interaction{ pointer-events:none !important; }
+    .panel.view-mode .row[style*="align-items:flex-start"]{
+      display:flex !important; flex-direction: column; align-items:center; justify-content:center; gap:14px;
+    }
+    .panel.view-mode .row[style*="align-items:flex-start"] > div:first-child{
+      width:100%; display:flex; justify-content:center;
+    }
+    .panel.view-mode .row[style*="align-items:flex-start"] > .col{ width:100%; }
+    .panel.view-mode .row[style*="align-items:flex-start"] > .col .row{
+      display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:18px;
+    }
+    @media (max-width: 980px){
+      .panel.view-mode .row[style*="align-items:flex-start"] > .col .row{ grid-template-columns: repeat(1, minmax(0, 1fr)); }
     }
 
-    #userCircle {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      border: 2px solid rgba(255, 255, 255, 0.33);
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.3s ease;
+    /* ✅ Ajustes móviles para que Categorías + contador NO desborden */
+    @media (max-width: 620px){
+      .header-inner{padding:12px 14px}
+      .container{padding:14px}
+      .searchbar{flex-direction:column;align-items:stretch}
+      .search-actions{width:100%}
+      .search-actions .btn{flex:1}
+      #categoryFilter{min-width:0 !important; width: 100% !important;}
+      #memberCountBadge{width:100%; justify-content:space-between;}
     }
 
 
 
+/* ✅ Barra sticky (categorías + contador + botones) */
+:root{
+  --header-offset: 72px; /* fallback; JS lo ajusta */
+}
 
-/* ✅ LOADER GLOBAL (overlay pro) */
-#busyOverlay{
+.toolbar-sticky{
+  position: sticky;
+  top: var(--header-offset);
+  z-index: 6;
+
+  background: rgba(18,26,51,.95);
+  backdrop-filter: blur(12px);
+
+  /* ✅ sin hacks que crean espacio vacío */
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+/* ✅ FIX móvil: el input file no debe ensanchar la pantalla */
+input[type="file"]{
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block;
+  overflow: hidden;
+}
+
+/* Evita que el nombre del archivo se salga (Safari/Chrome móvil) */
+input[type="file"]::-webkit-file-upload-button{
+  max-width: 100%;
+}
+
+/* En iOS a veces el texto del nombre del archivo se va largo */
+.filebox{
+  max-width: 100%;
+  overflow: hidden;
+}
+
+#photoFileBox{
+  max-width: 100%;
+}
+
+#photoInfo{
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Por si algún contenedor flex está empujando */
+.searchbar, .row, .col{
+  min-width: 0;
+}
+
+
+
+
+    /* ✅ FIX móvil: bloque de foto (avatar + filebox) no debe desbordar ni quedar enorme */
+@media (max-width: 620px){
+  /* Esta es EXACTAMENTE la fila que tiene style="align-items:flex-start" (foto + formulario) */
+  .panel .row[style*="align-items:flex-start"]{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* El contenedor que tiene la foto (el primer div dentro de esa fila) */
+  .panel .row[style*="align-items:flex-start"] > div:first-child{
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* El filebox y el input adentro a ancho completo */
+  #photoFileBox{
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #photoInput{
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* (Opcional) centrar el cuadro de la foto sin agrandar nada */
+  #photoBox{
+    margin: 0 auto;
+  }
+}
+
+/* ✅ Loader overlay (bloquea UI mientras guarda) */
+.loader-overlay{
   position: fixed;
   inset: 0;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(3px);
+  z-index: 999999;
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,.35);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 300; /* encima de popups (210) */
+  padding: 18px;
 }
+.loader-overlay.show{ display: flex; }
 
-#busyOverlay.active{ display:flex; }
-
-.busyCard{
-  width: min(320px, 88vw);
-  background: var(--card);
-  color: var(--text);
+.loader-box{
+  background: rgba(18,26,51,.98);
+  border: 1px solid var(--border);
   border-radius: 18px;
-  padding: 22px 18px;
-  box-shadow: 0 14px 40px var(--shadow);
-  text-align: center;
-  transform: translateY(4px);
-  animation: busyIn .18s ease-out;
+  padding: 16px 18px;
+  width: min(420px, 92vw);
+  box-shadow: 0 18px 50px rgba(0,0,0,.45);
+  display:flex;
+  align-items:center;
+  gap: 12px;
 }
 
-@keyframes busyIn{
-  from{ opacity:0; transform: translateY(12px) scale(.98); }
-  to{ opacity:1; transform: translateY(4px) scale(1); }
+.loader-spinner{
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 3px solid rgba(255,255,255,.18);
+  border-top-color: rgba(255,255,255,.85);
+  animation: spin .8s linear infinite;
+  flex: 0 0 auto;
 }
-
-.busySpinner{
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 5px solid var(--spinner-border);
-  border-top-color: var(--primary);
-  margin: 0 auto 12px;
-  animation: spin 0.9s linear infinite;
-}
-
 @keyframes spin{ to{ transform: rotate(360deg); } }
 
-.busyTitle{
-  font-weight: 800;
-  font-size: 1.05rem;
-  margin-bottom: 4px;
+.loader-text{
+  display:flex;
+  flex-direction:column;
+  gap: 2px;
+  min-width: 0;
+}
+.loader-title{ font-weight: 800; }
+.loader-sub{ font-size: 12px; color: var(--muted); }
+
+#avisoContenedor,
+#confirmContenedor{
+  z-index: 9999999 !important;
 }
 
-.busySub{
-  color: var(--muted);
-  font-size: .95rem;
-}
-
-
-    
-
-/* ✅ PARCHE RESPONSIVE (mínimo, sin tocar HTML/JS) */
-html, body {
-  height: 100%;
-}
-
-/* Evita cortes por barras del sistema (iOS/Android modernos) */
-body {
-  min-height: 100dvh; /* mejor que 100vh en móviles */
-  overflow-x: hidden;
-}
-
-/* El main en tu HTML tiene overflow:hidden inline. 
-   Forzamos scroll vertical cuando haga falta. */
-#principal {
-  height: calc(100dvh - 64px) !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
-}
-
-/* Permite que los controles no "exploten" horizontalmente */
-.controls {
-  width: 100%;
-  justify-content: space-between;
-  gap: 12px !important; /* en vez de 30px/108px, solo si el ancho aprieta */
-  padding: 0 12px;
-}
-
-/* Mantiene botones grandes, pero adaptables en pantallas pequeñas */
-.counterBtn {
-  width: clamp(54px, 18vw, 70px) !important;
-  height: clamp(54px, 18vw, 70px) !important;
-  font-size: clamp(26px, 7vw, 40px) !important;
-}
-
-/* Reduce un poco tipografías solo en pantallas bajas */
-@media (max-height: 700px) {
-  .totalCard { font-size: 22px !important; }
-  .totalCard #total { font-size: 3rem !important; }
-  .label { font-size: 1.05rem !important; }
-  .value { font-size: 2.1rem !important; }
-}
-
-/* En pantallas MUY angostas, evitamos overflow horizontal */
-@media (max-width: 360px) {
-  .controls { padding: 0 8px; gap: 8px !important; }
-  .value { min-width: 34px; }
-}
-
-
-
-    /* ✅ Fix iPhone 11 + Huawei: viewport real + no cortar contenido */
-html {
-  height: -webkit-fill-available; /* iOS */
-}
-
-body {
-  min-height: 100vh;       /* fallback */
-  min-height: 100dvh;      /* moderno: alto real */
-  min-height: -webkit-fill-available; /* iOS Safari */
-  overflow-x: hidden;
-}
-
-/* Tu main tiene overflow:hidden inline. Esto evita que se corte en pantallas bajas. */
-#principal {
-  height: calc(100vh - 64px) !important;   /* fallback */
-  height: calc(100dvh - 64px) !important;  /* moderno */
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-}
-
-/* Evita que los controles “revienten” en pantallas angostas */
-.controls {
-  width: 100%;
-  justify-content: space-between;
-  padding: 0 12px;
-  gap: 12px !important;
-}
-
-/* Botones adaptables: mantiene 70px, pero se encoge si el teléfono es pequeño */
-.counterBtn {
-  width: clamp(54px, 18vw, 70px) !important;
-  height: clamp(54px, 18vw, 70px) !important;
-  font-size: clamp(26px, 7vw, 40px) !important;
-}
-
-/* Ajuste ligero solo en pantallas bajas (iPhone 11 en algunos modos / Huawei con barra visible) */
-@media (max-height: 700px) {
-  .totalCard #total { font-size: 3rem !important; }
-  .value { font-size: 2.2rem !important; }
-}
 
     
   </style>
 </head>
+
 <body>
+  <div id="toastContainer" class="toast-container"></div>
 
-<!-- Popup de confirmación -->
-<div id="popupConfirm">
-  <div>
-    <h3 id="popupConfirmTitle">Confirmar</h3>
-    <p id="popupConfirmMsg"></p>
-    <div style="display:flex;gap:10px;justify-content:center;">
-      <button id="popupConfirmNo">Cancelar</button>
-      <button id="popupConfirmYes">Aceptar</button>
+  <div id="avisoContenedor" class="aviso-contenedor">
+    <div id="aviso" class="aviso">
+      <h3 id="avisoTitulo">Aviso</h3>
+      <p id="avisoMensaje"></p>
+      <div style="margin-top:18px;">
+        <button class="btn primary" id="avisoAceptar">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirmContenedor" class="aviso-contenedor">
+    <div id="confirmBox" class="aviso">
+      <h3 id="confirmTitulo">Confirmar</h3>
+      <p id="confirmMensaje"></p>
+      <div style="margin-top:18px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn" id="confirmNo">Cancelar</button>
+        <button class="btn danger" id="confirmSi">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ Loader global -->
+<div id="loaderOverlay" class="loader-overlay" aria-hidden="true">
+  <div class="loader-box" role="status" aria-live="polite">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">
+      <div class="loader-title" id="loaderTitle">Procesando…</div>
+      <div class="loader-sub" id="loaderSub">Por favor espera</div>
     </div>
   </div>
 </div>
 
-<!-- Popup de alerta moderno -->
-<div id="popupAlert">
-  <div>
-    <h3 id="popupAlertTitle">Información</h3>
-    <p id="popupAlertMsg"></p>
-    <button id="popupAlertOk">OK</button>
-  </div>
-</div>
+<div id="loginContenedor" class="aviso-contenedor">
+  <div class="aviso">
+    <h3>Iniciar sesión</h3>
+    <p class="small muted" style="margin-top:-6px;">Ingresa tu correo autorizado</p>
 
-<!-- Popup de usuario -->
-<div id="popupUsuario">
-  <div>
-    <h3>Usuario actual</h3>
-    <p id="popupNombre"></p>
-    <button onclick="cerrarPopupUsuario()">Cerrar</button>
-  </div>
+   <div style="text-align:left; margin-top:14px;">
+  <label>Cargo / Rol (para notificaciones)</label>
+  <input id="loginRole" placeholder="Ej: líder dorcas, líder jóvenes, caballeros..." />
+  <div class="hint">Se usa para enviarte avisos personalizados por tu área.</div>
 </div>
 
 
-  <!-- ✅ LOADER GLOBAL (overlay) -->
-<div id="busyOverlay" aria-hidden="true">
-  <div class="busyCard" role="status" aria-live="polite">
-    <div class="busySpinner"></div>
-    <div class="busyTitle" id="busyTitle">Procesando…</div>
-    <div class="busySub" id="busySub">Por favor espera</div>
-  </div>
-</div>
 
-
-<!-- Popup Sobre Nosotros -->
-<div id="popupSobre" style="position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:220;">
-  <div style="background:var(--popup-bg);border-radius:16px;padding:22px 22px;text-align:left;box-shadow:0 6px 26px var(--shadow);width:85%;max-width:360px;animation: popupFade .3s ease;color:var(--text);">
-    
-    <h3 style="margin:0 0 10px;font-size:1.2rem;text-align:center;">ℹ️ Sobre nosotros</h3>
-
-    <p style="margin:0 0 10px;color:var(--muted);line-height:1.4;">
-      Somos el <strong>Departamento de Comunicaciones</strong> de la
-      <strong>IPUC Bochica Sur</strong>.  
-      Trabajamos para servir con excelencia, apoyando la organización, la información y el crecimiento de la iglesia.
-    </p>
-
-    <div style="background:rgba(0,0,0,0.04);padding:12px;border-radius:12px;margin:12px 0;">
-      <p style="margin:0;font-style:italic;line-height:1.4;">
-        “Y todo lo que hagáis, hacedlo de corazón, como para el Señor y no para los hombres.”
-      </p>
-      <small style="display:block;margin-top:8px;color:var(--muted);font-weight:600;">
-        Colosenses 3:23
-      </small>
+    <div style="text-align:left; margin-top:14px;">
+      <label>Correo *</label>
+      <input id="loginEmail" type="email" placeholder="correo@dominio.com" autocomplete="email" />
+      <div class="hint">Se validará contra allowed_emails en Supabase.</div>
     </div>
 
-    <p style="margin:0 0 10px;color:var(--muted);line-height:1.4;">
-      Esta aplicación fue creada para apoyar el <strong>registro y control de asistencia</strong>
-      de manera ordenada, rápida y segura.
-    </p>
-
-    <small style="display:block;margin-top:10px;color:var(--muted);text-align:center;">
-      Desarrollado por: <strong>Deimer Herrera</strong>
-      <br>
-      DECOM 2026
-    </small>
-
-    <button onclick="cerrarSobreNosotros()" style="margin-top:14px;background:var(--primary);color:#fff;border:0;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer;width:100%;">
-      Cerrar
-    </button>
+    <div style="margin-top:18px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button class="btn" id="btnLoginCancel">Cancelar</button>
+      <button class="btn primary" id="btnLoginOk">Entrar</button>
+    </div>
   </div>
 </div>
 
-  
+<!-- ✅ Modal Cumpleaños por Mes (PWA) -->
+<div id="cumplePwaContenedor" class="aviso-contenedor">
+  <div class="aviso" style="width:760px; max-width:96%; text-align:left;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <h3 style="margin:0;">🎂 Cumpleaños por mes</h3>
 
-<!-- LOGIN -->
-<div id="loginScreen">
-  <div id="loginBox">
-    <h2>Inicio de sesión</h2>
-    <p>Ingresa tu nombre para registrar asistencias</p>
-    <input type="text" id="nombreUsuario" placeholder="Tu nombre completo">
-    <br>
-    <button onclick="iniciarSesion()">Entrar</button>
-  </div>
-</div>
+        <select id="cumplePwaMesSelect" class="select" style="min-width:180px; width:auto;">
+          <option value="0">Enero</option>
+          <option value="1">Febrero</option>
+          <option value="2">Marzo</option>
+          <option value="3">Abril</option>
+          <option value="4">Mayo</option>
+          <option value="5">Junio</option>
+          <option value="6">Julio</option>
+          <option value="7">Agosto</option>
+          <option value="8">Septiembre</option>
+          <option value="9">Octubre</option>
+          <option value="10">Noviembre</option>
+          <option value="11">Diciembre</option>
+        </select>
 
-<!-- LOGIN IGLESIA (Paso 1 - NO activo aún) -->
-<div id="churchScreen" style="position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:130;">
-  <div style="background:var(--card);padding:28px;border-radius:14px;box-shadow:0 8px 24px var(--shadow);text-align:center;color:var(--text);width:320px;max-width:92vw;">
-    <h2>Selecciona tu iglesia</h2>
-    <p style="color:var(--muted);margin-top:6px;">Elige la iglesia y escribe el PIN</p>
+        <span class="badge" id="cumplePwaCount">0</span>
+      </div>
 
-    <select id="iglesiaSelect" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--muted);background:var(--card);color:var(--text);font-size:1rem;"></select>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <!-- (Opcional) manda push solo a ESTE teléfono -->
+        <button class="btn ok" id="btnCumplePwaPushSelf">🔔 Enviar a este teléfono</button>
 
-    <div style="height:10px"></div>
+        <button class="btn" id="btnCumplePwaClose">Cerrar</button>
+      </div>
+    </div>
 
-    <input id="pinIglesia" type="password" placeholder="PIN"
-      style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--muted);font-size:1rem;background:var(--card);color:var(--text);" />
+    <hr class="sep" />
 
- <button id="btnLoginIglesia" onclick="loginIglesia()"
-  style="margin-top:12px;background:var(--primary);color:#fff;border:0;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600;width:100%;">
-  Entrar
-</button>
+    <div class="panel">
+      <div class="small muted" id="cumplePwaSub">Cargando…</div>
+      <div id="cumplePwaList" style="margin-top:10px;"></div>
 
+      <div class="hint" style="margin-top:10px;">
+        * Solo muestra miembros con <b>fecha de nacimiento</b> registrada.
+      </div>
+    </div>
   </div>
 </div>
 
 
-<header>
-  <button aria-label="menu" onclick="toggleMenu()">☰</button>
-  <div class="title">📋 Asistencia Bochica Sur</div>
-  <div id="userCircle" onclick="mostrarNombreUsuario()" title=""></div>
-</header>
+  <div id="app"></div>
 
-<div id="menuOverlay" onclick="closeMenuIfOpen(event)"></div>
-
-<nav id="menu" aria-hidden="true">
-  <button class="item" onclick="abrirVerPantalla()">👁️ Ver asistencia</button>
-  <button class="item" onclick="descargarMesCSV()">⬇️ Descargar (CSV)</button>
-  <button class="item" onclick="descargarMesXLSX()">⬇️ Descargar (Excel)</button>
-  <button class="item" onclick="refrescarPagina()">🔄 Refrescar</button>
-  <button class="item" onclick="contactarSoporte()">📞 Soporte</button>
-   <button class="item" onclick="cerrarSesion()">🔒 Cerrar sesión</button>
-  <button class="item" onclick="abrirSobreNosotros()">ℹ️ Sobre nosotros</button>
-
-  <div style="flex:1"></div>
-  <!-- Desplegable para seleccionar tema -->
-  <select id="themeSelect" onchange="changeTheme(this.value)">
-    <option value="claro">Tema Claro</option>
-    <option value="oscuro">Tema Oscuro</option>
-    <option value="lila">Tema Lila</option>
-    <option value="rosa">Tema Rosa</option>
-    <option value="beige">Tema Beige</option>
-    <option value="verde">Tema Verde</option>
-    <option value="naranja">Tema Naranja</option>
-    <option value="gris">Tema Gris</option>
-  </select>
-  <button class="item" onclick="toggleMenu()">Cerrar</button>
-  <button class="item" type="button" disabled style="opacity:.75; cursor:default;">
-    DECOM 2026
-  </button>
-</nav>
-
-
-
-
-
-<main id="principal" style="
-  height: calc(100vh - 64px);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2px 0;
-  overflow: hidden;
-  gap: 2px;
-">
-
-  <div class="totalCard" style="
-    font-size: 28px;
-    font-weight: 700;
-    background: var(--card);
-    border-radius: 10px;
-    padding: 8px 10px;
-    width: 98%;
-    text-align: center;
-    margin: 2px 0;
-  ">
-    Total asistencia: <span id="total" style="font-size: 3.5rem;">0</span>
-  </div>
-
-  <!-- Tarjeta Hermanos -->
-  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
-    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Hermanos</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
-      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanos', -1)">−</button>
-      <div class="value" id="hermanos" style="font-size: 2.5rem; font-weight: 700;">0</div>
-      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanos', 1)">+</button>
-    </div>
-  </div>
-
-  <!-- Tarjeta Hermanas -->
-  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
-    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Hermanas</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
-      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanas', -1)">−</button>
-      <div class="value" id="hermanas" style="font-size: 2.5rem; font-weight: 700;">0</div>
-      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanas', 1)">+</button>
-    </div>
-  </div>
-
-  <!-- Tarjeta Amigos -->
-  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
-    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Amigos</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
-      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('amigos', -1)">−</button>
-      <div class="value" id="amigos" style="font-size: 2.5rem; font-weight: 700;">0</div>
-      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('amigos', 1)">+</button>
-    </div>
-  </div>
-
-  <!-- Tarjeta Adolescentes -->
-  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
-    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Adolescentes</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
-      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('adolescentes', -1)">−</button>
-      <div class="value" id="adolescentes" style="font-size: 2.5rem; font-weight: 700;">0</div>
-      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('adolescentes', 1)">+</button>
-    </div>
-  </div>
-
-  <!-- Tarjeta Niños -->
-  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center;">
-    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Niños</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center;gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
-      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('niños', -1)">−</button>
-      <div class="value" id="niños" style="font-size: 2.5rem; font-weight: 700;">0</div>
-      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('niños', 1)">+</button>
-    </div>
-  </div>
-
-  <div style="text-align: center; width: 98%; margin: 2px 0;">
-    <button 
-      onclick="subirAsistencia()" 
-      id="btn-subir"
-      style="
-        background: var(--primary);
-        color: #fff;
-        border: none;
-        padding: 12px 0;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 1.5rem;
-        cursor: pointer;
-        width: 100%;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-        white-space: nowrap;
-      "
-    >📤 Subir asistencia</button>
-  </div>
-
-</main>
-
-
-
-
-
-<section id="verPantalla" aria-hidden="true">
-  <div id="verHeader">
-    <div class="left"><button onclick="cerrarVerPantalla()">←</button><div id="tituloMes" style="font-weight:700; font-size:1rem">Asistencia</div></div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <select id="selectMes" aria-label="Seleccionar mes" onchange="mesSeleccionado()"></select>
-      <button title="Refrescar" onclick="refrescarMes()">⟳</button>
-      <div id="loadingIndicator" style="display:none"><div class="spinner"></div></div>
-    </div>
-  </div>
-  <div id="listado"></div>
-</section>
-
-<script>
-const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwuad6LbOg5k2TFzphjhPTm-NwMJwURzhfFPsEb8a5oB9KXuXIhWxe5QzrR2xLnDjYVlA/exec";
-const datos = { hermanos:0, hermanas:0, amigos:0, adolescentes:0, niños:0 };
-const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-let mesActual = meses[(new Date()).getMonth()];
-let usuarioGlobal = localStorage.getItem("usuarioCelula") || "";
-
-// === MULTI-IGLESIA (Paso 1) ===
-let iglesiaId = localStorage.getItem("iglesiaId") || "";
-let tokenIglesia = localStorage.getItem("tokenIglesia") || "";
-
-
-// 🎨 Función para cambiar el tema
-function changeTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('theme', theme); // Guardar tema seleccionado
-}
- function refrescarPagina() {
-    try {
-      // Limpia el almacenamiento local y de sesión
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Limpia caché del navegador si es posible (moderno)
-      if ('caches' in window) {
-        caches.keys().then(function(names) {
-          for (let name of names) caches.delete(name);
-        });
-      }
-
-      // Forzar recarga total desde el servidor (no desde caché)
-      location.reload(true);
-    } catch (e) {
-      console.error("Error al refrescar:", e);
-      location.reload();
-    }
-  }
-
-  
-/* === LOGIN === */
-function iniciarSesion(){
-  const nombre = document.getElementById("nombreUsuario").value.trim();
-  if(!nombre) return mostrarAlerta("⚠️", "Ingresa tu nombre para continuar.");
-  localStorage.setItem("usuarioCelula", nombre);
-  usuarioGlobal = nombre;
-  document.getElementById("loginScreen").style.display="none";
-  actualizarUserCircle();
-  // close menu if open
-  const menu = document.getElementById('menu');
-  const overlay = document.getElementById('menuOverlay');
-  if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
-}
-
-
-
-
-
-// === MULTI-IGLESIA (Paso 1 - NO activo aún) ===
-async function cargarIglesias(){
-  // IMPORTANTE: esto aún no se usa hasta que el Apps Script esté listo
-  try{
-    const res = await fetch(`${URL_SCRIPT}?accion=iglesias`);
-    const text = await res.text();
-    const data = JSON.parse(text); // [{id, nombre}]
-    const sel = document.getElementById("iglesiaSelect");
-    sel.innerHTML = "";
-    data.forEach(it=>{
-      const o=document.createElement("option");
-      o.value=it.id;
-      o.textContent=it.nombre;
-      sel.appendChild(o);
-    });
-  }catch(e){
-    mostrarAlerta("⚠️", "No se pudo cargar la lista de iglesias (aún no está activo).");
-  }
-}
-
-function mostrarPantallaIglesia(){
-  document.getElementById("churchScreen").style.display = "flex";
-  cargarIglesias();
-}
-
-function ocultarPantallaIglesia(){
-  document.getElementById("churchScreen").style.display = "none";
-}
-
-async function loginIglesia(){
-  const sel = document.getElementById("iglesiaSelect");
-  const pin = (document.getElementById("pinIglesia").value || "").trim();
-  const id = sel.value;
-
-  if(!id) return mostrarAlerta("⚠️", "Selecciona una iglesia.");
-  if(!pin) return mostrarAlerta("⚠️", "Ingresa el PIN.");
-
-  const btn = document.getElementById("btnLoginIglesia");
-  if(btn){
-    btn.disabled = true;
-    btn.style.opacity = "0.75";
-    btn.style.cursor = "not-allowed";
-  }
-
-  showBusy("Verificando PIN…", "Validando acceso a tu iglesia");
-
-  try{
-    const res = await fetch(`${URL_SCRIPT}?accion=login&iglesia=${encodeURIComponent(id)}&pin=${encodeURIComponent(pin)}`, { cache: "no-store" });
-    const text = await res.text();
-    const obj = JSON.parse(text); // {ok:true, token:"...", iglesiaNombre:"..."}
-
-    if(!obj.ok){
-      return mostrarAlerta("⚠️", obj.mensaje || "PIN incorrecto.");
+  <script type="module">
+    import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY, VAPID_PUBLIC_KEY, safeStorage } from "./supabase-config.js";
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", async () => {
+        try {
+          await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+        } catch (e) {
+          console.log("SW register error:", e);
+        }
+      });
     }
 
-    iglesiaId = id;
-    tokenIglesia = obj.token;
-    localStorage.setItem("iglesiaId", iglesiaId);
-    localStorage.setItem("tokenIglesia", tokenIglesia);
 
-    // (opcional) cambia el título visible cuando el backend ya responda nombre
-    const titleEl = document.querySelector("header .title");
-    if(titleEl && obj.iglesiaNombre) titleEl.textContent = `📋 Asistencia ${obj.iglesiaNombre}`;
 
-    ocultarPantallaIglesia();
-  }catch(e){
-    mostrarAlerta("⚠️", "Error iniciando en la iglesia. Intenta de nuevo.");
-  }finally{
-    hideBusy();
-    if(btn){
-      btn.disabled = false;
-      btn.style.opacity = "1";
-      btn.style.cursor = "pointer";
+ 
+
+    const app = document.getElementById("app");
+
+    // ===== UI helpers =====
+    function el(html){
+      const t=document.createElement("template");
+      t.innerHTML=html.trim();
+      return t.content.firstElementChild;
     }
-  }
-}
 
+function showLoader(title="Procesando…", sub="Por favor espera"){
+  const ov = document.getElementById("loaderOverlay");
+  const t = document.getElementById("loaderTitle");
+  const s = document.getElementById("loaderSub");
+  if (!ov) return;
 
+  if (t) t.textContent = title;
+  if (s) s.textContent = sub;
 
-
-function cerrarSesion(){
-  mostrarPopupConfirm("Confirmar", "¿Cerrar sesión?", () => {
-    localStorage.removeItem("usuarioCelula");
-
-    // ✅ borrar iglesia también
-    localStorage.removeItem("iglesiaId");
-    localStorage.removeItem("tokenIglesia");
-    iglesiaId = "";
-    tokenIglesia = "";
-
-    usuarioGlobal="";
-    document.getElementById("loginScreen").style.display="flex";
-    // close menu if open
-    const menu=document.getElementById('menu');
-    const overlay=document.getElementById('menuOverlay');
-    if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
-  });
-}
-
-if(usuarioGlobal){
-  document.getElementById("loginScreen").style.display="none";
-  actualizarUserCircle();
-
-
-}
-
-
-function actualizarUserCircle(){
-  const circle = document.getElementById("userCircle");
-  if(!circle) return;
-  if(!usuarioGlobal){
-    circle.textContent = "";
-    circle.style.display = "none";
-    return;
-  }
-  const partes = usuarioGlobal.trim().split(" ");
-  const iniciales = partes.length > 1
-    ? (partes[0][0] + partes[partes.length-1][0])
-    : partes[0][0];
-  circle.textContent = iniciales.toUpperCase();
-  circle.style.display = "flex";
-}
-
-function mostrarNombreUsuario(){
-  if(!usuarioGlobal) return;
-  document.getElementById("popupNombre").textContent = usuarioGlobal;
-  document.getElementById("popupUsuario").style.display = "flex";
-}
-
-function cerrarPopupUsuario(){
-  document.getElementById("popupUsuario").style.display = "none";
-}
-
-
-
-function abrirSobreNosotros(){
-  const popup = document.getElementById("popupSobre");
-  if(popup) popup.style.display = "flex";
-
-  // cerrar menú si está abierto
-  const menu = document.getElementById("menu");
-  const overlay = document.getElementById("menuOverlay");
-  if(menu && overlay && menu.classList.contains("active")){
-    menu.classList.remove("active");
-    overlay.classList.remove("active");
-  }
-}
-
-function cerrarSobreNosotros(){
-  const popup = document.getElementById("popupSobre");
-  if(popup) popup.style.display = "none";
-}
-
-
-function showBusy(titulo="Procesando…", subtitulo="Por favor espera"){
-  const ov = document.getElementById("busyOverlay");
-  document.getElementById("busyTitle").textContent = titulo;
-  document.getElementById("busySub").textContent = subtitulo;
-  ov.classList.add("active");
+  ov.classList.add("show");
   ov.setAttribute("aria-hidden", "false");
 }
 
-function hideBusy(){
-  const ov = document.getElementById("busyOverlay");
-  ov.classList.remove("active");
+function hideLoader(){
+  const ov = document.getElementById("loaderOverlay");
+  if (!ov) return;
+  ov.classList.remove("show");
   ov.setAttribute("aria-hidden", "true");
 }
 
 
-  
-/* === ALERTA MODERNA === */
-function mostrarAlerta(titulo, mensaje){
-  const popup = document.getElementById('popupAlert');
-  document.getElementById('popupAlertTitle').textContent = titulo || "Información";
-  document.getElementById('popupAlertMsg').textContent = mensaje || "";
-  popup.style.display = "flex";
-
-  const btnOk = document.getElementById('popupAlertOk');
-  btnOk.onclick = () => { popup.style.display = "none"; };
-}
-
-/* === POPUP MODERNO === */
-function mostrarPopupConfirm(titulo, mensaje, callback){
-  const popup = document.getElementById('popupConfirm');
-  document.getElementById('popupConfirmTitle').textContent = titulo || "Confirmar";
-  document.getElementById('popupConfirmMsg').textContent = mensaje || "";
-  popup.style.display = "flex";
-
-  const btnYes = document.getElementById('popupConfirmYes');
-  const btnNo = document.getElementById('popupConfirmNo');
-
-  const cerrar = () => { popup.style.display = "none"; btnYes.onclick = null; btnNo.onclick = null; };
-  btnNo.onclick = cerrar;
-  btnYes.onclick = () => { cerrar(); if(callback) callback(); };
-}
-
-/* === MENÚ === */
-function toggleMenu(){ 
-  const menu=document.getElementById('menu');
-  const overlay=document.getElementById('menuOverlay');
-  menu.classList.toggle('active');
-  overlay.classList.toggle('active');
-  menu.setAttribute('aria-hidden', !menu.classList.contains('active')); 
-}
-function closeMenuIfOpen(evt){ 
-  const menu=document.getElementById('menu'); 
-  if(menu.classList.contains('active')) toggleMenu(); 
-}
-
-/* === CONTADORES === */
-function changeCount(tipo, delta){ 
-  datos[tipo]=Math.max(0,(datos[tipo]||0)+delta); 
-  document.getElementById(tipo).textContent=datos[tipo]; 
-  actualizarTotal(); 
-}
-function actualizarTotal(){ 
-  const total=Object.values(datos).reduce((a,b)=>a+b,0); 
-  document.getElementById('total').textContent=total; 
-}
-
-
-// ✅ Requiere iglesia + token antes de permitir acciones
-function asegurarIglesia(){
-  if(!iglesiaId || !tokenIglesia){
-    mostrarPantallaIglesia();
-    mostrarAlerta("🔒", "Selecciona tu iglesia e ingresa el PIN para continuar.");
-    return false;
-  }
-  return true;
-}
-
-
-/* === SUBIR ASISTENCIA MEJORADA === */
-/* === SUBIR ASISTENCIA MEJORADA === */
-async function subirAsistencia(){
-  if(!usuarioGlobal) return mostrarAlerta("⚠️", "Debes iniciar sesión primero.");
-  if(!asegurarIglesia()) return;
-
-  const total = Object.values(datos).reduce((a,b)=>a+b,0);
-  if(total === 0) return mostrarPopupConfirm("Sin registros", "No hay personas registradas.", null);
-
-  // 🔹 cerrar menú si está abierto
-  const menu = document.getElementById('menu');
-  const overlay = document.getElementById('menuOverlay');
-  if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
-
-  // 🔹 confirmar envío
-  mostrarPopupConfirm("Confirmar envío", "¿Deseas subir esta asistencia?", async () => {
-    const fecha = new Date().toLocaleString('es-CO', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-    });
-
-    const params = new URLSearchParams({
-      // ✅ IMPORTANTE
-      accion: "insertar",
-
-      // ✅ multi-iglesia
-      iglesia: iglesiaId,
-      token: tokenIglesia,
-
-      usuario: usuarioGlobal,
-      fecha,
-      hermanos: datos.hermanos,
-      hermanas: datos.hermanas,
-      amigos: datos.amigos,
-      adolescentes: datos.adolescentes,
-      niños: datos.niños,
-      total
-    });
-
-    try {
-      const res = await fetch(`${URL_SCRIPT}?${params.toString()}`, { cache: "no-store" });
-      const text = await res.text();
-
-      // Si el backend responde NOAUTH
-      if(String(text).includes("NOAUTH")){
-        localStorage.removeItem("iglesiaId");
-        localStorage.removeItem("tokenIglesia");
-        iglesiaId=""; tokenIglesia="";
-        mostrarPantallaIglesia();
-        return mostrarAlerta("🔒", "Tu sesión de iglesia expiró. Ingresa el PIN nuevamente.");
-      }
-
-      if (String(text).trim() === "OK") {
-        mostrarPopupConfirm("✅ Enviado", "Asistencia registrada correctamente.", null);
-        // 🔄 Reiniciar contadores
-        for (const k in datos) { datos[k] = 0; document.getElementById(k).textContent = 0; }
-        document.getElementById('total').textContent = 0;
-      } else if (String(text).includes("DUPLICADO")) {
-        mostrarPopupConfirm("⚠️ Duplicado", "Ya se envió recientemente.", null);
-      } else {
-        mostrarPopupConfirm("ℹ️ Servidor", text, null);
-      }
-    } catch (e) {
-      mostrarPopupConfirm("⚠️ Error", "No se pudo conectar con el servidor.\n" + (e?.message || String(e)), null);
+    
+    function toast(msg, kind="info"){
+      const cont = document.getElementById("toastContainer");
+      const node = document.createElement("div");
+      node.className = "toast " + (kind==="error"?"error":kind==="success"?"success":"info");
+      node.textContent = msg;
+      cont.appendChild(node);
+      setTimeout(()=>{ node.remove(); }, 3500);
     }
+
+
+
+function normalizePhoneToE164CO(raw){
+  // Convierte teléfonos colombianos comunes a +57XXXXXXXXXX
+  let p = String(raw || "").trim();
+
+  // quitar espacios, guiones, paréntesis
+  p = p.replace(/[^\d+]/g, "");
+
+  if (!p) return "";
+
+  // si ya viene con +, asumimos E.164
+  if (p.startsWith("+")) return p;
+
+  // quitar ceros iniciales raros
+  p = p.replace(/^0+/, "");
+
+  // si tiene 10 dígitos (celular CO típico), agregar +57
+  if (/^\d{10}$/.test(p)) return `+57${p}`;
+
+  // si viene 57 + 10 dígitos
+  if (/^57\d{10}$/.test(p)) return `+${p}`;
+
+  // si viene 9 o menos, lo dejamos como está (no adivinamos)
+  return p;
+}
+
+function openWhatsApp(phoneRaw, message){
+  const phone = normalizePhoneToE164CO(phoneRaw);
+  if (!phone || phone.length < 8){
+    toast("Este miembro no tiene teléfono válido.", "info");
+    return;
+  }
+
+  const text = encodeURIComponent(String(message || ""));
+  const num = phone.replace("+", ""); // wa.me requiere sin +
+  const url = `https://wa.me/${num}?text=${text}`;
+
+  // abre WhatsApp / WhatsApp Web
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
+
+
+
+// ===================== CUMPLEAÑOS POR MES (PWA) =====================
+const MESES_TXT = [
+  "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+  "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+];
+
+function openCumplePwaModal(){
+  const cont = document.getElementById("cumplePwaContenedor");
+  const sel  = document.getElementById("cumplePwaMesSelect");
+  if (!cont || !sel) return;
+
+  // mes actual por defecto
+  sel.value = String(new Date().getMonth());
+  cont.classList.add("mostrar");
+
+  // cargar lista
+  cargarCumplePwaMes(Number(sel.value));
+}
+
+function closeCumplePwaModal(){
+  document.getElementById("cumplePwaContenedor")?.classList.remove("mostrar");
+}
+
+function fmtDiaMes(yyyyMMdd){
+  const s = String(yyyyMMdd || "");
+  // esperado "YYYY-MM-DD"
+  if (s.length < 10) return "";
+  const mm = s.slice(5,7);
+  const dd = s.slice(8,10);
+  return `${dd}/${mm}`;
+}
+
+async function cargarCumplePwaMes(mesIndex){
+  const sub = document.getElementById("cumplePwaSub");
+  const list = document.getElementById("cumplePwaList");
+  const count = document.getElementById("cumplePwaCount");
+  if (!sub || !list || !count) return;
+
+  list.innerHTML = "";
+  sub.textContent = "Verificando sesión…";
+
+  const ok = await requireAuth();
+  if (!ok){
+    sub.textContent = "Login requerido para ver cumpleaños.";
+    count.textContent = "0";
+    return;
+  }
+
+  sub.textContent = `Cargando cumpleaños de ${MESES_TXT[mesIndex]}…`;
+
+  // Trae solo campos necesarios (evita peso)
+  const { data, error } = await supabase
+    .from("members")
+    .select("id, first_names, last_names, birth_date, city, phone")
+    .not("birth_date", "is", null)
+    .limit(5000);
+
+  if (error){
+    sub.textContent = "Error cargando cumpleaños.";
+    toast("❌ Cumpleaños: " + error.message, "error");
+    count.textContent = "0";
+    return;
+  }
+
+  const items = (data || []).filter(m => {
+    const d = String(m.birth_date || "");
+    if (d.length < 10) return false;
+    const mm = Number(d.slice(5,7)) - 1; // 0..11
+    return mm === Number(mesIndex);
   });
-}
 
+  // ordenar por día del mes
+  items.sort((a,b)=>{
+    const da = Number(String(a.birth_date).slice(8,10));
+    const db = Number(String(b.birth_date).slice(8,10));
+    return da - db;
+  });
 
-/* === VER === */
-function abrirVerPantalla(){ 
-  const menu=document.getElementById('menu');
-  if(menu.classList.contains('active'))toggleMenu();
-  const select=document.getElementById('selectMes');
-  if(select.options.length===0){
-    meses.forEach(m=>{
-      const o=document.createElement('option');
-      o.value=m;
-      o.text=m;
-      select.appendChild(o);
-    });
+  count.textContent = String(items.length);
+  sub.textContent = items.length
+    ? `Hay ${items.length} cumpleaños en ${MESES_TXT[mesIndex]}.`
+    : `No hay cumpleaños en ${MESES_TXT[mesIndex]}.`;
+
+  if (items.length === 0){
+    list.innerHTML = `<div class="small muted">🎉 No hay cumpleaños registrados para este mes.</div>`;
+    return;
   }
-  select.value=mesActual;
-  document.getElementById('tituloMes').textContent='Asistencia de: '+select.value;
-  document.getElementById('verPantalla').classList.add('active');
-  verAsistencia(select.value);
-}
-function cerrarVerPantalla(){
-  document.getElementById('verPantalla').classList.remove('active');
-}
-function mesSeleccionado(){
-  const select=document.getElementById('selectMes');
-  mesActual=select.value;
-  document.getElementById('tituloMes').textContent='Asistencia de: '+mesActual;
-  verAsistencia(mesActual);
-}
-function refrescarMes(){
-  verAsistencia(document.getElementById('selectMes').value);
-}
-function showLoading(s){
-  document.getElementById('loadingIndicator').style.display=s?'block':'none';
-}
 
+  // Render lista simple (sin afectar nada más)
+  const wrap = document.createElement("div");
+  wrap.style.display = "grid";
+  wrap.style.gap = "10px";
 
+  for (const m of items){
+    const nombre = `${m.first_names || ""} ${m.last_names || ""}`.trim();
+    const dia = fmtDiaMes(m.birth_date);
+    const ciudad = (m.city || "").trim();
+    const tel = (m.phone || "").trim();
 
+    const row = document.createElement("div");
+    row.className = "panel";
+    row.style.padding = "12px";
+const waId = `btnWaCumple_${m.id}`;
 
-async function descargarMesXLSX(){
-  showBusy("Preparando Excel…", "Estamos generando el archivo de tu iglesia");
-  try{
-    if(!asegurarIglesia()) return;
+row.innerHTML = `
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+    <div style="min-width:0;">
+      <div style="font-weight:800;">${nombre || "(Sin nombre)"}</div>
+      <div class="small muted">
+        ${dia ? "🎂 " + dia : ""}${ciudad ? " · " + ciudad : ""}${tel ? " · 📞 " + tel : ""}
+      </div>
+    </div>
 
-    const mes = (document.getElementById('selectMes')?.value) || mesActual;
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button class="btn ok" id="${waId}" style="padding:8px 10px;">💬 WhatsApp</button>
+      <span class="badge">${dia || "--/--"}</span>
+    </div>
+  </div>
+`;
 
-    // Cerrar menú si está abierto
-    const menu = document.getElementById('menu');
-    const overlay = document.getElementById('menuOverlay');
-    if(menu?.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
+// listener WhatsApp (solo si hay teléfono)
+setTimeout(() => {
+  const btn = row.querySelector(`#${waId}`);
+  if (!btn) return;
 
-    const url = `${URL_SCRIPT}?accion=descargarXLSX&iglesia=${encodeURIComponent(iglesiaId)}&token=${encodeURIComponent(tokenIglesia)}&mes=${encodeURIComponent(mes)}`;
-    const res = await fetch(url, { cache:"no-store" });
-    const text = await res.text();
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-    if(text.includes("NOAUTH")){
-      localStorage.removeItem("iglesiaId");
-      localStorage.removeItem("tokenIglesia");
-      iglesiaId=""; tokenIglesia="";
-      mostrarPantallaIglesia();
-      return mostrarAlerta("🔒", "Tu sesión de iglesia expiró. Ingresa el PIN nuevamente.");
-    }
+    const msg = `Hola ${nombre || ""} 😊 ¡Feliz cumpleaños! 🎂🎉\nDios te bendiga.`;
+    openWhatsApp(m.phone || "", msg);
+  });
 
-    const obj = JSON.parse(text);
-
-    if(!obj.ok){
-      if(obj.error === "MES_REQUERIDO") return mostrarAlerta("⚠️", "Selecciona un mes para descargar.");
-      if(obj.error === "HOJA_NO_ENCONTRADA") return mostrarAlerta("⚠️", "No existe ese mes en la hoja.");
-      return mostrarAlerta("⚠️", "No se pudo generar el Excel.");
-    }
-
-    // ✅ Base64 -> bytes
-    const binary = atob(obj.data);
-    const bytes = new Uint8Array(binary.length);
-    for(let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
-
-    const blob = new Blob([bytes], { type: obj.mime || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = obj.filename || `Asistencia_${iglesiaId}_${mes}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(a.href);
-
-    mostrarAlerta("✅", `Excel listo: ${mes}`);
-  }catch(e){
-    mostrarAlerta("⚠️", "No se pudo descargar el Excel.\n" + (e?.message || String(e)));
-  }finally{
-    hideBusy();
+  if (!String(m.phone || "").trim()){
+    btn.disabled = true;
+    btn.title = "Este miembro no tiene teléfono";
+    btn.style.opacity = "0.6";
   }
-}
+}, 0);
 
-
-  
-
-async function descargarMesCSV(){
-  showBusy("Preparando descarga…", "Estamos generando el archivo de tu iglesia");
-  try{
-    if(!asegurarIglesia()) return;
-
-    const mes = (document.getElementById('selectMes')?.value) || mesActual;
-
-    // Cerrar menú si está abierto
-    const menu = document.getElementById('menu');
-    const overlay = document.getElementById('menuOverlay');
-    if(menu?.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
-
-    const url = `${URL_SCRIPT}?accion=descargar&iglesia=${encodeURIComponent(iglesiaId)}&token=${encodeURIComponent(tokenIglesia)}&mes=${encodeURIComponent(mes)}`;
-
-    const res = await fetch(url, { cache: "no-store" });
-
-    // 👇 Leemos una copia como texto SOLO para detectar NOAUTH/MES_REQUERIDO
-    const textCheck = await res.clone().text();
-
-    if(textCheck.includes("NOAUTH")){
-      localStorage.removeItem("iglesiaId");
-      localStorage.removeItem("tokenIglesia");
-      iglesiaId=""; tokenIglesia="";
-      mostrarPantallaIglesia();
-      return mostrarAlerta("🔒", "Tu sesión de iglesia expiró. Ingresa el PIN nuevamente.");
-    }
-
-    if(textCheck.includes("MES_REQUERIDO")){
-      return mostrarAlerta("⚠️", "Selecciona un mes para descargar.");
-    }
-
-    // ✅ Descarga REAL como bytes (con BOM intacto)
-    const blob = await res.blob();
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `Asistencia_${iglesiaId}_${mes}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(a.href);
-
-    mostrarAlerta("✅", `Descarga lista: ${mes}`);
-  }catch(e){
-    mostrarAlerta("⚠️", "No se pudo descargar.\n" + (e?.message || String(e)));
-  }finally{
-    hideBusy();
+    wrap.appendChild(row);
   }
+
+  list.appendChild(wrap);
 }
 
 
 
-  
-async function verAsistencia(mes){
-  showLoading(true);
-  const listado=document.getElementById('listado');
-  listado.innerHTML='';
+    function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+async function enablePushAndRegister() {
+  const ok = await requireAuth();
+  if (!ok) return;
+
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") {
+    toast("Debes permitir notificaciones.", "info");
+    return;
+  }
+
+  const reg = await navigator.serviceWorker.ready;
+
+  const subscription = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+  });
+
+const res = await fetch(`${SUPABASE_URL}/functions/v1/register-push`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "apikey": SUPABASE_ANON_KEY
+  },
+body: JSON.stringify({
+  subscription,
+  email: state.auth.email,
+  notify_role: String(state.auth.notify_role || "").trim(), // ✅ rol del usuario receptor
+}),
+
+
+});
+
+
+  const data = await res.json().catch(() => ({}));
+  console.log("register-push:", res.status, data);
+
+  if (res.ok) toast("✅ Notificaciones activadas.", "success");
+  else toast("❌ Error registrando push: " + (data?.error || data?.message || res.status), "error");
+}
+
+
+async function sendBirthdayPushNow(){
   try{
-    if(!asegurarIglesia()) { showLoading(false); return; }
-const res=await fetch(`${URL_SCRIPT}?accion=listar&iglesia=${encodeURIComponent(iglesiaId)}&token=${encodeURIComponent(tokenIglesia)}&mes=${encodeURIComponent(mes)}`);
-    const text=await res.text();
-    let data;
-    try{data=JSON.parse(text);}catch(e){data=[];}
-    if(!data||data.length<=1){
-      listado.innerHTML=`<div class="row">⚠️ No hay registros en ${mes}.</div>`;
-      showLoading(false);
+    const ok = await requireAuth();
+    if (!ok) return;
+
+    const reg = await navigator.serviceWorker.ready;
+    const subscription = await reg.pushManager.getSubscription();
+    if (!subscription){
+      toast("Primero activa 🔔 Notificaciones para este dispositivo.", "info");
       return;
     }
-    const filas=data.slice(1).reverse();
-    listado.innerHTML=filas.map(r=>{
-      const [usuario,fecha,h,hm,am,ad,ni,tot]=r;
-      const esPropio = usuarioGlobal && usuarioGlobal.toLowerCase()===String(usuario).toLowerCase();
-      const usuarioEsc = escapeHTML(String(usuario || ''));
-      const fechaEsc = escapeHTML(String(fecha || ''));
-      const usuarioEnc = encodeURIComponent(String(usuario || ''));
-      const fechaEnc = encodeURIComponent(String(fecha || ''));
-      return `<div class="row">
-        <strong>👤 ${usuarioEsc}</strong>
-        <small>📅 ${fechaEsc}</small>
-        <div style="margin-top:8px">🙋‍♂️ ${h} 🙋‍♀️ ${hm} 🤝 ${am} 👧 ${ad} 🧒 ${ni}</div>
-        <small>🔢 Total: <strong>${escapeHTML(tot)}</strong></small>
-        ${esPropio?`<button style="margin-top:8px;background:#ff4444;color:#fff;border:0;padding:6px 10px;border-radius:8px;cursor:pointer" onclick="eliminarAsistencia('${usuarioEnc}','${fechaEnc}')">🗑️ Eliminar</button>`:''}
-      </div>`;
-    }).join('');
-  }catch(e){
-    listado.innerHTML=`<div class="row">⚠️ Error obteniendo datos.</div>`;
-  }finally{
-    showLoading(false);
+
+    toast("📨 Enviando solo a ESTE teléfono…", "info");
+
+ const res = await fetch(`${SUPABASE_URL}/functions/v1/send-birthday-push-self`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "apikey": SUPABASE_ANON_KEY,
+    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+  },
+  body: JSON.stringify({
+    email: state.auth.email,
+    subscription,
+  }),
+});
+
+
+    const data = await res.json().catch(()=> ({}));
+    console.log("send-birthday-push-self:", res.status, data);
+
+    if (res.ok){
+      toast(`✅ Enviado a este dispositivo. Cumples: ${data.birthdays || 0}`, "success");
+    } else {
+      toast("❌ Error: " + (data?.error || data?.message || res.status), "error");
+    }
+  } catch(e){
+    console.error(e);
+    toast("❌ Error enviando: " + (e?.message || e), "error");
   }
 }
 
-/* === ELIMINAR ASISTENCIA === */
-async function eliminarAsistencia(usuarioEnc,fechaEnc){
-  const usuario = decodeURIComponent(usuarioEnc);
-  const fecha = decodeURIComponent(fechaEnc);
-  mostrarPopupConfirm("Confirmar eliminación", `¿Eliminar el registro de ${usuario} en ${fecha}?`, async () => {
-    try{
-      if(!asegurarIglesia()) return;
-const res=await fetch(`${URL_SCRIPT}?accion=eliminar&iglesia=${encodeURIComponent(iglesiaId)}&token=${encodeURIComponent(tokenIglesia)}&usuario=${encodeURIComponent(usuario)}&fecha=${encodeURIComponent(fecha)}`);
-      const text=await res.text();
-      if(text.includes("ELIMINADA") || text.startsWith("ELIMINADAS_")){ 
-        mostrarAlerta("🗑️", "Registro eliminado."); 
-        refrescarMes(); 
-      } else {
-        mostrarAlerta("⚠️", text);
-      }
-    }catch(e){
-      mostrarAlerta("⚠️", "Error al eliminar.");
+
+
+
+    function mostrarAviso(mensaje, tipo="info", titulo=null){
+      const cont = document.getElementById("avisoContenedor");
+      const tituloEl = document.getElementById("avisoTitulo");
+      const mensajeEl = document.getElementById("avisoMensaje");
+      tituloEl.textContent = titulo || (tipo==="success"?"¡Éxito!":tipo==="error"?"Error":tipo==="alerta"?"Atención":"Aviso");
+      mensajeEl.textContent = mensaje;
+      cont.classList.add("mostrar");
+    }
+    function cerrarAviso(){ document.getElementById("avisoContenedor").classList.remove("mostrar"); }
+    document.getElementById("avisoAceptar").addEventListener("click", cerrarAviso);
+
+    function confirmarHTML(mensaje, titulo="Confirmar"){
+      return new Promise((resolve)=>{
+        const cont = document.getElementById("confirmContenedor");
+        const tEl = document.getElementById("confirmTitulo");
+        const mEl = document.getElementById("confirmMensaje");
+        const btnNo = document.getElementById("confirmNo");
+        const btnSi = document.getElementById("confirmSi");
+
+        tEl.textContent = titulo || "Confirmar";
+        mEl.textContent = mensaje || "";
+
+        const cerrar = (valor) => {
+          cont.classList.remove("mostrar");
+          btnNo.onclick = null;
+          btnSi.onclick = null;
+          cont.onclick = null;
+          resolve(valor);
+        };
+
+        btnNo.onclick = () => cerrar(false);
+        btnSi.onclick = () => cerrar(true);
+        cont.onclick = (e) => { if (e.target === cont) cerrar(false); };
+
+        cont.classList.add("mostrar");
+      });
+    }
+
+    function normalizeEmail(email){ return String(email||"").trim().toLowerCase(); }
+
+const AUTH_EMAIL_KEY = "ipuc-miembros-email";
+const AUTH_ROLE_KEY  = "ipuc-miembros-notify-role";
+    
+
+function openLoginModal(){
+  const cont = document.getElementById("loginContenedor");
+  const input = document.getElementById("loginEmail");
+  const roleInput = document.getElementById("loginRole"); // ✅ nuevo
+  const btnOk = document.getElementById("btnLoginOk");
+  const btnCancel = document.getElementById("btnLoginCancel");
+
+  return new Promise((resolve) => {
+    const close = (value) => {
+      cont.classList.remove("mostrar");
+      btnOk.onclick = null;
+      btnCancel.onclick = null;
+      cont.onclick = null;
+      resolve(value);
+    };
+
+    input.value = "";
+    if (roleInput) roleInput.value = ""; // ✅ limpia rol
+    cont.classList.add("mostrar");
+    setTimeout(()=> input.focus(), 50);
+
+    btnCancel.onclick = () => close(null);
+
+    // ✅ ahora devuelve {email, notify_role}
+    btnOk.onclick = () => close({
+      email: normalizeEmail(input.value),
+      notify_role: String(roleInput?.value || "").trim()
+    });
+
+    cont.onclick = (e) => { if (e.target === cont) close(null); };
+
+    input.onkeydown = (e) => {
+      if (e.key === "Enter") btnOk.click();
+      if (e.key === "Escape") btnCancel.click();
+    };
+
+    // ✅ Enter también desde rol
+    if (roleInput){
+      roleInput.onkeydown = (e) => {
+        if (e.key === "Enter") btnOk.click();
+        if (e.key === "Escape") btnCancel.click();
+      };
     }
   });
 }
-/* === SOPORTE === */
-function contactarSoporte(){
-  const numero = "+573202897214";
-  const mensaje = encodeURIComponent("Hola, necesito soporte con la aplicación Asistencia Bochica Sur.");
-  window.open(`https://wa.me/${numero}?text=${mensaje}`, '_blank');
-  toggleMenu(); // Cerrar el menú después de seleccionar
-}
-/* === HELPERS === */
-function escapeHTML(s){
-  return (s+'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-(function init(){
-  actualizarTotal();
-  const select=document.getElementById('selectMes');
-  meses.forEach(m=>{
-    const o=document.createElement('option');
-    o.value=m;
-    o.text=m;
-    select.appendChild(o);
-  });
-  select.value=mesActual;
-  if(usuarioGlobal){
-    document.getElementById("loginScreen").style.display="none";
-  } else {
-    document.getElementById("loginScreen").style.display="flex";
+
+
+async function loginWithEmailModal(){
+  const login = await openLoginModal();
+  if (!login?.email) return;
+
+  const email = normalizeEmail(login.email);
+  const notify_role = String(login.notify_role || "").trim();
+
+  try{
+    const allowed = await isEmailAllowed(email);
+    if (!allowed){
+      mostrarAviso(`El correo no tiene permiso para usar esta app:\n\n${email}`, "alerta", "Cuenta no autorizada");
+      return;
+    }
+
+    // ✅ guarda email + rol
+    safeStorage.setItem(AUTH_EMAIL_KEY, email);
+    safeStorage.setItem(AUTH_ROLE_KEY, notify_role);
+
+    state.auth.authed = true;
+    state.auth.ready = true;
+    state.auth.email = email;
+    state.auth.photoUrl = "";
+    state.auth.notify_role = notify_role; // ✅ nuevo
+
+    toast("✅ Sesión iniciada.", "success");
+    render();
+
+  } catch(e){
+    state.auth.ready = true;
+    mostrarAviso("No se pudo verificar el permiso del correo.\n\n" + (e?.message || e), "error", "Permisos");
   }
-  // 🎨 Cargar tema guardado (si existe)
-  const savedTheme = localStorage.getItem('theme') || 'claro';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  document.getElementById('themeSelect').value = savedTheme;
-})();
-</script>
+}
+
+
+async function logoutLocal(){
+  safeStorage.removeItem(AUTH_EMAIL_KEY);
+  safeStorage.removeItem(AUTH_ROLE_KEY); // ✅ nuevo
+
+  state.auth.authed = false;
+  state.auth.ready = true;
+  state.auth.email = "";
+  state.auth.photoUrl = "";
+  state.auth.notify_role = ""; // ✅ nuevo
+
+  toast("✅ Sesión cerrada.", "success");
+  render();
+}
+
+
+
+
+async function bootstrapLocalAuth(){
+  const saved = normalizeEmail(safeStorage.getItem(AUTH_EMAIL_KEY));
+  const savedRole = String(safeStorage.getItem(AUTH_ROLE_KEY) || "").trim(); // ✅ nuevo
+
+  if (!saved){
+    state.auth.authed = false;
+    state.auth.ready = true;
+    state.auth.email = "";
+    state.auth.photoUrl = "";
+    state.auth.notify_role = ""; // ✅ nuevo
+    render();
+    return;
+  }
+
+  try{
+    const allowed = await isEmailAllowed(saved);
+    if (!allowed){
+      safeStorage.removeItem(AUTH_EMAIL_KEY);
+      safeStorage.removeItem(AUTH_ROLE_KEY);
+
+      state.auth.authed = false;
+      state.auth.ready = true;
+      state.auth.email = "";
+      state.auth.photoUrl = "";
+      state.auth.notify_role = "";
+      render();
+
+      mostrarAviso(`El correo ya no está autorizado:\n\n${saved}`, "alerta", "Cuenta no autorizada");
+      return;
+    }
+
+    state.auth.authed = true;
+    state.auth.ready = true;
+    state.auth.email = saved;
+    state.auth.photoUrl = "";
+    state.auth.notify_role = savedRole; // ✅ nuevo
+    render();
+
+  } catch(e){
+    state.auth.ready = true;
+    state.auth.authed = false;
+    state.auth.email = "";
+    state.auth.photoUrl = "";
+    state.auth.notify_role = "";
+    render();
+
+    mostrarAviso("No se pudo validar el correo guardado.\n\n" + (e?.message || e), "error", "Permisos");
+  }
+}
+
+
+
+
+
+
+    async function isEmailAllowed(email){
+      const e = normalizeEmail(email);
+      if (!e) return false;
+      const { data, error } = await supabase.from("allowed_emails").select("email");
+      if (error) throw new Error("allowed_emails: " + error.message);
+      const list = (data||[]).map(r=>normalizeEmail(r.email)).filter(Boolean);
+      return list.includes(e);
+    }
+
+async function requireAuth({ silent = false } = {}){
+  try{
+    if (state.auth.authed && state.auth.ready) return true;
+
+    const saved = normalizeEmail(safeStorage.getItem(AUTH_EMAIL_KEY));
+    const savedRole = String(safeStorage.getItem(AUTH_ROLE_KEY) || "").trim(); // ✅ nuevo
+
+    if (!saved){
+      state.auth.authed = false;
+      state.auth.ready = true;
+      state.auth.email = "";
+      state.auth.photoUrl = "";
+      state.auth.notify_role = ""; // ✅ nuevo
+      render();
+
+      if (!silent){
+        mostrarAviso("Debes iniciar sesión para usar esta función.", "alerta", "Login requerido");
+      }
+      return false;
+    }
+
+    const allowed = await isEmailAllowed(saved);
+    if (!allowed){
+      safeStorage.removeItem(AUTH_EMAIL_KEY);
+      safeStorage.removeItem(AUTH_ROLE_KEY);
+
+      state.auth.authed = false;
+      state.auth.ready = true;
+      state.auth.email = "";
+      state.auth.photoUrl = "";
+      state.auth.notify_role = "";
+      render();
+
+      if (!silent){
+        mostrarAviso(`El correo ya no está autorizado:\n\n${saved}`, "alerta", "Cuenta no autorizada");
+      }
+      return false;
+    }
+
+    state.auth.authed = true;
+    state.auth.ready = true;
+    state.auth.email = saved;
+    state.auth.photoUrl = "";
+    state.auth.notify_role = savedRole; // ✅ nuevo
+    return true;
+
+  } catch(e){
+    state.auth.authed = false;
+    state.auth.ready = true;
+    state.auth.notify_role = "";
+    render();
+
+    if (!silent){
+      mostrarAviso("No se pudo verificar la sesión.\n\n" + (e?.message || e), "error", "Sesión");
+    }
+    return false;
+  }
+}
+
+
+
+
+    // ===== Storage helpers =====
+    function safeName(name){ return String(name||"").replace(/[^\w.\-]+/g,"_").slice(0,120); }
+
+    async function uploadFile(bucket, file, prefix){
+      if (!file) return { path:null, url:null };
+      const ext = (String(file.name||"").split(".").pop() || "bin").toLowerCase();
+      const fileName = `${prefix}_${Date.now()}_${safeName(file.name)}`;
+      const storagePath = `${prefix}/${fileName}.${ext}`;
+
+      const { error: upErr } = await supabase.storage.from(bucket).upload(storagePath, file, { upsert:true });
+      if (upErr) throw new Error("Upload error: " + upErr.message);
+
+      const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
+      return { path: storagePath, url: data?.publicUrl || null };
+    }
+
+
+    
+function looksLikeAuthError(err){
+  const msg = String(err?.message || err || "").toLowerCase();
+  return (
+    msg.includes("jwt") ||
+    msg.includes("token") ||
+    msg.includes("expired") ||
+    msg.includes("invalid") ||
+    msg.includes("not authenticated") ||
+    msg.includes("permission denied") ||
+    msg.includes("row level security") ||
+    msg.includes("rls") ||
+    msg.includes("401") ||
+    msg.includes("403")
+  );
+}
+
+async function withAuthRetry(fn){
+  try{
+    return await fn();
+  } catch(e){
+    if (!looksLikeAuthError(e)) throw e;
+
+    // ✅ intenta recuperar sesión silenciosamente y reintenta una vez
+    const ok = await requireAuth({ silent: true });
+    if (!ok) throw e;
+
+    return await fn();
+  }
+}
+
+
+
+    
+    // ===== Members API (misma lógica que tu preload) =====
+    async function searchMembers(query){
+      const q = String(query||"").trim();
+      if (!q) return [];
+      const like = `%${q}%`;
+      const { data, error } = await supabase
+        .from("members")
+        .select("*")
+        .or(`identification.ilike.${like},first_names.ilike.${like},last_names.ilike.${like}`)
+        .order("created_at", { ascending:false })
+        .limit(20);
+      if (error) throw new Error(error.message);
+      return data || [];
+    }
+
+    async function countMembers(category){
+      const cat = String(category||"todo").toLowerCase();
+      let q = supabase.from("members").select("id", { count:"exact", head:true });
+
+      switch (cat) {
+        case "todo": break;
+        case "damas": q = q.eq("gender", "Femenino"); break;
+        case "caballeros": q = q.eq("gender", "Masculino"); break;
+        case "jovenes": q = q.gte("age", 13).lte("age", 35); break;
+        case "adolescentes": q = q.gte("age", 12).lte("age", 17); break;
+        case "senoritas": q = q.eq("gender", "Femenino").gte("age", 12).lte("age", 18); break;
+        case "ninos": q = q.gte("age", 0).lte("age", 11); break;
+        case "simpatizantes": q = q.eq("is_sympathizer", true); break;
+        default: break;
+      }
+      const { count, error } = await q;
+      if (error) throw new Error(error.message);
+      return count ?? 0;
+    }
+
+    async function saveMember(member, photoFile){
+      const prefix = (member.identification || "unknown").trim() || "unknown";
+      let photo = { path:null, url:null };
+
+      if (photoFile) photo = await uploadFile("member-photos", photoFile, prefix);
+
+      const payload = {
+        first_names: member.first_names,
+        last_names: member.last_names,
+        identification: member.identification,
+        age: member.age ?? null,
+        gender: member.gender || null,
+        church_role: member.church_role || null,
+        address: member.address || null,
+        city: member.city || null,
+        phone: member.phone || null,
+        birth_date: member.birth_date || null,
+        father_name: member.father_name || null,
+        mother_name: member.mother_name || null,
+        congregation_name: member.congregation_name || null,
+        conversion_time: member.conversion_time || null,
+        baptism_date: member.baptism_date || null,
+        holy_spirit_date: member.holy_spirit_date || null,
+        event_place: member.event_place || null,
+        officiant_pastor: member.officiant_pastor || null,
+        membership_date: member.membership_date || null,
+        membership_time: member.membership_time || null,
+        origin_place: member.origin_place || null,
+        less_than_6_months: !!member.less_than_6_months,
+        is_sympathizer: !!member.is_sympathizer,
+        observations: member.observations || null,
+        photo_path: photo.path,
+        photo_url: photo.url
+        // ✅ Documento de identidad removido
+      };
+
+      const { data, error } = await supabase.from("members").insert(payload).select("*").single();
+      if (error) throw new Error(error.message);
+      return data;
+    }
+
+    async function updateMember(id, member, photoFile){
+      if (!id) throw new Error("ID requerido para actualizar");
+      const prefix = (member.identification || "unknown").trim() || "unknown";
+
+      let photo = { path: member.photo_path || null, url: member.photo_url || null };
+      if (photoFile) photo = await uploadFile("member-photos", photoFile, prefix);
+
+      const payload = {
+        first_names: member.first_names,
+        last_names: member.last_names,
+        identification: member.identification,
+        age: member.age ?? null,
+        gender: member.gender || null,
+        church_role: member.church_role || null,
+        address: member.address || null,
+        city: member.city || null,
+        phone: member.phone || null,
+        birth_date: member.birth_date || null,
+        father_name: member.father_name || null,
+        mother_name: member.mother_name || null,
+        congregation_name: member.congregation_name || null,
+        conversion_time: member.conversion_time || null,
+        baptism_date: member.baptism_date || null,
+        holy_spirit_date: member.holy_spirit_date || null,
+        event_place: member.event_place || null,
+        officiant_pastor: member.officiant_pastor || null,
+        membership_date: member.membership_date || null,
+        membership_time: member.membership_time || null,
+        origin_place: member.origin_place || null,
+        less_than_6_months: !!member.less_than_6_months,
+        is_sympathizer: !!member.is_sympathizer,
+        observations: member.observations || null,
+        photo_path: photo.path,
+        photo_url: photo.url
+        // ✅ Documento de identidad removido
+      };
+
+      const { data, error } = await supabase.from("members").update(payload).eq("id", id).select("*").single();
+      if (error) throw new Error(error.message);
+      return data;
+    }
+
+    async function deleteMember(id){
+      if (!id) throw new Error("ID requerido para eliminar");
+
+      const { data: row, error: fetchErr } = await supabase
+        .from("members")
+        .select("id, photo_path")
+        .eq("id", id)
+        .maybeSingle();
+      if (fetchErr) throw new Error("Error leyendo registro: " + fetchErr.message);
+      if (!row) throw new Error("No existe el registro (o RLS lo bloquea).");
+
+      if (row.photo_path){
+        const { error: e1 } = await supabase.storage.from("member-photos").remove([row.photo_path]);
+        if (e1) throw new Error("No se pudo borrar foto: " + e1.message);
+      }
+
+      const { data, error } = await supabase.from("members").delete().eq("id", id).select("*");
+      if (error) throw new Error(error.message);
+      if (!data || data.length === 0) throw new Error("No se eliminó ningún registro (posible RLS/policy DELETE).");
+      return data[0];
+    }
+
+    // ===== App state =====
+    const state = {
+      route: "miembros",
+      results: [],
+      selectedId: null,
+      memberDraft: null,
+      viewMode: "edit",
+      category: "todo",
+auth: {
+  authed: false,
+  ready: false,
+  email: "",
+  photoUrl: "",
+  notify_role: "",     // ✅ nuevo
+  allowedEmail: "",
+  allowedOk: false
+}
+
+
+    };
+
+    function cloneMemberSafe(obj){
+      try { if (typeof structuredClone === "function") return structuredClone(obj); } catch {}
+      return Object.assign({}, obj);
+    }
+
+    function blankMember(){
+ return {
+  first_names: "", last_names: "", identification: "",
+  address: "", city: "", birth_date: "",
+  phone: "",
+  father_name: "", mother_name: "", congregation_name: "",
+  conversion_time: "", baptism_date: "", holy_spirit_date: "",
+  event_place: "", officiant_pastor: "",
+  membership_date: "", membership_time: "",
+  origin_place: "",
+  less_than_6_months: false,
+  is_sympathizer: false,
+  observations: "",
+  photo_file: null,
+  photo_preview_url: "",
+  id_document_file: null,
+  gender: "",
+  age: null,
+  church_role: ""
+};
+
+    }
+
+
+    // ===== INVITES (link público) =====
+
+// tabla recomendada en Supabase: invite_links
+// columnas: token_hash (text), created_at (timestamp), expires_at (timestamp), used_at (timestamp null)
+async function createInviteToken(){
+  // token aleatorio seguro
+  const raw = crypto.getRandomValues(new Uint8Array(16));
+  const token = Array.from(raw).map(b=>b.toString(16).padStart(2,"0")).join("");
+
+  // hash simple (mejor guardar hash en DB, no el token plano)
+  const enc = new TextEncoder().encode(token);
+  const digest = await crypto.subtle.digest("SHA-256", enc);
+  const hash = Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
+
+  // expira en 7 días (ajústalo)
+  const expires = new Date(Date.now() + 7*24*60*60*1000).toISOString();
+
+  // registra el hash del token en supabase
+  const { error } = await supabase
+    .from("invite_links")
+    .insert({ token_hash: hash, expires_at: expires });
+
+  if (error) throw new Error(error.message);
+
+  return token; // este es el que va en el link
+}
+
+function getInviteTokenFromUrl(){
+  const p = new URLSearchParams(location.search);
+  return (p.get("invite") || "").trim();
+}
+
+function clearInviteFromUrl(){
+  const url = new URL(location.href);
+  url.searchParams.delete("invite");
+  history.replaceState({}, "", url.toString());
+}
+
+
+    // ===== Header =====
+    function renderHeader(){
+      const node = el(`
+        <div class="header">
+          <div class="header-inner">
+            <div class="brand">
+              <div class="title">IPUC · Base de Datos</div>
+              <div class="small">PWA · Módulo Miembros</div>
+            </div>
+
+            <div class="nav">
+              <span class="badge">Solo Miembros</span>
+
+<button class="btn ok" id="btnCumplePwaOpen">🎂</button>
+
+
+              <div class="auth-area" id="authArea">
+                 <button class="btn ok" id="btnEnablePush" style="display:none;">🔔</button>
+                <button class="btn" id="btnLogin" style="display:none;">Iniciar sesión</button>
+
+                <div id="avatarWrap" style="display:none;">
+                  <div class="avatar-btn" id="btnAvatar" title="Cuenta"></div>
+                  <div class="auth-menu" id="authMenu">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                      <div class="avatar-btn" id="menuAvatar" style="flex:0 0 auto;"></div>
+                      <div style="min-width:0;">
+                        <div class="muted">Sesión iniciada</div>
+                        <div class="email" id="menuEmail"></div>
+                      </div>
+                    </div>
+                    <div class="line"></div>
+                    <button class="btn danger" id="btnLogout" style="width:100%;">Cerrar sesión</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `);
+
+      const btnLogin = node.querySelector("#btnLogin");
+      const avatarWrap = node.querySelector("#avatarWrap");
+      const btnAvatar = node.querySelector("#btnAvatar");
+      const menu = node.querySelector("#authMenu");
+      const menuEmail = node.querySelector("#menuEmail");
+      const menuAvatar = node.querySelector("#menuAvatar");
+      const btnLogout = node.querySelector("#btnLogout");
+
+      function initialFromEmail(email){
+        const e = String(email || "").trim();
+        if (!e) return "G";
+        return e[0].toUpperCase();
+      }
+function paintAuthFast(){
+  // ✅ protege por si btnEnablePush no existe (evita que se caiga la app)
+  const hasPushBtn = !!btnEnablePush;
+
+  if (state.auth?.authed){
+    if (hasPushBtn) btnEnablePush.style.display = ""; // ✅ mostrar si está logueado
+    btnLogin.style.display = "none";
+    avatarWrap.style.display = "";
+
+    const letter = initialFromEmail(state.auth.email);
+    btnAvatar.innerHTML = "";
+    menuAvatar.innerHTML = "";
+
+    if (state.auth.photoUrl){
+      const img = document.createElement("img");
+      img.src = state.auth.photoUrl;
+      img.alt = "Cuenta";
+      btnAvatar.appendChild(img);
+
+      const img2 = document.createElement("img");
+      img2.src = state.auth.photoUrl;
+      img2.alt = "Cuenta";
+      menuAvatar.appendChild(img2);
+    } else {
+      btnAvatar.textContent = letter;
+      menuAvatar.textContent = letter;
+    }
+
+    menuEmail.textContent = state.auth.email || "";
+  } else {
+    if (hasPushBtn) btnEnablePush.style.display = "none"; // ✅ ocultar si NO está logueado
+    menu.classList.remove("show");
+    avatarWrap.style.display = "none";
+    btnLogin.style.display = "";
+  }
+}
+
+
+// ✅ abrir modal cumpleaños
+const btnCumplePwaOpen = node.querySelector("#btnCumplePwaOpen");
+btnCumplePwaOpen?.addEventListener("click", () => {
+  try { openCumplePwaModal(); } catch (e) { console.error(e); }
+});
+
+
+      btnAvatar?.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        menu.classList.toggle("show");
+      });
+      window.addEventListener("click", ()=> menu.classList.remove("show"));
+
+  btnLogin?.addEventListener("click", async ()=>{
+  await loginWithEmailModal();
+
+  
+});
+const btnEnablePush = node.querySelector("#btnEnablePush");
+
+btnEnablePush?.addEventListener("click", async () => {
+  try { await enablePushAndRegister(); }
+  catch (e) { console.error(e); toast("Error activando push: " + (e?.message || e), "error"); }
+});
+
+
+btnLogout?.addEventListener("click", async ()=>{
+  await logoutLocal();
+});
+
+
+      paintAuthFast();
+      return node;
+    }
+
+    // ===== Miembros view =====
+function viewMiembros(){
+  if (!state.memberDraft) state.memberDraft = blankMember();
+
+  const node = el(`
+    <div class="container">
+      <div class="card">
+
+  <div class="toolbar-sticky">
+<div class="row" style="align-items:center;justify-content:space-between;">
+<div style="min-width:0;">
+  <h3 style="margin:0;">Módulo: Miembros</h3>
+
+  <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; max-width:100%;">
+    <div class="small">Búsqueda y registro de miembros</div>
+
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; width:100%; max-width:560px;">
+      <span class="small">Categorías</span>
+
+      <select id="categoryFilter" class="select" style="min-width:240px; width:auto; flex:1 1 240px;">
+        <option value="todo">Todo</option>
+        <option value="damas">Damas Dorcas</option>
+        <option value="caballeros">Caballeros</option>
+        <option value="jovenes">Jóvenes</option>
+        <option value="adolescentes">Adolescentes</option>
+        <option value="senoritas">Señoritas</option>
+        <option value="ninos">Niños</option>
+        <option value="simpatizantes">Simpatizantes</option>
+      </select>
+
+      <span class="badge count-badge" id="memberCountBadge" style="flex:1 1 180px;">
+        Miembros: <b id="memberCount" class="count-number">0</b>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+  <button class="btn ok" id="btnNew">+ Nuevo</button>
+  <button class="btn edit" id="btnEdit">Editar</button>
+  <button class="btn danger" id="btnDelete">Eliminar</button>
+
+  <button class="btn" id="btnSendBirthday" style="display:none;">🎂</button>
+
+<button class="btn" id="btnShareForm">🔗 Compartir formulario</button>
+
+  <button class="btn primary" id="btnSave">Guardar</button>
+</div>
+
+</div>
+
+<hr class="sep" />
+</div>
+
+
+        <div class="panel" style="margin-bottom:14px; position:relative;">
+          <label>Buscador (Nombre/Apellido o Identificación)</label>
+
+          <div class="searchbar">
+            <input id="searchBox" placeholder="Ej: Juan Pérez o 123456789" />
+            <div class="search-actions">
+              <button class="btn primary" id="btnSearch">Buscar</button>
+              <button class="btn" id="btnClearSearch">Limpiar</button>
+            </div>
+          </div>
+
+          <div class="suggestions" id="suggestions"></div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <div class="panel">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                  <div class="small">Ficha del miembro</div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="small">Folio #</span>
+                    <input id="folio_number" disabled style="width:140px; padding:8px 10px;" />
+                  </div>
+                </div>
+                <div class="badge" id="statusBadge">Sin guardar</div>
+              </div>
+
+              <hr class="sep" />
+
+              <div class="row" style="align-items:flex-start;">
+                <div style="flex:0 0 auto;">
+                  <div class="avatar" id="photoBox">
+                    <div class="small">Sin foto</div>
+                  </div>
+                  <div style="margin-top:10px;" class="filebox" id="photoFileBox">
+              <label>Foto del miembro (JPG/PNG/WebP)</label>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap;">
+  <button class="btn ok" type="button" id="btnTakePhoto">📷 Tomar foto</button>
+  <button class="btn" type="button" id="btnPickPhoto">🖼️ Elegir archivo</button>
+</div>
+
+<!-- ✅ Cámara (Android): abre cámara -->
+<input id="photoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
+
+<!-- ✅ Archivo (galería/archivos): el que ya tenías -->
+<input id="photoInput" type="file" accept="image/*" style="display:none;" />
+
+<div class="hint" id="photoInfo">Se mostrará aquí como vista previa.</div>
+
+                  </div>
+                </div>
+
+                <div class="col">
+                  <div class="row">
+                    <div class="col">
+                      <label>Nombres *</label>
+                      <input id="first_names"  />
+                    </div>
+                    <div class="col">
+                      <label>Apellidos *</label>
+                      <input id="last_names" />
+                    </div>
+                    <div class="col">
+                      <label>Identificación *</label>
+                      <input id="identification" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top:10px;">
+                    <div class="col">
+                      <label>Dirección</label>
+                      <input id="address" />
+                    </div>
+                    <div class="col">
+                      <label>Ciudad</label>
+                      <input id="city" />
+                    </div>
+                    <div class="col">
+                      <label>Fecha de nacimiento</label>
+                      <input id="birth_date" type="date" />
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top:10px;">
+  <div class="col">
+    <label>Teléfono</label>
+    <input id="phone" placeholder="Ej: 3001234567" inputmode="tel" />
+  </div>
+</div>
+
+
+                  <div class="row" style="margin-top:10px;">
+                    <div class="col">
+                      <label>Edad *</label>
+                      <input id="age" type="number" min="0" />
+                    </div>
+
+                    <div class="col">
+                      <label>Género *</label>
+                      <select id="gender" class="select">
+                        <option value="">-- Seleccionar --</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                      </select>
+                    </div>
+
+                    <div class="col">
+                      <label>Cargo en la iglesia</label>
+                      <input id="church_role" />
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top:10px;">
+                    <div class="col">
+                      <label>Nombre del padre</label>
+                      <input id="father_name" />
+                    </div>
+                    <div class="col">
+                      <label>Nombre de la madre</label>
+                      <input id="mother_name" />
+                    </div>
+                    <div class="col">
+                      <label>Nombre de la congregación</label>
+                      <input id="congregation_name"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="sep" />
+
+              <div class="row">
+                <div class="col">
+                  <label>Tiempo de conversión</label>
+                  <input id="conversion_time" placeholder="Ej: 2 años / 6 meses" />
+                </div>
+                <div class="col">
+                  <label>Lugar bautismo/acto</label>
+                  <input id="event_place"/>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px;">
+                <div class="col">
+                  <label>Fecha del bautismo</label>
+                  <input id="baptism_date" type="date" />
+                </div>
+                <div class="col">
+                  <label>Fecha recepción Espíritu Santo</label>
+                  <input id="holy_spirit_date" type="date" />
+                </div>
+                <div class="col">
+                  <label>Pastor oficiante</label>
+                  <input id="officiant_pastor" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px;">
+                <div class="col">
+                  <label>Fecha membresía en la congregación</label>
+                  <input id="membership_date" type="date" />
+                </div>
+                <div class="col">
+                  <label>Tiempo de membresía</label>
+                  <input id="membership_time" placeholder="Ej: 1 año / 4 meses" />
+                </div>
+                <div class="col">
+                  <label>Lugar de procedencia</label>
+                  <input id="origin_place" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px;align-items:center;">
+                <div class="col">
+                  <label>¿Menos de 6 meses en la congregación?</label>
+                  <input id="less_than_6_months" type="checkbox" />
+                  <div class="hint">Activa si el miembro lleva menos de 6 meses.</div>
+                </div>
+
+                <div class="col">
+                  <label>Simpatizante</label>
+                  <input id="is_sympathizer" type="checkbox" />
+                  <div class="hint">Activa si la persona es simpatizante.</div>
+                </div>
+
+                <div class="col">
+                  <!-- ✅ Se eliminó todo el bloque del documento de identidad -->
+                  <div class="hint muted"> </div>
+                </div>
+              </div>
+
+              <div style="margin-top:10px;">
+                <label>Observaciones</label>
+                <textarea id="observations" placeholder="Notas adicionales..."></textarea>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `);
+
+  const $ = (id) => {
+    const clean = String(id).startsWith("#") ? String(id).slice(1) : String(id);
+    return node.querySelector("#" + clean);
+  };
+
+  // ✅ Identificación: solo números (NO afecta nada más)
+  const idInput = $("#identification");
+  if (idInput){
+    const onlyDigits = () => {
+      const v = idInput.value || "";
+      const cleaned = v.replace(/\D+/g, "");
+      if (v !== cleaned) idInput.value = cleaned;
+    };
+    idInput.addEventListener("input", onlyDigits);
+    idInput.addEventListener("paste", () => setTimeout(onlyDigits, 0));
+  }
+
+  // keep category
+  const catSel = $("#categoryFilter");
+  if (catSel) catSel.value = state.category || "todo";
+
+  function setFormReadonly(isReadonly){
+    const panel = $("#statusBadge")?.closest(".panel");
+    if (panel) panel.classList.toggle("view-mode", isReadonly);
+
+    const textIds = [
+      "first_names","last_names","identification","address","city","phone",
+      "father_name","mother_name","congregation_name",
+      "conversion_time","event_place","officiant_pastor",
+      "membership_time","origin_place","observations",
+      "age","church_role"
+    ];
+    const dateIds = ["birth_date","baptism_date","holy_spirit_date","membership_date"];
+
+    textIds.forEach(id=>{
+      const e = $(id); if (!e) return;
+      e.readOnly = isReadonly;
+      e.disabled = false;
+    });
+    dateIds.forEach(id=>{
+      const e = $(id); if (!e) return;
+      e.disabled = isReadonly;
+      e.classList.toggle("no-interaction", isReadonly);
+    });
+
+    const chk = $("#less_than_6_months"); if (chk) chk.disabled = isReadonly;
+    const sym = $("#is_sympathizer"); if (sym) sym.disabled = isReadonly;
+    const genderSel = $("#gender"); if (genderSel) genderSel.disabled = isReadonly;
+
+    const photoBox = $("#photoFileBox");
+    if (photoBox) photoBox.style.display = isReadonly ? "none" : "";
+
+    if ($("#photoInput")) $("#photoInput").disabled = isReadonly;
+
+    node.querySelector("#btnSave").style.display = isReadonly ? "none" : "";
+    $("#statusBadge").textContent = isReadonly ? "Solo lectura" : "Sin guardar";
+  }
+
+  function syncActionButtons(){
+    const isViewing = state.viewMode === "view";
+    const hasSelected = !!state.selectedId;
+    node.querySelector("#btnEdit").style.display = (isViewing && hasSelected) ? "" : "none";
+    node.querySelector("#btnDelete").style.display = (isViewing && hasSelected) ? "" : "none";
+    node.querySelector("#btnSave").style.display = (state.viewMode === "edit") ? "" : "none";
+  }
+
+  function renderPhoto(url){
+    const box = $("#photoBox");
+    box.innerHTML = "";
+    if (!url){
+      box.appendChild(el(`<div class="small">Sin foto</div>`));
+      return;
+    }
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = "Foto miembro";
+    box.appendChild(img);
+  }
+
+  function fillForm(m){
+    $("#first_names").value = m.first_names || "";
+    $("#last_names").value = m.last_names || "";
+    $("#identification").value = m.identification || "";
+    $("#address").value = m.address || "";
+    $("#city").value = m.city || "";
+    $("#phone").value = m.phone || "";
+    $("#birth_date").value = m.birth_date || "";
+    $("#father_name").value = m.father_name || "";
+    $("#mother_name").value = m.mother_name || "";
+    $("#congregation_name").value = m.congregation_name || "";
+    $("#folio_number").value = m.folio_number || "";
+    $("#conversion_time").value = m.conversion_time || "";
+    $("#baptism_date").value = m.baptism_date || "";
+    $("#holy_spirit_date").value = m.holy_spirit_date || "";
+    $("#event_place").value = m.event_place || "";
+    $("#officiant_pastor").value = m.officiant_pastor || "";
+    $("#membership_date").value = m.membership_date || "";
+    $("#membership_time").value = m.membership_time || "";
+    $("#origin_place").value = m.origin_place || "";
+    $("#less_than_6_months").checked = !!m.less_than_6_months;
+    $("#is_sympathizer").checked = !!m.is_sympathizer;
+    $("#observations").value = m.observations || "";
+    $("#age").value = (m.age ?? "") === null ? "" : (m.age ?? "");
+    $("#church_role").value = m.church_role || "";
+    $("#gender").value = m.gender || "";
+
+    renderPhoto(m.photo_preview_url || m.photo_url || "");
+  }
+
+  function readForm(){
+    const m = state.memberDraft;
+    m.first_names = $("#first_names").value.trim();
+    m.last_names = $("#last_names").value.trim();
+    m.identification = $("#identification").value.trim();
+    m.address = $("#address").value.trim();
+    m.city = $("#city").value.trim();
+    m.phone = ($("#phone")?.value || "").trim();
+    m.birth_date = $("#birth_date").value || "";
+    m.father_name = $("#father_name").value.trim();
+    m.mother_name = $("#mother_name").value.trim();
+    m.congregation_name = $("#congregation_name").value.trim();
+    m.folio_number = ($("#folio_number").value || "").trim();
+    m.conversion_time = $("#conversion_time").value.trim();
+    m.baptism_date = $("#baptism_date").value || "";
+    m.holy_spirit_date = $("#holy_spirit_date").value || "";
+    m.event_place = $("#event_place").value.trim();
+    m.officiant_pastor = $("#officiant_pastor").value.trim();
+    m.membership_date = $("#membership_date").value || "";
+    m.membership_time = $("#membership_time").value.trim();
+    m.origin_place = $("#origin_place").value.trim();
+    m.less_than_6_months = $("#less_than_6_months").checked;
+    m.is_sympathizer = $("#is_sympathizer").checked;
+    m.observations = $("#observations").value.trim();
+
+    const ageRaw = ($("#age").value || "").trim();
+    m.age = ageRaw === "" ? null : Number(ageRaw);
+
+    m.church_role = $("#church_role").value.trim();
+    m.gender = $("#gender").value || "";
+
+    return m;
+  }
+
+  async function updateMemberCount(){
+    const badge = $("#memberCount");
+    if (!badge) return;
+    try{
+      const total = await countMembers(getCategoriaActual());
+      badge.textContent = String(total ?? 0);
+    } catch(e){
+      badge.textContent = "--";
+      console.log("countMembers error:", e);
+    }
+  }
+
+  function getCategoriaActual(){
+    const v = ($("#categoryFilter")?.value || state.category || "todo");
+    return String(v).toLowerCase();
+  }
+
+  // Suggestions
+  $("#suggestions")?.addEventListener("mousedown", (e)=>e.preventDefault());
+  $("#suggestions")?.addEventListener("pointerdown", (e)=>e.preventDefault());
+
+  function renderSuggestions(items){
+    const box = $("#suggestions");
+    if (!box) return;
+    if (!items || items.length === 0){
+      box.style.display = "none";
+      box.innerHTML = "";
+      return;
+    }
+    box.style.display = "block";
+    box.innerHTML = "";
+
+    items.forEach((m)=>{
+      const item = el(`
+        <div class="item">
+          <div class="left">
+            <div style="font-weight:700;">${(m.first_names||"")} ${(m.last_names||"")}</div>
+            <div class="small">Doc: ${(m.identification||"")} · Ciudad: ${(m.city||"")}</div>
+          </div>
+          <div class="right">Seleccionar</div>
+        </div>
+      `);
+
+      const onPick = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        state.category = getCategoriaActual();
+
+        state.memberDraft = cloneMemberSafe(m);
+        state.memberDraft.photo_preview_url = m.photo_url || "";
+        state.selectedId = m.id || null;
+        state.viewMode = "view";
+
+        renderSuggestions([]);
+        render();
+      };
+
+      item.addEventListener("pointerdown", onPick);
+      item.addEventListener("mousedown", onPick);
+
+      box.appendChild(item);
+    });
+  }
+
+  function debounce(fn, wait=350){
+    let t=null;
+    return (...args)=>{
+      clearTimeout(t);
+      t=setTimeout(()=>fn(...args), wait);
+    };
+  }
+
+  const autoSearch = debounce(async ()=>{
+    try{
+      const q = ($("#searchBox").value || "").trim();
+      if (!q || q.length < 2){
+        renderSuggestions([]);
+        return;
+      }
+      const items = await withAuthRetry(() => searchMembers(q));
+
+      renderSuggestions(items);
+    } catch(e){
+    console.log("autoSearch error:", e);
+if (looksLikeAuthError(e)){
+  $("#statusBadge").textContent = "Verificando sesión...";
+  handleAppResume(); // intenta recuperar y re-habilitar
+}
+
+    }
+  }, 350);
+
+  // File inputs
+// File inputs (Archivo + Cámara)
+function handlePickedPhoto(file){
+  state.memberDraft.photo_file = file;
+
+  if (!file){
+    state.memberDraft.photo_preview_url = "";
+    renderPhoto("");
+    $("#photoInfo").textContent = "Se mostrará aquí como vista previa.";
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  state.memberDraft.photo_preview_url = url;
+  renderPhoto(url);
+  $("#photoInfo").textContent = `${file.name} · vista previa lista`;
+  $("#statusBadge").textContent = "Cambios sin guardar";
+}
+
+// ✅ Archivo (galería/archivos)
+$("#photoInput").addEventListener("change", ()=>{
+  const file = $("#photoInput").files?.[0] || null;
+  handlePickedPhoto(file);
+});
+
+// ✅ Cámara (Android)
+$("#photoInputCamera").addEventListener("change", ()=>{
+  const file = $("#photoInputCamera").files?.[0] || null;
+  handlePickedPhoto(file);
+});
+
+// ✅ Botones para abrir el selector correcto
+$("#btnPickPhoto").addEventListener("click", ()=> $("#photoInput").click());
+$("#btnTakePhoto").addEventListener("click", ()=> $("#photoInputCamera").click());
+
+
+  [
+    "first_names","last_names","identification","address","city","phone","birth_date",
+    "father_name","mother_name","congregation_name","conversion_time",
+    "baptism_date","holy_spirit_date","event_place","officiant_pastor",
+    "membership_date","membership_time","origin_place","less_than_6_months","is_sympathizer","observations",
+    "age","gender","church_role"
+  ].forEach(id=>{
+    const e = $(id);
+    if (!e) return;
+    const markDirty = ()=> ($("#statusBadge").textContent = "Cambios sin guardar");
+    e.addEventListener("input", markDirty);
+    e.addEventListener("change", markDirty);
+  });
+
+  // Buttons
+
+$("#btnShareForm").addEventListener("click", async ()=>{
+  // (Mantén la misma regla que tus acciones: pedir auth local)
+  const okAuth = await requireAuth();
+  if (!okAuth) return;
+
+  try{
+    const token = await createInviteToken(); // crea el token (y lo registra en supabase)
+    const link = `${location.origin}${location.pathname}?invite=${encodeURIComponent(token)}`;
+
+    // Share API (móvil)
+    if (navigator.share){
+      await navigator.share({
+        title: "Formulario de registro",
+        text: "Abre este link y llena el formulario:",
+        url: link
+      });
+    } else {
+      // fallback: copiar
+      await navigator.clipboard.writeText(link);
+      toast("🔗 Link copiado al portapapeles.", "success");
+    }
+  } catch(e){
+    console.error(e);
+    toast("❌ No se pudo generar el link: " + (e?.message || e), "error");
+  }
+});
+
+
+  $("#btnNew").addEventListener("click", ()=>{
+    state.memberDraft = blankMember();
+    state.selectedId = null;
+    state.viewMode = "edit";
+    render();
+  });
+
+$("#btnSendBirthday")?.addEventListener("click", async ()=>{
+  await sendBirthdayPushNow();
+});
+
+
+
+$("#btnEdit").addEventListener("click", async ()=>{
+  const okAuth = await requireAuth();
+  if (!okAuth){
+    $("#statusBadge").textContent = "Login requerido";
+    return;
+  }
+
+  if (!state.selectedId){
+    toast("⚠️ Selecciona un miembro primero.", "info");
+    return;
+  }
+  state.viewMode = "edit";
+  render();
+});
+
+
+  $("#btnDelete").addEventListener("click", async ()=>{
+    try{
+          const okAuth = await requireAuth();
+          if (!okAuth){
+            $("#statusBadge").textContent = "Login requerido";
+            return;
+          }
+
+      
+      if (!state.selectedId){
+        toast("⚠️ Selecciona un miembro primero.", "info");
+        return;
+      }
+
+      const nombre = `${state.memberDraft?.first_names || ""} ${state.memberDraft?.last_names || ""}`.trim();
+      const ok = await confirmarHTML(
+        `¿Seguro que deseas eliminar a "${nombre || "este miembro"}"?\n\nEsta acción no se puede deshacer.`,
+        "Eliminar miembro"
+      );
+      if (!ok) return;
+
+      $("#statusBadge").textContent = "Eliminando...";
+      await deleteMember(state.selectedId);
+
+      toast("✅ Eliminado correctamente.", "success");
+
+      state.memberDraft = blankMember();
+      state.selectedId = null;
+      state.viewMode = "edit";
+      $("#statusBadge").textContent = "Sin guardar";
+
+      const sb = $("#searchBox");
+      if (sb) sb.value = "";
+      renderSuggestions([]);
+      updateMemberCount();
+
+      render();
+    } catch(e){
+      $("#statusBadge").textContent = "Error";
+      mostrarAviso("❌ Error eliminando: " + (e?.message || e), "error", "Eliminar");
+    }
+  });
+
+$("#btnSave").addEventListener("click", async ()=>{
+  showLoader("Guardando…", "No cierres la app mientras se guarda");
+  try{
+
+
+        const okAuth = await requireAuth();
+        if (!okAuth){
+          // deja el badge coherente
+          $("#statusBadge").textContent = "Login requerido";
+          return;
+        }
+
+
+    
+    const m = readForm();
+
+    if (!m.first_names || !m.last_names || !m.identification){
+      toast("Nombres, apellidos e identificación son obligatorios.", "info");
+      return;
+    }
+
+    const ageNum = Number(m.age);
+    if (m.age === null || !Number.isFinite(ageNum) || ageNum < 0){
+      toast("La edad es obligatoria y debe ser un número válido (>= 0).", "info");
+      return;
+    }
+
+    if (!m.gender){
+      toast("El género es obligatorio. Selecciona Masculino o Femenino.", "info");
+      return;
+    }
+
+    const photoFile = state.memberDraft.photo_file || null;
+
+    $("#statusBadge").textContent = "Guardando...";
+
+    if (state.selectedId){
+      await updateMember(state.selectedId, m, photoFile);
+      toast("✅ Cambios guardados correctamente.", "success");
+    } else {
+      await saveMember(m, photoFile);
+      toast("✅ Guardado correctamente.", "success");
+    }
+
+    $("#statusBadge").textContent = "Guardado";
+
+    setTimeout(()=>{
+      state.memberDraft = blankMember();
+      state.selectedId = null;
+      state.viewMode = "edit";
+
+      const sb = $("#searchBox");
+      if (sb) sb.value = "";
+      renderSuggestions([]);
+      updateMemberCount();
+
+      render();
+    }, 600);
+
+  } catch(err){
+    $("#statusBadge").textContent = "Error";
+    const raw = String(err?.message || err || "").toLowerCase();
+    const esDuplicado =
+      raw.includes("duplicate key") ||
+      raw.includes("unique constraint") ||
+      raw.includes("violates unique") ||
+      raw.includes("23505") ||
+      raw.includes("already exists") ||
+      raw.includes("ya existe");
+
+    if (esDuplicado){
+      mostrarAviso("⚠️ Ese documento de identificación ya está registrado. Revisa la búsqueda.", "alerta", "Documento duplicado");
+    } else {
+      mostrarAviso("❌ Error guardando: " + (err?.message || err), "error", "Guardar");
+    }
+  } finally {
+    hideLoader();
+  }
+});
+
+
+  $("#btnSearch").addEventListener("click", async ()=>{
+    try{
+      const q = ($("#searchBox").value || "").trim();
+     const items = await withAuthRetry(() => searchMembers(q));
+
+      renderSuggestions(items);
+    } catch(e){
+      mostrarAviso("❌ Error buscando: " + (e?.message || e), "error", "Buscar");
+    }
+  });
+
+  $("#searchBox").addEventListener("input", ()=> autoSearch());
+
+  $("#categoryFilter")?.addEventListener("change", ()=>{
+    state.category = $("#categoryFilter").value;
+    updateMemberCount();
+    const q = ($("#searchBox")?.value || "").trim();
+    if (!q){ renderSuggestions([]); return; }
+    autoSearch();
+  });
+
+  $("#searchBox").addEventListener("keydown", (e)=>{
+    if (e.key === "Enter") $("#btnSearch").click();
+    if (e.key === "Escape"){
+      renderSuggestions([]);
+      e.target.blur();
+    }
+  });
+
+  $("#searchBox").addEventListener("blur", ()=>{
+    setTimeout(()=> renderSuggestions([]), 150);
+  });
+
+  $("#btnClearSearch").addEventListener("click", ()=>{
+    const sb = $("#searchBox");
+    sb.value = "";
+    renderSuggestions([]);
+    sb.focus();
+  });
+
+  fillForm(state.memberDraft);
+  setFormReadonly(state.viewMode === "view");
+  syncActionButtons();
+  updateMemberCount();
+
+  // Gate actions by auth
+ const enabled = !!state.auth.authed && !!state.auth.ready;
+
+  $("#btnSave").disabled = !enabled;
+  $("#btnDelete").disabled = !enabled;
+  $("#btnEdit").disabled = !enabled;
+  if (!state.auth.ready) $("#statusBadge").textContent = "Verificando sesión...";
+else if (!enabled) $("#statusBadge").textContent = "Login requerido";
+
+
+  // focus
+  $("#searchBox")?.focus();
+
+  return node;
+}
+
+function viewInviteForm(inviteToken){
+  // Draft local SOLO para el formulario público
+  const draft = blankMember();
+
+  const node = el(`
+    <div class="container">
+      <div class="card">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <div>
+            <div style="font-weight:900;font-size:18px;">Formulario de registro</div>
+            <div class="small muted">Llena el formulario y presiona Enviar.</div>
+          </div>
+        </div>
+
+        <hr class="sep" />
+
+        <!-- ✅ MISMO FORMULARIO QUE LA APP -->
+        <div class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div class="small">Ficha del miembro</div>
+            <div class="badge" id="statusBadgePublic">Formulario público</div>
+          </div>
+
+          <hr class="sep" />
+
+          <div class="row" style="align-items:flex-start;">
+            <div style="flex:0 0 auto;">
+              <div class="avatar" id="photoBox">
+                <div class="small">Sin foto</div>
+              </div>
+
+              <div style="margin-top:10px;" class="filebox" id="photoFileBox">
+                <label>Foto del miembro (JPG/PNG/WebP)</label>
+
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                  <button class="btn ok" type="button" id="btnTakePhoto">📷 Tomar foto</button>
+                  <button class="btn" type="button" id="btnPickPhoto">🖼️ Elegir archivo</button>
+                </div>
+
+                <input id="photoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
+                <input id="photoInput" type="file" accept="image/*" style="display:none;" />
+
+                <div class="hint" id="photoInfo">Se mostrará aquí como vista previa.</div>
+              </div>
+            </div>
+
+            <div class="col">
+              <div class="row">
+                <div class="col">
+                  <label>Nombres *</label>
+                  <input id="first_names" />
+                </div>
+                <div class="col">
+                  <label>Apellidos *</label>
+                  <input id="last_names" />
+                </div>
+                <div class="col">
+                  <label>Identificación *</label>
+                  <input id="identification" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px;">
+                <div class="col">
+                  <label>Dirección</label>
+                  <input id="address" />
+                </div>
+                <div class="col">
+                  <label>Ciudad</label>
+                  <input id="city" />
+                </div>
+                <div class="col">
+                  <label>Fecha de nacimiento</label>
+                  <input id="birth_date" type="date" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px;">
+                <div class="col">
+                  <label>Teléfono</label>
+                  <input id="phone" placeholder="Ej: 3001234567" inputmode="tel" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px;">
+                <div class="col">
+                  <label>Edad *</label>
+                  <input id="age" type="number" min="0" />
+                </div>
+
+                <div class="col">
+                  <label>Género *</label>
+                  <select id="gender" class="select">
+                    <option value="">-- Seleccionar --</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                  </select>
+                </div>
+
+                <div class="col">
+                  <label>Cargo en la iglesia</label>
+                  <input id="church_role" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px;">
+                <div class="col">
+                  <label>Nombre del padre</label>
+                  <input id="father_name" />
+                </div>
+                <div class="col">
+                  <label>Nombre de la madre</label>
+                  <input id="mother_name" />
+                </div>
+                <div class="col">
+                  <label>Nombre de la congregación</label>
+                  <input id="congregation_name"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="sep" />
+
+          <div class="row">
+            <div class="col">
+              <label>Tiempo de conversión</label>
+              <input id="conversion_time" placeholder="Ej: 2 años / 6 meses" />
+            </div>
+            <div class="col">
+              <label>Lugar bautismo/acto</label>
+              <input id="event_place"/>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <div class="col">
+              <label>Fecha del bautismo</label>
+              <input id="baptism_date" type="date" />
+            </div>
+            <div class="col">
+              <label>Fecha recepción Espíritu Santo</label>
+              <input id="holy_spirit_date" type="date" />
+            </div>
+            <div class="col">
+              <label>Pastor oficiante</label>
+              <input id="officiant_pastor" />
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <div class="col">
+              <label>Fecha membresía en la congregación</label>
+              <input id="membership_date" type="date" />
+            </div>
+            <div class="col">
+              <label>Tiempo de membresía</label>
+              <input id="membership_time" placeholder="Ej: 1 año / 4 meses" />
+            </div>
+            <div class="col">
+              <label>Lugar de procedencia</label>
+              <input id="origin_place" />
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;align-items:center;">
+            <div class="col">
+              <label>¿Menos de 6 meses en la congregación?</label>
+              <input id="less_than_6_months" type="checkbox" />
+              <div class="hint">Activa si el miembro lleva menos de 6 meses.</div>
+            </div>
+
+            <div class="col">
+              <label>Simpatizante</label>
+              <input id="is_sympathizer" type="checkbox" />
+              <div class="hint">Activa si la persona es simpatizante.</div>
+            </div>
+
+            <div class="col">
+              <div class="hint muted"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <label>Observaciones</label>
+            <textarea id="observations" placeholder="Notas adicionales..."></textarea>
+          </div>
+
+          <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;">
+            <button class="btn primary" id="btnInviteSubmit">Enviar</button>
+          </div>
+
+          <div class="hint" style="margin-top:10px;">
+            * Este formulario usa un link de invitación.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `);
+
+  // ✅ MEJOR OPCIÓN: acepta "btnX" o "#btnX"
+  const $ = (id) => {
+    const clean = String(id).startsWith("#") ? String(id).slice(1) : String(id);
+    return node.querySelector("#" + clean);
+  };
+
+
+
+  // Identificación: solo números (igual que la app)
+  const idInput = $("#identification");
+  if (idInput){
+    const onlyDigits = () => {
+      const v = idInput.value || "";
+      const cleaned = v.replace(/\D+/g, "");
+      if (v !== cleaned) idInput.value = cleaned;
+    };
+    idInput.addEventListener("input", onlyDigits);
+    idInput.addEventListener("paste", () => setTimeout(onlyDigits, 0));
+  }
+
+  // Foto (igual que la app)
+  function renderPhoto(url){
+    const box = $("#photoBox");
+    box.innerHTML = "";
+    if (!url){
+      box.appendChild(el(`<div class="small">Sin foto</div>`));
+      return;
+    }
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = "Foto miembro";
+    box.appendChild(img);
+  }
+
+  function handlePickedPhoto(file){
+    draft.photo_file = file;
+
+    if (!file){
+      draft.photo_preview_url = "";
+      renderPhoto("");
+      $("#photoInfo").textContent = "Se mostrará aquí como vista previa.";
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    draft.photo_preview_url = url;
+    renderPhoto(url);
+    $("#photoInfo").textContent = `${file.name} · vista previa lista`;
+  }
+
+  $("#photoInput").addEventListener("change", ()=>{
+    const file = $("#photoInput").files?.[0] || null;
+    handlePickedPhoto(file);
+  });
+
+  $("#photoInputCamera").addEventListener("change", ()=>{
+    const file = $("#photoInputCamera").files?.[0] || null;
+    handlePickedPhoto(file);
+  });
+
+  $("#btnPickPhoto").addEventListener("click", ()=> $("#photoInput").click());
+  $("#btnTakePhoto").addEventListener("click", ()=> $("#photoInputCamera").click());
+
+  // Leer formulario (mismo mapping que tu saveMember)
+  function readPublicForm(){
+    draft.first_names = $("#first_names").value.trim();
+    draft.last_names = $("#last_names").value.trim();
+    draft.identification = $("#identification").value.trim();
+    draft.address = $("#address").value.trim();
+    draft.city = $("#city").value.trim();
+    draft.phone = ($("#phone")?.value || "").trim();
+    draft.birth_date = $("#birth_date").value || "";
+    draft.father_name = $("#father_name").value.trim();
+    draft.mother_name = $("#mother_name").value.trim();
+    draft.congregation_name = $("#congregation_name").value.trim();
+    draft.conversion_time = $("#conversion_time").value.trim();
+    draft.baptism_date = $("#baptism_date").value || "";
+    draft.holy_spirit_date = $("#holy_spirit_date").value || "";
+    draft.event_place = $("#event_place").value.trim();
+    draft.officiant_pastor = $("#officiant_pastor").value.trim();
+    draft.membership_date = $("#membership_date").value || "";
+    draft.membership_time = $("#membership_time").value.trim();
+    draft.origin_place = $("#origin_place").value.trim();
+    draft.less_than_6_months = $("#less_than_6_months").checked;
+    draft.is_sympathizer = $("#is_sympathizer").checked;
+    draft.observations = $("#observations").value.trim();
+
+    const ageRaw = ($("#age").value || "").trim();
+    draft.age = ageRaw === "" ? null : Number(ageRaw);
+
+    draft.church_role = $("#church_role").value.trim();
+    draft.gender = $("#gender").value || "";
+
+    return draft;
+  }
+
+  // Enviar
+  $("#btnInviteSubmit").addEventListener("click", async ()=>{
+    try{
+      showLoader("Enviando…", "Guardando en la base de datos");
+
+      const m = readPublicForm();
+
+      // Validaciones iguales
+      if (!m.first_names || !m.last_names || !m.identification){
+        toast("Nombres, apellidos e identificación son obligatorios.", "info");
+        return;
+      }
+      const ageNum = Number(m.age);
+      if (m.age === null || !Number.isFinite(ageNum) || ageNum < 0){
+        toast("La edad es obligatoria y debe ser un número válido (>= 0).", "info");
+        return;
+      }
+      if (!m.gender){
+        toast("El género es obligatorio. Selecciona Masculino o Femenino.", "info");
+        return;
+      }
+
+      // ✅ Subir foto igual que la app (si envían foto)
+      const prefix = (m.identification || "unknown").trim() || "unknown";
+      let photo = { path: null, url: null };
+      if (m.photo_file){
+        photo = await uploadFile("member-photos", m.photo_file, prefix);
+      }
+
+      // Payload COMPLETO (mismo que saveMember)
+      const payload = {
+        first_names: m.first_names,
+        last_names: m.last_names,
+        identification: m.identification,
+        age: m.age ?? null,
+        gender: m.gender || null,
+        church_role: m.church_role || null,
+        address: m.address || null,
+        city: m.city || null,
+        phone: m.phone || null,
+        birth_date: m.birth_date || null,
+        father_name: m.father_name || null,
+        mother_name: m.mother_name || null,
+        congregation_name: m.congregation_name || null,
+        conversion_time: m.conversion_time || null,
+        baptism_date: m.baptism_date || null,
+        holy_spirit_date: m.holy_spirit_date || null,
+        event_place: m.event_place || null,
+        officiant_pastor: m.officiant_pastor || null,
+        membership_date: m.membership_date || null,
+        membership_time: m.membership_time || null,
+        origin_place: m.origin_place || null,
+        less_than_6_months: !!m.less_than_6_months,
+        is_sympathizer: !!m.is_sympathizer,
+        observations: m.observations || null,
+        photo_path: photo.path,
+        photo_url: photo.url,
+      };
+
+      // ✅ Endpoint correcto
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-member-invit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ inviteToken, payload })
+      });
+
+      const data = await res.json().catch(()=> ({}));
+      if (!res.ok) throw new Error(data?.error || data?.message || `HTTP ${res.status}`);
+
+      toast("✅ Enviado correctamente. ¡Gracias!", "success");
+      clearInviteFromUrl();
+      render();
+
+    } catch(e){
+      console.error(e);
+      toast("❌ Error enviando: " + (e?.message || e), "error");
+    } finally {
+      hideLoader();
+    }
+  });
+
+  return node;
+}
+
+
+
+
+
+function render(){
+  app.innerHTML = "";
+
+  const invite = getInviteTokenFromUrl();
+
+  // ✅ Si es link público: SOLO formulario, sin header/login
+  if (invite){
+    // por si algo usa sticky/offset
+    document.documentElement.style.setProperty("--header-offset", "0px");
+
+    try{
+      const form = viewInviteForm(invite);
+      app.appendChild(form);
+    } catch(e){
+      console.error("Error render invite form:", e);
+
+      // fallback visible (para que no quede solo el fondo)
+      const box = document.createElement("div");
+      box.className = "container";
+      box.innerHTML = `
+        <div class="card">
+          <h3 style="margin:0 0 10px;">❌ Error cargando formulario</h3>
+          <div class="small muted">Mira la consola (F12) para más detalle.</div>
+          <hr class="sep"/>
+          <pre style="white-space:pre-wrap;word-break:break-word;max-width:100%;">${String(e?.message || e)}</pre>
+        </div>
+      `;
+      app.appendChild(box);
+    }
+    return;
+  }
+
+  // ✅ Normal (app): header + módulos
+  const header = renderHeader();
+  app.appendChild(header);
+
+  const h = Math.ceil(header.getBoundingClientRect().height);
+  document.documentElement.style.setProperty("--header-offset", (h + 8) + "px");
+
+  app.appendChild(viewMiembros());
+}
+
+
+
+let __resumeLock = false;
+let __lastResumeAt = 0;
+
+async function handleAppResume(){
+  const now = Date.now();
+  if (__resumeLock) return;
+  if (now - __lastResumeAt < 1200) return; // anti-spam
+  __lastResumeAt = now;
+
+  __resumeLock = true;
+  try{
+    // ✅ Reactiva el auto refresh si el navegador lo pausó
+    try { supabase.auth.startAutoRefresh?.(); } catch {}
+
+    // ✅ Marca "verificando" y repinta UNA vez (para que no quede pegado)
+    state.auth.ready = false;
+    render();
+
+    // ✅ Revalida sesión real + allowed_emails (con tu requireAuth con retry)
+    await requireAuth({ silent: true });
+
+    // ✅ Render final estable
+    render();
+  } finally {
+    __resumeLock = false;
+  }
+}
+
+
+
+    
+  // ===== Boot: local email auth (sin Google) =====
+bootstrapLocalAuth();
+
+// ✅ Cumpleaños Modal: botón "Enviar a este teléfono"
+document.getElementById("btnCumplePwaPushSelf")?.addEventListener("click", async () => {
+  try{
+    const ok = await requireAuth();
+    if (!ok) return;
+
+    const reg = await navigator.serviceWorker.ready;
+    const subscription = await reg.pushManager.getSubscription();
+    if (!subscription){
+      toast("Primero activa 🔔 Notificaciones para este dispositivo.", "info");
+      return;
+    }
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-birthday-push-self`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ email: state.auth.email, subscription })
+    });
+
+    const data = await res.json().catch(()=> ({}));
+    if (res.ok) toast("✅ Enviado a este teléfono.", "success");
+    else toast("❌ Error: " + (data?.error || data?.message || res.status), "error");
+  } catch(e){
+    console.error(e);
+    toast("❌ Error enviando: " + (e?.message || e), "error");
+  }
+});
+
+
+
+// ===== Cumpleaños modal handlers =====
+document.getElementById("btnCumplePwaClose")?.addEventListener("click", closeCumplePwaModal);
+
+document.getElementById("cumplePwaContenedor")?.addEventListener("click", (e) => {
+  if (e.target === document.getElementById("cumplePwaContenedor")) closeCumplePwaModal();
+});
+
+document.getElementById("cumplePwaMesSelect")?.addEventListener("change", (e) => {
+  const v = Number(e.target.value);
+  cargarCumplePwaMes(v);
+});
+
+
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
