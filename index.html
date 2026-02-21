@@ -857,24 +857,32 @@ async function cargarCumplePwaMes(mesIndex){
 
     const waId = `btnWaCumple_${m.id}`;
 
-    row.innerHTML = `
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-        <div style="min-width:0;">
-          <div style="font-weight:800;">
-            ${m.nombre || "(Sin nombre)"} 
-            <span class="badge">${m.tipo}</span>
-          </div>
-          <div class="small muted">
-            ${dia ? "🎂 " + dia : ""}${ciudad ? " · " + ciudad : ""}${tel ? " · 📞 " + tel : ""}
-          </div>
-        </div>
+const badgeColor =
+  m.tipo === "Padre" ? "#1E6FB8" :       // azul
+  m.tipo === "Madre" ? "#E83E8C" :       // rosado
+  "#28A745";                             // verde (miembro)
 
-        <div style="display:flex; align-items:center; gap:10px;">
-          <button class="btn ok" id="${waId}" style="padding:8px 10px;">💬 WhatsApp</button>
-          <span class="badge">${dia || "--/--"}</span>
-        </div>
+row.innerHTML = `
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+    <div style="min-width:0;">
+      <div style="font-weight:800;">
+        ${m.nombre || "(Sin nombre)"} 
+        <span class="badge" 
+              style="background:${badgeColor}; color:white; font-weight:700;">
+              ${m.tipo}
+        </span>
       </div>
-    `;
+      <div class="small muted">
+        ${dia ? "🎂 " + dia : ""}${ciudad ? " · " + ciudad : ""}${tel ? " · 📞 " + tel : ""}
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button class="btn ok" id="${waId}" style="padding:8px 10px;">💬 WhatsApp</button>
+      <span class="badge">${dia || "--/--"}</span>
+    </div>
+  </div>
+`;
 
     setTimeout(() => {
       const btn = row.querySelector(`#${waId}`);
