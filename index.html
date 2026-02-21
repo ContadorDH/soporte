@@ -2511,6 +2511,20 @@ function viewInviteForm(inviteToken){
 
                 <div class="hint" id="photoInfo">Se mostrará aquí como vista previa.</div>
               </div>
+              <!-- ✅ NUEVO: Foto del acudiente (papá/mamá) -->
+<div style="margin-top:10px;" class="filebox" id="guardianPhotoFileBox">
+  <label>Foto del acudiente (papá/mamá)</label>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <button class="btn ok" type="button" id="btnTakeGuardianPhoto">📷 Tomar foto</button>
+    <button class="btn" type="button" id="btnPickGuardianPhoto">🖼️ Elegir archivo</button>
+  </div>
+
+  <input id="guardianPhotoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
+  <input id="guardianPhotoInput" type="file" accept="image/*" style="display:none;" />
+
+  <div class="hint" id="guardianPhotoInfo">Se mostrará aquí como vista previa.</div>
+</div>
             </div>
 
             <div class="col">
@@ -2551,6 +2565,14 @@ function viewInviteForm(inviteToken){
                 </div>
               </div>
 
+              <!-- ✅ NUEVO: Correo electrónico -->
+<div class="row" style="margin-top:10px;">
+  <div class="col">
+    <label>Correo electrónico</label>
+    <input id="email" type="email" placeholder="correo@dominio.com" autocomplete="email" />
+  </div>
+</div>
+
               <div class="row" style="margin-top:10px;">
                 <div class="col">
                   <label>Edad *</label>
@@ -2586,6 +2608,29 @@ function viewInviteForm(inviteToken){
                   <input id="congregation_name"/>
                 </div>
               </div>
+
+              <!-- ✅ NUEVO: Celulares y cumpleaños de papás -->
+<div class="row" style="margin-top:10px;">
+  <div class="col">
+    <label>Celular del padre</label>
+    <input id="father_phone" placeholder="Ej: 3001234567" inputmode="tel" />
+  </div>
+  <div class="col">
+    <label>Celular de la madre</label>
+    <input id="mother_phone" placeholder="Ej: 3001234567" inputmode="tel" />
+  </div>
+  <div class="col">
+    <label>Cumpleaños del padre</label>
+    <input id="father_birth_date" type="date" />
+  </div>
+</div>
+
+<div class="row" style="margin-top:10px;">
+  <div class="col">
+    <label>Cumpleaños de la madre</label>
+    <input id="mother_birth_date" type="date" />
+  </div>
+</div>
             </div>
           </div>
 
@@ -2730,6 +2775,36 @@ function viewInviteForm(inviteToken){
   $("#btnPickPhoto").addEventListener("click", ()=> $("#photoInput").click());
   $("#btnTakePhoto").addEventListener("click", ()=> $("#photoInputCamera").click());
 
+  // ✅ Foto del acudiente (igual que la app)
+function handlePickedGuardianPhoto(file){
+  draft.guardian_photo_file = file;
+
+  if (!file){
+    draft.guardian_photo_preview_url = "";
+    $("#guardianPhotoInfo").textContent = "Se mostrará aquí como vista previa.";
+    return;
+  }
+
+  const url = URL.createObjectURL(file);
+  draft.guardian_photo_preview_url = url;
+  $("#guardianPhotoInfo").textContent = `${file.name} · vista previa lista`;
+}
+
+$("#guardianPhotoInput")?.addEventListener("change", ()=>{
+  const file = $("#guardianPhotoInput").files?.[0] || null;
+  handlePickedGuardianPhoto(file);
+});
+
+$("#guardianPhotoInputCamera")?.addEventListener("change", ()=>{
+  const file = $("#guardianPhotoInputCamera").files?.[0] || null;
+  handlePickedGuardianPhoto(file);
+});
+
+$("#btnPickGuardianPhoto")?.addEventListener("click", ()=> $("#guardianPhotoInput")?.click());
+$("#btnTakeGuardianPhoto")?.addEventListener("click", ()=> $("#guardianPhotoInputCamera")?.click());
+
+
+
   // Leer formulario (mismo mapping que tu saveMember)
   function readPublicForm(){
     draft.first_names = $("#first_names").value.trim();
@@ -2738,9 +2813,14 @@ function viewInviteForm(inviteToken){
     draft.address = $("#address").value.trim();
     draft.city = $("#city").value.trim();
     draft.phone = ($("#phone")?.value || "").trim();
+    draft.email = ($("#email")?.value || "").trim();
     draft.birth_date = $("#birth_date").value || "";
     draft.father_name = $("#father_name").value.trim();
     draft.mother_name = $("#mother_name").value.trim();
+    draft.father_phone = ($("#father_phone")?.value || "").trim();
+    draft.mother_phone = ($("#mother_phone")?.value || "").trim();
+    draft.father_birth_date = $("#father_birth_date")?.value || "";
+    draft.mother_birth_date = $("#mother_birth_date")?.value || "";
     draft.congregation_name = $("#congregation_name").value.trim();
     draft.conversion_time = $("#conversion_time").value.trim();
     draft.baptism_date = $("#baptism_date").value || "";
@@ -2792,6 +2872,11 @@ function viewInviteForm(inviteToken){
         photo = await uploadFile("member-photos", m.photo_file, prefix);
       }
 
+
+      let guardianPhoto = { path: null, url: null };
+if (m.guardian_photo_file){
+  guardianPhoto = await uploadFile("member-photos", m.guardian_photo_file, `guardian_${prefix}`);
+}
       // Payload COMPLETO (mismo que saveMember)
       const payload = {
         first_names: m.first_names,
@@ -2803,6 +2888,13 @@ function viewInviteForm(inviteToken){
         address: m.address || null,
         city: m.city || null,
         phone: m.phone || null,
+        email: m.email || null,
+father_phone: m.father_phone || null,
+mother_phone: m.mother_phone || null,
+father_birth_date: m.father_birth_date || null,
+mother_birth_date: m.mother_birth_date || null,
+guardian_photo_path: guardianPhoto.path,
+guardian_photo_url: guardianPhoto.url,
         birth_date: m.birth_date || null,
         father_name: m.father_name || null,
         mother_name: m.mother_name || null,
