@@ -883,36 +883,56 @@ for (const m of items){
   row.style.padding = "12px";
 
   // ⭐ RESALTAR SI ES HOY
-  if (esHoy){
-    row.style.border = "2px solid gold";
-    row.style.boxShadow = "0 0 15px rgba(255,215,0,0.6)";
-    row.style.background = "linear-gradient(90deg, #fffbea, #ffffff)";
-  }
+ if (esHoy){
+  row.style.border = "2px solid #FFC107";
+  row.style.boxShadow = "0 0 12px rgba(255,193,7,0.6)";
+  row.style.background = "#1c1c1c";   // mantiene modo oscuro
+}
 
   const waId = `btnWaCumple_${m.id}`;
 
-  row.innerHTML = `
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-      <div style="min-width:0;">
-        <div style="font-weight:800;">
-          ${icono} ${m.nombre || "(Sin nombre)"}
-          <span class="badge" 
-                style="background:${badgeColor}; color:white; font-weight:700;">
-                ${m.tipo}
-          </span>
-          ${esHoy ? '<span class="badge" style="background:gold;color:black;font-weight:800;">HOY 🎉</span>' : ""}
-        </div>
-        <div class="small muted">
-          ${dia ? "🎂 " + dia : ""}${ciudad ? " · " + ciudad : ""}${tel ? " · 📞 " + tel : ""}
-        </div>
+row.innerHTML = `
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+    
+    <div style="flex:1; min-width:0;">
+      
+      <!-- Línea nombre -->
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <span style="font-size:20px;">${icono}</span>
+        
+        <span style="font-weight:800; font-size:16px;">
+          ${m.nombre || "(Sin nombre)"}
+        </span>
+
+        <span class="badge"
+              style="background:${badgeColor}; color:#fff; font-weight:700;">
+          ${m.tipo}
+        </span>
+
+        ${esHoy ? `
+          <span class="badge"
+                style="background:#FFC107; color:#000; font-weight:800;">
+            HOY 🎉
+          </span>` : ""}
       </div>
 
-      <div style="display:flex; align-items:center; gap:10px;">
-        <button class="btn ok" id="${waId}" style="padding:8px 10px;">💬 WhatsApp</button>
-        <span class="badge">${dia || "--/--"}</span>
+      <!-- Línea info -->
+      <div class="small muted" style="margin-top:4px;">
+        ${dia ? "🎂 " + dia : ""}
+        ${ciudad ? " · " + ciudad : ""}
+        ${tel ? " · 📞 " + tel : ""}
       </div>
+
     </div>
-  `;
+
+    <!-- Acciones -->
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="btn ok" id="${waId}" style="padding:8px 10px;">💬 WhatsApp</button>
+      <span class="badge">${dia || "--/--"}</span>
+    </div>
+
+  </div>
+`;
 
   setTimeout(() => {
     const btn = row.querySelector(`#${waId}`);
