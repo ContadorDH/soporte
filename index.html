@@ -892,18 +892,16 @@ for (const m of items){
   const waId = `btnWaCumple_${m.id}`;
 
 row.innerHTML = `
-  <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+  <div style="display:flex; flex-direction:column; gap:10px;">
 
-    <!-- IZQUIERDA -->
-    <div style="flex:1;">
-
-      <!-- Nombre + tipo -->
-      <div style="display:flex; align-items:center; gap:8px;">
+    <!-- BLOQUE SUPERIOR -->
+    <div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
         <span style="font-size:20px;">${icono}</span>
 
-        <div style="font-weight:800; font-size:16px;">
+        <span style="font-weight:800; font-size:16px;">
           ${m.nombre || "(Sin nombre)"}
-        </div>
+        </span>
 
         <span class="badge"
               style="background:${badgeColor}; color:#fff; font-weight:700;">
@@ -917,20 +915,19 @@ row.innerHTML = `
           </span>` : ""}
       </div>
 
-      <!-- Info -->
       <div class="small muted" style="margin-top:6px;">
         ${dia ? "🎂 " + dia : ""}
         ${ciudad ? " · " + ciudad : ""}
         ${tel ? " · 📞 " + tel : ""}
       </div>
-
     </div>
 
-    <!-- DERECHA -->
-    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+    <!-- BLOQUE INFERIOR (botón debajo, centrado) -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
       <button class="btn ok" id="${waId}" style="padding:8px 12px;">
         💬 WhatsApp
       </button>
+
       <span class="badge">${dia || "--/--"}</span>
     </div>
 
