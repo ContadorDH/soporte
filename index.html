@@ -779,14 +779,14 @@ async function cargarCumplePwaMes(mesIndex){
       if (d.length >= 10){
         const mm = Number(d.slice(5,7)) - 1;
         if (mm === Number(mesIndex)){
-          items.push({
-            tipo: "Miembro",
-            nombre: nombreMiembro,
-            birth_date: m.birth_date,
-            city: m.city,
-            phone: m.phone,
-            id: m.id
-          });
+       items.push({
+  tipo: "Miembro",
+  nombre: nombreMiembro,
+  birth_date: m.birth_date,
+  city: m.city,
+  phone: m.phone,
+  id: m.id
+});
         }
       }
     }
@@ -797,14 +797,14 @@ async function cargarCumplePwaMes(mesIndex){
       if (d.length >= 10){
         const mm = Number(d.slice(5,7)) - 1;
         if (mm === Number(mesIndex)){
-          items.push({
-            tipo: "Padre",
-            nombre: m.father_name || "Padre",
-            birth_date: m.father_birth_date,
-            city: m.city,
-            phone: m.phone,
-            id: m.id + "_father"
-          });
+    items.push({
+  tipo: "Padre",
+  nombre: m.father_name || "Padre",
+  birth_date: m.father_birth_date,
+  city: m.city,
+  phone: m.father_phone || m.phone,   // 👈 CLAVE
+  id: m.id + "_father"
+});
         }
       }
     }
@@ -815,14 +815,14 @@ async function cargarCumplePwaMes(mesIndex){
       if (d.length >= 10){
         const mm = Number(d.slice(5,7)) - 1;
         if (mm === Number(mesIndex)){
-          items.push({
-            tipo: "Madre",
-            nombre: m.mother_name || "Madre",
-            birth_date: m.mother_birth_date,
-            city: m.city,
-            phone: m.phone,
-            id: m.id + "_mother"
-          });
+      items.push({
+  tipo: "Madre",
+  nombre: m.mother_name || "Madre",
+  birth_date: m.mother_birth_date,
+  city: m.city,
+  phone: m.mother_phone || m.phone,   // 👈 CLAVE
+  id: m.id + "_mother"
+});
         }
       }
     }
