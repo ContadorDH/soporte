@@ -1712,7 +1712,10 @@ function viewMiembros(){
                     <input id="guardianPhotoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
                     <input id="guardianPhotoInput" type="file" accept="image/*" style="display:none;" />
 
-                    <div class="hint" id="guardianPhotoInfo">Se mostrará aquí como vista previa.</div>
+                   <div class="avatar" id="guardianPhotoBox" style="width:120px;height:120px;margin-top:10px;">
+  <div class="small">Sin foto</div>
+</div>
+<div class="hint" id="guardianPhotoInfo">Se mostrará aquí como vista previa.</div>
                   </div>
                 </div>
 
@@ -1951,6 +1954,9 @@ function viewMiembros(){
     const photoBox = $("#photoFileBox");
     if (photoBox) photoBox.style.display = isReadonly ? "none" : "";
 
+    const gBox = $("#guardianPhotoFileBox");
+if (gBox) gBox.style.display = isReadonly ? "none" : "";
+
     if ($("#photoInput")) $("#photoInput").disabled = isReadonly;
 
     node.querySelector("#btnSave").style.display = isReadonly ? "none" : "";
@@ -1977,6 +1983,22 @@ function viewMiembros(){
     img.alt = "Foto miembro";
     box.appendChild(img);
   }
+
+function renderGuardianPhoto(url){
+  const box = $("#guardianPhotoBox");
+  if (!box) return;
+
+  box.innerHTML = "";
+  if (!url){
+    box.appendChild(el(`<div class="small">Sin foto</div>`));
+    return;
+  }
+
+  const img = document.createElement("img");
+  img.src = url;
+  img.alt = "Foto acudiente";
+  box.appendChild(img);
+}
 
   function fillForm(m){
     $("#first_names").value = m.first_names || "";
@@ -2011,6 +2033,7 @@ function viewMiembros(){
     $("#gender").value = m.gender || "";
 
     renderPhoto(m.photo_preview_url || m.photo_url || "");
+    renderGuardianPhoto(m.guardian_photo_preview_url || m.guardian_photo_url || "");
   }
 
   function readForm(){
@@ -2103,6 +2126,7 @@ function viewMiembros(){
 
         state.memberDraft = cloneMemberSafe(m);
         state.memberDraft.photo_preview_url = m.photo_url || "";
+        state.memberDraft.guardian_photo_preview_url = m.guardian_photo_url || "";
         state.selectedId = m.id || null;
         state.viewMode = "view";
 
@@ -2186,13 +2210,17 @@ function handlePickedGuardianPhoto(file){
 
   if (!file){
     state.memberDraft.guardian_photo_preview_url = "";
+    renderGuardianPhoto("");
     $("#guardianPhotoInfo").textContent = "Se mostrará aquí como vista previa.";
     return;
   }
 
   const url = URL.createObjectURL(file);
   state.memberDraft.guardian_photo_preview_url = url;
+  renderGuardianPhoto(url);
+
   $("#guardianPhotoInfo").textContent = `${file.name} · vista previa lista`;
+  $("#statusBadge").textContent = "Cambios sin guardar";
 }
 
 $("#guardianPhotoInput")?.addEventListener("change", ()=>{
@@ -2522,6 +2550,9 @@ function viewInviteForm(inviteToken){
 
   <input id="guardianPhotoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
   <input id="guardianPhotoInput" type="file" accept="image/*" style="display:none;" />
+  <div class="avatar" id="guardianPhotoBox" style="width:120px;height:120px;margin-top:10px;">
+  <div class="small">Sin foto</div>
+</div>
 
   <div class="hint" id="guardianPhotoInfo">Se mostrará aquí como vista previa.</div>
 </div>
@@ -2747,6 +2778,22 @@ function viewInviteForm(inviteToken){
     box.appendChild(img);
   }
 
+function renderGuardianPhoto(url){
+  const box = $("#guardianPhotoBox");
+  if (!box) return;
+
+  box.innerHTML = "";
+  if (!url){
+    box.appendChild(el(`<div class="small">Sin foto</div>`));
+    return;
+  }
+
+  const img = document.createElement("img");
+  img.src = url;
+  img.alt = "Foto acudiente";
+  box.appendChild(img);
+}
+
   function handlePickedPhoto(file){
     draft.photo_file = file;
 
@@ -2781,12 +2828,15 @@ function handlePickedGuardianPhoto(file){
 
   if (!file){
     draft.guardian_photo_preview_url = "";
+    renderGuardianPhoto("");
     $("#guardianPhotoInfo").textContent = "Se mostrará aquí como vista previa.";
     return;
   }
 
   const url = URL.createObjectURL(file);
   draft.guardian_photo_preview_url = url;
+  renderGuardianPhoto(url);
+
   $("#guardianPhotoInfo").textContent = `${file.name} · vista previa lista`;
 }
 
