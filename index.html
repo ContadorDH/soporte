@@ -465,7 +465,9 @@ input[type="file"]::-webkit-file-upload-button{
   z-index: 9999999 !important;
 }
 
-
+.guardian-center{ text-align:center; }
+.guardian-center .avatar{ margin: 0 auto; }
+.guardian-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
     
   </style>
 </head>
@@ -1513,8 +1515,8 @@ function clearInviteFromUrl(){
         <div class="header">
           <div class="header-inner">
             <div class="brand">
-              <div class="title">IPUC · Base de Datos</div>
-              <div class="small">PWA · Módulo Miembros</div>
+              <div class="title">PENTAGRAMA · Padres 2026</div>
+              <div class="small">Módulo Miembros</div>
             </div>
 
             <div class="nav">
@@ -1742,27 +1744,7 @@ function viewMiembros(){
                     <div class="hint" id="photoInfo">Se mostrará aquí como vista previa.</div>
                   </div>
 
-            <!-- ✅ Foto del acudiente (papá/mamá) -->
-<div style="margin-top:10px;">
-  <label class="small muted" style="display:block; margin-bottom:8px;">Foto del acudiente (papá/mamá)</label>
 
-  <!-- ✅ Vista previa SIEMPRE visible (como la del miembro) -->
-  <div class="avatar" id="guardianPhotoBox" style="width:120px;height:120px;">
-    <div class="small">Sin foto</div>
-  </div>
-  <div class="hint" id="guardianPhotoInfo">Se mostrará aquí como vista previa.</div>
-
-  <!-- ✅ Controles (estos sí se ocultan en modo vista) -->
-  <div style="margin-top:10px;" class="filebox" id="guardianPhotoFileBox">
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <button class="btn ok" type="button" id="btnTakeGuardianPhoto">📷 Tomar foto</button>
-      <button class="btn" type="button" id="btnPickGuardianPhoto">🖼️ Elegir archivo</button>
-    </div>
-
-    <input id="guardianPhotoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
-    <input id="guardianPhotoInput" type="file" accept="image/*" style="display:none;" />
-  </div>
-</div>
                 </div>
 
                 <div class="col">
@@ -1780,6 +1762,33 @@ function viewMiembros(){
                       <input id="identification" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
                     </div>
                   </div>
+
+<!-- ✅ Foto del acudiente (centrada, antes de Nombre del padre) -->
+<div style="margin-top:10px;">
+  <label class="small muted" style="display:block; margin-bottom:8px; text-align:center;">
+    Foto del acudiente (papá/mamá)
+  </label>
+
+  <div style="display:flex; justify-content:center;">
+    <div class="avatar" id="guardianPhotoBox" style="width:150px;height:150px;">
+      <div class="small">Sin foto</div>
+    </div>
+  </div>
+
+  <div class="hint" id="guardianPhotoInfo" style="text-align:center;">
+    Se mostrará aquí como vista previa.
+  </div>
+
+  <div class="filebox" id="guardianPhotoFileBox" style="margin-top:10px;">
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button class="btn ok" type="button" id="btnTakeGuardianPhoto">📷 Tomar foto</button>
+      <button class="btn" type="button" id="btnPickGuardianPhoto">🖼️ Elegir archivo</button>
+    </div>
+
+    <input id="guardianPhotoInputCamera" type="file" accept="image/*" capture="environment" style="display:none;" />
+    <input id="guardianPhotoInput" type="file" accept="image/*" style="display:none;" />
+  </div>
+</div>
 
                   <div class="row" style="margin-top:10px;">
                     <div class="col">
@@ -2001,25 +2010,21 @@ function viewMiembros(){
     if (photoBox) photoBox.style.display = isReadonly ? "none" : "";
 
  // ✅ Acudiente: en solo lectura ocultar SOLO controles (pero dejar visible la foto)
-const gBox = $("#guardianPhotoFileBox");
-if (gBox){
-  const hideIds = [
-    "btnTakeGuardianPhoto",
-    "btnPickGuardianPhoto",
-    "guardianPhotoInputCamera",
-    "guardianPhotoInput",
-    "guardianPhotoInfo"
-  ];
+// ✅ Acudiente: en solo lectura ocultar controles, pero dejar visible la foto (guardianPhotoBox)
+const gFileBox = $("#guardianPhotoFileBox");
+if (gFileBox) gFileBox.classList.toggle("readonly-hide", isReadonly);
 
-  hideIds.forEach((id)=>{
-    const elx = node.querySelector("#" + id);
-    if (!elx) return;
-    elx.classList.toggle("readonly-hide", isReadonly);
-  });
-
-  // También ocultamos el texto “Se mostrará aquí...” si quieres (queda más limpio)
-  // (ya está en hideIds, así que se va)
-}
+[
+  "btnTakeGuardianPhoto",
+  "btnPickGuardianPhoto",
+  "guardianPhotoInputCamera",
+  "guardianPhotoInput",
+  "guardianPhotoInfo" // opcional: oculta el hint en solo lectura
+].forEach((id)=>{
+  const elx = $(id);
+  if (!elx) return;
+  elx.classList.toggle("readonly-hide", isReadonly);
+});
 
     if ($("#photoInput")) $("#photoInput").disabled = isReadonly;
 
