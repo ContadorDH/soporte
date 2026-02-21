@@ -741,18 +741,23 @@ async function cargarCumplePwaMes(mesIndex){
   // 🔥 Ahora también trae datos de padre y madre
   const { data, error } = await supabase
     .from("members")
-    .select(`
-      id,
-      first_names,
-      last_names,
-      birth_date,
-      father_name,
-      father_birth_date,
-      mother_name,
-      mother_birth_date,
-      city,
-      phone
-    `)
+.select(`
+  id,
+  first_names,
+  last_names,
+  birth_date,
+  phone,
+
+  father_name,
+  father_birth_date,
+  father_phone,
+
+  mother_name,
+  mother_birth_date,
+  mother_phone,
+
+  city
+`)
     .limit(5000);
 
   if (error){
@@ -845,66 +850,91 @@ async function cargarCumplePwaMes(mesIndex){
   wrap.style.display = "grid";
   wrap.style.gap = "10px";
 
-  for (const m of items){
+ const today = new Date();
+const hoyMes = today.getMonth();
+const hoyDia = today.getDate();
 
-    const dia = fmtDiaMes(m.birth_date);
-    const ciudad = (m.city || "").trim();
-    const tel = (m.phone || "").trim();
+for (const m of items){
 
-    const row = document.createElement("div");
-    row.className = "panel";
-    row.style.padding = "12px";
+  const dia = fmtDiaMes(m.birth_date);
+  const ciudad = (m.city || "").trim();
+  const tel = (m.phone || "").trim();
 
-    const waId = `btnWaCumple_${m.id}`;
+  const fechaStr = String(m.birth_date || "");
+  const cumpleMes = Number(fechaStr.slice(5,7)) - 1;
+  const cumpleDia = Number(fechaStr.slice(8,10));
 
-const badgeColor =
-  m.tipo === "Padre" ? "#1E6FB8" :       // azul
-  m.tipo === "Madre" ? "#E83E8C" :       // rosado
-  "#28A745";                             // verde (miembro)
+  const esHoy = (cumpleMes === hoyMes && cumpleDia === hoyDia);
 
-row.innerHTML = `
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-    <div style="min-width:0;">
-      <div style="font-weight:800;">
-        ${m.nombre || "(Sin nombre)"} 
-        <span class="badge" 
-              style="background:${badgeColor}; color:white; font-weight:700;">
-              ${m.tipo}
-        </span>
-      </div>
-      <div class="small muted">
-        ${dia ? "🎂 " + dia : ""}${ciudad ? " · " + ciudad : ""}${tel ? " · 📞 " + tel : ""}
-      </div>
-    </div>
+  // 🎨 COLOR BADGE
+  const badgeColor =
+    m.tipo === "Padre" ? "#1E6FB8" :
+    m.tipo === "Madre" ? "#E83E8C" :
+    "#28A745";
 
-    <div style="display:flex; align-items:center; gap:10px;">
-      <button class="btn ok" id="${waId}" style="padding:8px 10px;">💬 WhatsApp</button>
-      <span class="badge">${dia || "--/--"}</span>
-    </div>
-  </div>
-`;
+  // 🎂 ICONO POR TIPO
+  const icono =
+    m.tipo === "Padre" ? "👨🎂" :
+    m.tipo === "Madre" ? "👩🎂" :
+    "👤🎂";
 
-    setTimeout(() => {
-      const btn = row.querySelector(`#${waId}`);
-      if (!btn) return;
+  const row = document.createElement("div");
+  row.className = "panel";
+  row.style.padding = "12px";
 
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const msg = `Hola ${m.nombre || ""} 😊 ¡Feliz cumpleaños! 🎂🎉\nDios te bendiga.`;
-        openWhatsApp(m.phone || "", msg);
-      });
-
-      if (!tel){
-        btn.disabled = true;
-        btn.title = "No hay teléfono disponible";
-        btn.style.opacity = "0.6";
-      }
-    }, 0);
-
-    wrap.appendChild(row);
+  // ⭐ RESALTAR SI ES HOY
+  if (esHoy){
+    row.style.border = "2px solid gold";
+    row.style.boxShadow = "0 0 15px rgba(255,215,0,0.6)";
+    row.style.background = "linear-gradient(90deg, #fffbea, #ffffff)";
   }
+
+  const waId = `btnWaCumple_${m.id}`;
+
+  row.innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+      <div style="min-width:0;">
+        <div style="font-weight:800;">
+          ${icono} ${m.nombre || "(Sin nombre)"}
+          <span class="badge" 
+                style="background:${badgeColor}; color:white; font-weight:700;">
+                ${m.tipo}
+          </span>
+          ${esHoy ? '<span class="badge" style="background:gold;color:black;font-weight:800;">HOY 🎉</span>' : ""}
+        </div>
+        <div class="small muted">
+          ${dia ? "🎂 " + dia : ""}${ciudad ? " · " + ciudad : ""}${tel ? " · 📞 " + tel : ""}
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="btn ok" id="${waId}" style="padding:8px 10px;">💬 WhatsApp</button>
+        <span class="badge">${dia || "--/--"}</span>
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    const btn = row.querySelector(`#${waId}`);
+    if (!btn) return;
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const msg = `Hola ${m.nombre || ""} 😊 ¡Feliz cumpleaños! 🎂🎉\nDios te bendiga.`;
+      openWhatsApp(m.phone || "", msg);
+    });
+
+    if (!tel){
+      btn.disabled = true;
+      btn.title = "No hay teléfono disponible";
+      btn.style.opacity = "0.6";
+    }
+  }, 0);
+
+  wrap.appendChild(row);
+}
 
   list.appendChild(wrap);
 }
