@@ -1503,28 +1503,45 @@ function cerrarSesion(){
   });
 }
 
-if(usuarioGlobal){
-  document.getElementById("loginScreen").style.display="none";
-  actualizarUserCircle();
 
-
-}
 
 
 function actualizarUserCircle(){
-  const circle = document.getElementById("userCircle");
-  if(!circle) return;
-  if(!usuarioGlobal){
-    circle.textContent = "";
-    circle.style.display = "none";
-    return;
-  }
-  const partes = usuarioGlobal.trim().split(" ");
-  const iniciales = partes.length > 1
-    ? (partes[0][0] + partes[partes.length-1][0])
-    : partes[0][0];
-  circle.textContent = iniciales.toUpperCase();
-  circle.style.display = "flex";
+
+    const circle = document.getElementById("userCircle");
+
+    if(!circle) return;
+
+    if(!perfilActual){
+
+        circle.style.display = "none";
+
+        return;
+
+    }
+
+    const nombre = perfilActual.nombre || "";
+
+    const partes = nombre.trim().split(" ");
+
+    let iniciales = "";
+
+    if(partes.length === 1){
+
+        iniciales = partes[0][0];
+
+    }else{
+
+        iniciales =
+            partes[0][0] +
+            partes[partes.length-1][0];
+
+    }
+
+    circle.textContent = iniciales.toUpperCase();
+
+    circle.style.display = "flex";
+
 }
 
 function mostrarNombreUsuario(){
