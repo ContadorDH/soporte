@@ -998,13 +998,56 @@ body {
 
 <!-- LOGIN -->
 <div id="loginScreen">
+
   <div id="loginBox">
-    <h2>Inicio de sesión</h2>
-    <p>Ingresa tu nombre para registrar asistencias</p>
-    <input type="text" id="nombreUsuario" placeholder="Tu nombre completo">
+
+    <h2>🔐 Iniciar sesión</h2>
+
+    <p>Accede con tu cuenta de Contador DECOM</p>
+
+    <input
+      type="email"
+      id="loginCorreo"
+      placeholder="Correo electrónico"
+      autocomplete="email"
+    >
+
+    <br><br>
+
+    <input
+      type="password"
+      id="loginPassword"
+      placeholder="Contraseña"
+      autocomplete="current-password"
+    >
+
+    <br><br>
+
+    <button
+      id="btnLogin"
+      onclick="loginSupabase()">
+      Iniciar sesión
+    </button>
+
+    <br><br>
+
+    <button
+      class="secondary"
+      onclick="mostrarRegistro()">
+      Crear cuenta
+    </button>
+
     <br>
-    <button onclick="iniciarSesion()">Entrar</button>
+
+    <a
+      href="#"
+      onclick="recuperarPassword();return false;"
+      style="display:block;margin-top:18px;">
+      ¿Olvidaste tu contraseña?
+    </a>
+
   </div>
+
 </div>
 
 <!-- LOGIN IGLESIA (Paso 1 - NO activo aún) -->
@@ -1399,19 +1442,6 @@ function changeTheme(theme) {
 }
 
   
-/* === LOGIN === */
-function iniciarSesion(){
-  const nombre = document.getElementById("nombreUsuario").value.trim();
-  if(!nombre) return mostrarAlerta("⚠️", "Ingresa tu nombre para continuar.");
-  localStorage.setItem("usuarioCelula", nombre);
-  usuarioGlobal = nombre;
-  document.getElementById("loginScreen").style.display="none";
-  actualizarUserCircle();
-  // close menu if open
-  const menu = document.getElementById('menu');
-  const overlay = document.getElementById('menuOverlay');
-  if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
-}
 
 
 
