@@ -2109,29 +2109,55 @@ window.addEventListener('appinstalled', () => {
   actualizarBotonInstalar();
 });
 
-(function init(){
-  actualizarTotal();
-  const select=document.getElementById('selectMes');
-  meses.forEach(m=>{
-    const o=document.createElement('option');
-    o.value=m;
-    o.text=m;
-    select.appendChild(o);
-  });
-  select.value=mesActual;
-  if(usuarioGlobal){
-    document.getElementById("loginScreen").style.display="none";
-  } else {
-    document.getElementById("loginScreen").style.display="flex";
-  }
-  // 🎨 Cargar tema guardado (si existe)
-  const savedTheme = localStorage.getItem('theme') || 'claro';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  document.getElementById('themeSelect').value = savedTheme;
+async function initApp() {
 
-  aplicarTituloApp();
-  actualizarBotonInstalar();
-})();
+    actualizarTotal();
+
+    const select = document.getElementById("selectMes");
+
+    select.innerHTML = "";
+
+    meses.forEach(m => {
+
+        const o = document.createElement("option");
+
+        o.value = m;
+
+        o.textContent = m;
+
+        select.appendChild(o);
+
+    });
+
+    select.value = mesActual;
+
+    // Tema
+
+    const savedTheme = localStorage.getItem("theme") || "claro";
+
+    document.documentElement.setAttribute("data-theme", savedTheme);
+
+    document.getElementById("themeSelect").value = savedTheme;
+
+    aplicarTituloApp();
+
+    actualizarBotonInstalar();
+
+    // -------- LOGIN --------
+
+    if(sessionActual){
+
+        document.getElementById("loginScreen").style.display = "none";
+
+        actualizarUserCircle();
+
+    }else{
+
+        document.getElementById("loginScreen").style.display = "flex";
+
+    }
+
+}
 
 
 
@@ -2148,29 +2174,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log("Inicializando...");
     console.log("======================================");
 
-    // 1. Probar conexión con Supabase
     await probarConexionSupabase();
 
-    // 2. Buscar sesión
     const haySesion = await inicializarSupabase();
 
     if (haySesion) {
 
-        // 3. Obtener perfil
         await obtenerPerfilActual();
 
         console.log("Usuario:", perfilActual?.nombre);
-        console.log("Rol:", perfilActual?.rol);
 
-        // Más adelante aquí ocultaremos el login
+        console.log("Rol:", perfilActual?.rol);
 
     } else {
 
         console.log("No existe sesión.");
 
-        // Más adelante aquí mostraremos el login
-
     }
+
+    // ESTE SIEMPRE VA AL FINAL
+    await initApp();
 
 });
 </script>
