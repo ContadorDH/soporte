@@ -1319,23 +1319,36 @@ async function obtenerPerfilActual(){
 
 async function probarConexionSupabase(){
 
-    const { data, error } = await supabase
-        .from("iglesias")
-        .select("*");
+    console.log("=== PROBANDO SUPABASE ===");
 
-    if(error){
+    try{
 
-        console.error(error);
+        const { data, error } = await supabase
+            .from("iglesias")
+            .select("id,nombre,codigo")
+            .limit(5);
 
-        mostrarAlerta("❌","No fue posible conectar con Supabase.");
+        if(error){
 
-        return;
+            console.error("ERROR SUPABASE:");
+
+            console.error(error);
+
+            alert(error.message);
+
+            return;
+
+        }
+
+        console.log("Conectado correctamente");
+
+        console.table(data);
+
+    }catch(err){
+
+        console.error(err);
 
     }
-
-    console.table(data);
-
-    mostrarAlerta("✅","Supabase conectado correctamente.");
 
 }
 
@@ -2128,29 +2141,34 @@ window.addEventListener('appinstalled', () => {
 
 document.addEventListener("DOMContentLoaded", async () => {
 
+    console.clear();
+
     console.log("======================================");
     console.log("CONTADOR DECOM");
     console.log("Inicializando...");
     console.log("======================================");
 
-    const haySesion = await inicializarSupabase();
-
+    // 1. Probar conexión con Supabase
     await probarConexionSupabase();
+
+    // 2. Buscar sesión
+    const haySesion = await inicializarSupabase();
 
     if (haySesion) {
 
+        // 3. Obtener perfil
         await obtenerPerfilActual();
 
         console.log("Usuario:", perfilActual?.nombre);
         console.log("Rol:", perfilActual?.rol);
 
-        // Aquí después ocultaremos el login automáticamente
+        // Más adelante aquí ocultaremos el login
 
     } else {
 
         console.log("No existe sesión.");
 
-        // Aquí mostraremos el login
+        // Más adelante aquí mostraremos el login
 
     }
 
