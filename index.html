@@ -1050,6 +1050,95 @@ body {
 
 </div>
 
+<!-- ===========================================
+     REGISTRO
+=========================================== -->
+
+<div id="registroScreen" class="modalOverlay" style="display:none;">
+
+<div class="modalCard">
+
+<h2>Crear cuenta</h2>
+
+<p>Regístrate para utilizar Contador DECOM</p>
+
+<input
+id="regNombre"
+type="text"
+placeholder="Nombre completo">
+
+<input
+id="regCorreo"
+type="email"
+placeholder="Correo electrónico">
+
+<input
+id="regTelefono"
+type="text"
+placeholder="Teléfono">
+
+<select id="regCargo">
+
+<option value="">Seleccione cargo</option>
+
+<option>Pastor</option>
+
+<option>Secretario</option>
+
+<option>DECOM</option>
+
+<option>Líder</option>
+
+<option>Otro</option>
+
+</select>
+
+<select id="regIglesia">
+
+<option value="">Cargando iglesias...</option>
+
+</select>
+
+<input
+id="regCodigo"
+type="text"
+placeholder="Código de registro">
+
+<input
+id="regPassword"
+type="password"
+placeholder="Contraseña">
+
+<input
+id="regPassword2"
+type="password"
+placeholder="Confirmar contraseña">
+
+<div
+style="display:flex;gap:12px;margin-top:20px;">
+
+<button
+style="flex:1"
+onclick="registrarUsuarioSupabase()">
+
+Crear cuenta
+
+</button>
+
+<button
+style="flex:1;background:#888"
+onclick="cerrarRegistro()">
+
+Cancelar
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
 <!-- LOGIN IGLESIA (Paso 1 - NO activo aún) -->
 <div id="churchScreen" style="position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:130;">
   <div style="background:var(--card);padding:28px;border-radius:14px;box-shadow:0 8px 24px var(--shadow);text-align:center;color:var(--text);width:320px;max-width:92vw;">
@@ -1397,6 +1486,50 @@ async function probarConexionSupabase(){
 
 
 
+async function cargarIglesiasSupabase(){
+
+    const sel = document.getElementById("regIglesia");
+
+    if(!sel) return;
+
+    sel.innerHTML = "";
+
+    const opcion = document.createElement("option");
+    opcion.value = "";
+    opcion.textContent = "Seleccione una iglesia";
+    sel.appendChild(opcion);
+
+    const { data, error } = await supabase
+        .from("iglesias")
+        .select("id,nombre")
+        .eq("activa", true)
+        .order("nombre");
+
+    if(error){
+
+        console.error(error);
+
+        mostrarAlerta("⚠️","No fue posible cargar las iglesias.");
+
+        return;
+
+    }
+
+    data.forEach(i=>{
+
+        const o = document.createElement("option");
+
+        o.value = i.id;
+
+        o.textContent = i.nombre;
+
+        sel.appendChild(o);
+
+    });
+
+}
+
+
 // 🎨 Función para cambiar el tema
 function changeTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
@@ -1596,6 +1729,21 @@ function mostrarNombreUsuario(){
 function cerrarPopupUsuario(){
   document.getElementById("popupUsuario").style.display = "none";
 }
+
+function mostrarRegistro(){
+
+    document.getElementById("registroScreen").style.display="flex";
+
+    cargarIglesiasSupabase();
+
+}
+
+function cerrarRegistro(){
+
+    document.getElementById("registroScreen").style.display="none";
+
+}
+
 
 function editarTituloApp() {
   const actual = localStorage.getItem("appTitle") || "📋 Asistencia Bochica Sur";
