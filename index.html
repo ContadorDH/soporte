@@ -1719,11 +1719,8 @@ async function registrarUsuarioSupabase(){
     const validar = validarFormularioRegistro();
 
     if(!validar.ok){
-
         mostrarAlerta("⚠️", validar.mensaje);
-
         return;
-
     }
 
     const d = validar.datos;
@@ -1732,7 +1729,7 @@ async function registrarUsuarioSupabase(){
 
     try{
 
-        // 1. Verificar código
+        // 1. Verificar clave de invitación
 
         const codigoCorrecto = await verificarCodigoRegistro(
             d.iglesia,
@@ -1740,112 +1737,114 @@ async function registrarUsuarioSupabase(){
         );
 
         if(!codigoCorrecto){
+            hideBusy();
+            mostrarAlerta("❌","La clave de invitación es incorrecta.");
+            return;
+        }
+
+        // 2. Crear usuario
+
+        const { error: errorSignUp } = await supabase.auth.signUp({
+
+            email: d.correo,
+
+            password: d.password,
+
+            options:{
+                data:{
+                    nombre:d.nombre
+                }
+            }
+
+        });
+
+        if(errorSignUp){
 
             hideBusy();
 
-            mostrarAlerta(
-                "❌",
-                "El código de registro es incorrecto."
-            );
+            console.error(errorSignUp);
+
+            mostrarAlerta("❌", errorSignUp.message);
 
             return;
 
         }
 
-        // 2. Crear usuario Auth
+        // 3. Iniciar sesión inmediatamente
 
-        console.log("Datos para signUp:");
-console.log({
-    email: d.correo,
-    password: d.password
-});
+        const { error: errorLogin } =
+        await supabase.auth.signInWithPassword({
 
-  const { data, error } = await supabase.auth.signUp({
+            email:d.correo,
 
-    
+            password:d.password
 
-    email: d.correo,
+        });
 
-    password: d.password,
+        if(errorLogin){
 
-    options: {
+            hideBusy();
 
-        data: {
+            console.error(errorLogin);
 
-            nombre: d.nombre
+            mostrarAlerta("❌", errorLogin.message);
+
+            return;
 
         }
 
-    }
+        // 4. Crear perfil mediante RPC
+
+  const { data:perfilCreado, error:errorPerfil } =
+await supabase.rpc("crear_perfil",{
+
+    p_iglesia:d.iglesia,
+
+    p_nombre:d.nombre,
+
+    p_telefono:d.telefono,
+
+    p_cargo:d.cargo,
+
+    p_correo:d.correo
 
 });
 
-  if(error){
+console.log("RPC crear_perfil");
 
-    hideBusy();
+console.log(perfilCreado);
 
-    console.error("ERROR AUTH:");
+console.log(errorPerfil);
 
-    console.error(error);
+        if(errorPerfil){
 
-    alert(JSON.stringify(error,null,2));
+            hideBusy();
 
-    return;
+            console.error(errorPerfil);
 
-}
+            mostrarAlerta("❌", errorPerfil.message);
 
-        // 3. Guardar perfil
+            return;
 
-        const { error:errorPerfil } = await supabase
+        }
 
-            .from("perfiles")
+        // 5. Cargar perfil
 
-     .insert({
-
-    id: data.user.id,
-
-    iglesia_id: d.iglesia,
-
-    nombre: d.nombre,
-
-    correo: d.correo,
-
-    telefono: d.telefono,
-
-    cargo: d.cargo,
-
-    rol: "usuario",
-
-    estado: "activo"
-
-});
-
-if(errorPerfil){
-
-    hideBusy();
-
-    console.error("ERROR PERFIL:");
-
-    console.error(errorPerfil);
-
-    alert(
-        JSON.stringify(errorPerfil, null, 2)
-    );
-
-    return;
-
-}
+        await obtenerPerfilActual();
 
         hideBusy();
 
         cerrarRegistro();
 
+        document.getElementById("loginScreen").style.display="none";
+
         mostrarAlerta(
             "✅",
-            "Cuenta creada correctamente. Revisa tu correo para confirmar la cuenta."
+            "¡Cuenta creada correctamente!"
         );
 
-    }catch(err){
+    }
+    catch(err){
 
         hideBusy();
 
