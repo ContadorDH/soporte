@@ -1682,6 +1682,29 @@ function validarFormularioRegistro(){
 
 }
 
+
+async function verificarCodigoRegistro(iglesiaId,codigo){
+
+    const { data, error } = await supabase.rpc(
+        "verificar_codigo_registro",
+        {
+            p_iglesia: iglesiaId,
+            p_codigo: codigo
+        }
+    );
+
+    if(error){
+
+        console.error(error);
+
+        return false;
+
+    }
+
+    return data===true;
+
+}
+
 // 🎨 Función para cambiar el tema
 function changeTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
