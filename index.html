@@ -1812,20 +1812,19 @@ async function registrarUsuarioSupabase(){
 
 });
 
-        if(errorPerfil){
+  if(errorPerfil){
 
-            hideBusy();
+    hideBusy();
 
-            console.error(errorPerfil);
+    console.error("ERROR INSERT PERFIL:");
 
-            mostrarAlerta(
-                "⚠️",
-                "Usuario creado, pero no fue posible guardar el perfil."
-            );
+    console.error(errorPerfil);
 
-            return;
+    alert(JSON.stringify(errorPerfil, null, 2));
 
-        }
+    return;
+
+}
 
         hideBusy();
 
