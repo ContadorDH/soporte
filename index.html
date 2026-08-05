@@ -1472,6 +1472,8 @@ let sessionActual = null;
 
 let perfilActual = null;
 
+let iglesiaActual = null;
+
 
 
 /* ===========================================================
@@ -1622,6 +1624,61 @@ async function cargarIglesiasSupabase(){
         sel.appendChild(new Option(i.nombre,i.id));
 
     });
+
+}
+
+
+
+function validarFormularioRegistro(){
+
+    const nombre = document.getElementById("regNombre").value.trim();
+    const correo = document.getElementById("regCorreo").value.trim();
+    const telefono = document.getElementById("regTelefono").value.trim();
+    const cargo = document.getElementById("regCargo").value;
+    const iglesia = document.getElementById("regIglesia").value;
+    const codigo = document.getElementById("regCodigo").value.trim();
+    const password = document.getElementById("regPassword").value;
+    const password2 = document.getElementById("regPassword2").value;
+
+    if(!nombre)
+        return {ok:false,mensaje:"Ingresa tu nombre."};
+
+    if(!correo)
+        return {ok:false,mensaje:"Ingresa el correo."};
+
+    if(!telefono)
+        return {ok:false,mensaje:"Ingresa el teléfono."};
+
+    if(!cargo)
+        return {ok:false,mensaje:"Selecciona el cargo."};
+
+    if(!iglesia)
+        return {ok:false,mensaje:"Selecciona una iglesia."};
+
+    if(!codigo)
+        return {ok:false,mensaje:"Ingresa el código de registro."};
+
+    if(password.length<6)
+        return {ok:false,mensaje:"La contraseña debe tener mínimo 6 caracteres."};
+
+    if(password!==password2)
+        return {ok:false,mensaje:"Las contraseñas no coinciden."};
+
+    return{
+
+        ok:true,
+
+        datos:{
+            nombre,
+            correo,
+            telefono,
+            cargo,
+            iglesia,
+            codigo,
+            password
+        }
+
+    };
 
 }
 
