@@ -2115,28 +2115,82 @@ async function loginIglesia(){
 }
 
 
+async function cerrarSesion(){
 
+    mostrarPopupConfirm(
 
-function cerrarSesion(){
-  mostrarPopupConfirm("Confirmar", "¿Cerrar sesión?", () => {
-    localStorage.removeItem("usuarioCelula");
+        "Confirmar",
 
-    // ✅ borrar iglesia también
-    localStorage.removeItem("iglesiaId");
-    localStorage.removeItem("tokenIglesia");
-    iglesiaId = "";
-    tokenIglesia = "";
+        "¿Cerrar sesión?",
 
-    usuarioGlobal="";
-    document.getElementById("loginScreen").style.display="flex";
-    // close menu if open
-    const menu=document.getElementById('menu');
-    const overlay=document.getElementById('menuOverlay');
-    if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
-  });
+        async ()=>{
+
+            try{
+
+                // Cerrar sesión en Supabase
+                await supabase.auth.signOut();
+
+                // Limpiar objeto global
+                App.session = null;
+                App.usuario = null;
+                App.perfil = null;
+                App.iglesia = null;
+
+                // Compatibilidad temporal
+                sessionActual = null;
+                perfilActual = null;
+
+                // Variables antiguas (las quitaremos más adelante)
+                usuarioGlobal = "";
+                iglesiaId = "";
+                tokenIglesia = "";
+
+                // Limpiar localStorage antiguo
+                localStorage.removeItem("usuarioCelula");
+                localStorage.removeItem("iglesiaId");
+                localStorage.removeItem("tokenIglesia");
+
+                // Limpiar formulario
+                document.getElementById("loginCorreo").value = "";
+                document.getElementById("loginPassword").value = "";
+
+                // Mostrar login
+                document.getElementById("loginScreen").style.display = "flex";
+
+                // Cerrar menú lateral si está abierto
+                const menu = document.getElementById("menu");
+                const overlay = document.getElementById("menuOverlay");
+
+                if(menu && menu.classList.contains("active")){
+                    menu.classList.remove("active");
+                }
+
+                if(overlay){
+                    overlay.classList.remove("active");
+                }
+
+                mostrarAlerta(
+                    "✅",
+                    "Sesión cerrada correctamente DH."
+                );
+
+            }
+            catch(err){
+
+                console.error(err);
+
+                mostrarAlerta(
+                    "❌",
+                    "No fue posible cerrar la sesión."
+                );
+
+            }
+
+        }
+
+    );
+
 }
-
-
 
 
 function actualizarUserCircle(){
