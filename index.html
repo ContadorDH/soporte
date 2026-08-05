@@ -1482,6 +1482,18 @@ let perfilActual = null;
 
 let iglesiaActual = null;
 
+const App = {
+
+    session: null,
+
+    perfil: null,
+
+    iglesia: null,
+
+    usuario: null
+
+};
+
 
 
 /* ===========================================================
@@ -1523,19 +1535,31 @@ async function inicializarSupabase() {
 
 async function obtenerPerfilActual(){
 
-    if(!sessionActual) return null;
+    if(!App.session)
+        return null;
 
     const { data, error } = await supabase
 
         .from("perfiles")
 
-        .select("*")
+        .select(`
+            *,
+            iglesias(
+                id,
+                nombre,
+                codigo,
+                color,
+                logo
+            )
+        `)
 
-        .eq("id", sessionActual.user.id)
+        .eq("id", App.session.user.id)
 
         .single();
 
     if(error){
+
+        console.error("Error cargando perfil:");
 
         console.error(error);
 
@@ -1543,12 +1567,15 @@ async function obtenerPerfilActual(){
 
     }
 
+    App.perfil = data;
+
+    App.iglesia = data.iglesias;
+
     perfilActual = data;
 
     return data;
 
 }
-
 
 
 async function probarConexionSupabase(){
@@ -1851,6 +1878,105 @@ console.log(errorPerfil);
         console.error(err);
 
         mostrarAlerta("❌","Error inesperado.");
+
+    }
+
+}
+
+
+async function loginSupabase(){
+
+    const correo = document
+        .getElementById("loginCorreo")
+        .value
+        .trim()
+        .toLowerCase();
+
+    const password = document
+        .getElementById("loginPassword")
+        .value;
+
+    if(!correo){
+
+        mostrarAlerta(
+            "⚠️",
+            "Ingresa tu correo."
+        );
+
+        return;
+
+    }
+
+    if(!password){
+
+        mostrarAlerta(
+            "⚠️",
+            "Ingresa tu contraseña."
+        );
+
+        return;
+
+    }
+
+    showBusy(
+        "Iniciando sesión...",
+        "Validando usuario"
+    );
+
+    try{
+
+        const { data, error } =
+        await supabase.auth.signInWithPassword({
+
+            email: correo,
+
+            password: password
+
+        });
+
+        if(error){
+
+            hideBusy();
+
+            console.error(error);
+
+            mostrarAlerta(
+                "❌",
+                error.message
+            );
+
+            return;
+
+        }
+
+        App.session = data.session;
+
+        App.usuario = data.user;
+
+        sessionActual = data.session;
+
+        await obtenerPerfilActual();
+
+        hideBusy();
+
+        document.getElementById("loginScreen").style.display="none";
+
+        mostrarAlerta(
+            "✅",
+            "Bienvenido " + (perfilActual?.nombre || "")
+        );
+
+    }
+    catch(err){
+
+        hideBusy();
+
+        console.error(err);
+
+        mostrarAlerta(
+            "❌",
+            "No fue posible iniciar sesión."
+        );
 
     }
 
