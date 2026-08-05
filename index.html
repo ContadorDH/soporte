@@ -639,7 +639,7 @@ main {
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 210;
+      z-index: 999999;
     }
     #popupConfirm > div, #popupAlert > div, #popupUsuario > div {
       background: var(--popup-bg);
@@ -1754,23 +1754,37 @@ async function registrarUsuarioSupabase(){
 
         // 2. Crear usuario Auth
 
-        const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
 
-            email:d.correo,
+    email: d.correo,
 
-            password:d.password
+    password: d.password,
 
-        });
+    options: {
 
-        if(error){
+        data: {
 
-            hideBusy();
-
-            mostrarAlerta("❌",error.message);
-
-            return;
+            nombre: d.nombre
 
         }
+
+    }
+
+});
+
+  if(error){
+
+    hideBusy();
+
+    console.error("ERROR AUTH:");
+
+    console.error(error);
+
+    alert(JSON.stringify(error,null,2));
+
+    return;
+
+}
 
         // 3. Guardar perfil
 
@@ -1778,27 +1792,25 @@ async function registrarUsuarioSupabase(){
 
             .from("perfiles")
 
-            .insert({
+     .insert({
 
-                id:data.user.id,
+    id: data.user.id,
 
-                iglesia_id:d.iglesia,
+    iglesia_id: d.iglesia,
 
-                nombre:d.nombre,
+    nombre: d.nombre,
 
-                correo:d.correo,
+    correo: d.correo,
 
-                telefono:d.telefono,
+    telefono: d.telefono,
 
-                cargo:d.cargo,
+    cargo: d.cargo,
 
-                rol:"usuario",
+    rol: "usuario",
 
-                estado:true,
+    estado: "activo"
 
-                fecha_creacion:new Date()
-
-            });
+});
 
         if(errorPerfil){
 
