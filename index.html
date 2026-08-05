@@ -1705,6 +1705,132 @@ async function verificarCodigoRegistro(iglesiaId,codigo){
 
 }
 
+
+async function registrarUsuarioSupabase(){
+
+    const validar = validarFormularioRegistro();
+
+    if(!validar.ok){
+
+        mostrarAlerta("⚠️", validar.mensaje);
+
+        return;
+
+    }
+
+    const d = validar.datos;
+
+    showBusy("Creando cuenta...","Espera un momento");
+
+    try{
+
+        // 1. Verificar código
+
+        const codigoCorrecto = await verificarCodigoRegistro(
+            d.iglesia,
+            d.codigo
+        );
+
+        if(!codigoCorrecto){
+
+            hideBusy();
+
+            mostrarAlerta(
+                "❌",
+                "El código de registro es incorrecto."
+            );
+
+            return;
+
+        }
+
+        // 2. Crear usuario Auth
+
+        const { data, error } = await supabase.auth.signUp({
+
+            email:d.correo,
+
+            password:d.password
+
+        });
+
+        if(error){
+
+            hideBusy();
+
+            mostrarAlerta("❌",error.message);
+
+            return;
+
+        }
+
+        // 3. Guardar perfil
+
+        const { error:errorPerfil } = await supabase
+
+            .from("perfiles")
+
+            .insert({
+
+                id:data.user.id,
+
+                iglesia_id:d.iglesia,
+
+                nombre:d.nombre,
+
+                correo:d.correo,
+
+                telefono:d.telefono,
+
+                cargo:d.cargo,
+
+                rol:"usuario",
+
+                estado:true,
+
+                fecha_creacion:new Date()
+
+            });
+
+        if(errorPerfil){
+
+            hideBusy();
+
+            console.error(errorPerfil);
+
+            mostrarAlerta(
+                "⚠️",
+                "Usuario creado, pero no fue posible guardar el perfil."
+            );
+
+            return;
+
+        }
+
+        hideBusy();
+
+        cerrarRegistro();
+
+        mostrarAlerta(
+            "✅",
+            "Cuenta creada correctamente. Revisa tu correo para confirmar la cuenta."
+        );
+
+    }catch(err){
+
+        hideBusy();
+
+        console.error(err);
+
+        mostrarAlerta("❌","Error inesperado.");
+
+    }
+
+}
+
+
+
+
 // 🎨 Función para cambiar el tema
 function changeTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
