@@ -1820,15 +1820,17 @@ console.log({
 
 });
 
-  if(errorPerfil){
+if(errorPerfil){
 
     hideBusy();
 
-    console.error("ERROR INSERT PERFIL:");
+    console.error("ERROR PERFIL:");
 
     console.error(errorPerfil);
 
-    alert(JSON.stringify(errorPerfil, null, 2));
+    alert(
+        JSON.stringify(errorPerfil, null, 2)
+    );
 
     return;
 
