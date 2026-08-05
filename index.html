@@ -1961,6 +1961,8 @@ async function loginSupabase(){
 
         document.getElementById("loginScreen").style.display="none";
 
+        actualizarUserCircle();
+
         mostrarAlerta(
             "✅",
             "Bienvenido " + (perfilActual?.nombre || "")
@@ -2811,25 +2813,43 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log("Inicializando...");
     console.log("======================================");
 
+    // 1. Inicializar Supabase
+    await inicializarSupabase();
+
+    // 2. Probar conexión
     await probarConexionSupabase();
 
-    const haySesion = await inicializarSupabase();
+    // 3. Buscar sesión existente
+    const { data, error } = await supabase.auth.getSession();
 
-    if (haySesion) {
+    if(error){
+        console.error(error);
+    }
+
+    if(data.session){
+
+        console.log("✅ Sesión encontrada.");
+
+        App.session = data.session;
+        App.usuario = data.session.user;
+        sessionActual = data.session;
 
         await obtenerPerfilActual();
 
-        console.log("Usuario:", perfilActual?.nombre);
+        console.log("Usuario:", App.perfil?.nombre);
+        console.log("Rol:", App.perfil?.rol);
 
-        console.log("Rol:", perfilActual?.rol);
+        document.getElementById("loginScreen").style.display = "none";
 
-    } else {
+    }else{
 
-        console.log("No existe sesión.");
+        console.log("ℹ️ No existe sesión.");
+
+        document.getElementById("loginScreen").style.display = "flex";
 
     }
 
-    // ESTE SIEMPRE VA AL FINAL
+    // SIEMPRE AL FINAL
     await initApp();
 
 });
