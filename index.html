@@ -910,6 +910,98 @@ body {
   .value { font-size: 2.2rem !important; }
 }
 
+
+
+/* =========================================================
+   MODAL REGISTRO
+========================================================= */
+
+.modalOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+}
+
+.modalCard{
+
+    width:min(92vw,460px);
+
+    background:var(--card);
+
+    color:var(--text);
+
+    border-radius:18px;
+
+    padding:24px;
+
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
+
+    animation:popupFade .25s ease;
+
+}
+
+.modalCard h2{
+
+    margin-top:0;
+
+    text-align:center;
+
+}
+
+.modalCard p{
+
+    text-align:center;
+
+    color:var(--muted);
+
+    margin-bottom:18px;
+
+}
+
+.modalCard input,
+.modalCard select{
+
+    width:100%;
+
+    margin-bottom:12px;
+
+    padding:12px;
+
+    border-radius:10px;
+
+    border:1px solid #ccc;
+
+    background:var(--card);
+
+    color:var(--text);
+
+    font-size:15px;
+
+    box-sizing:border-box;
+
+}
+
+.modalCard button{
+
+    padding:12px;
+
+    border:none;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+}
+
+.oculto{
+    display:none !important;
+}
     
   </style>
 </head>
@@ -1054,7 +1146,7 @@ body {
      REGISTRO
 =========================================== -->
 
-<div id="registroScreen" class="modalOverlay" style="display:none;">
+<div id="registroScreen" class="modalOverlay oculto">
 
 <div class="modalCard">
 
@@ -1732,7 +1824,9 @@ function cerrarPopupUsuario(){
 
 function mostrarRegistro(){
 
-    document.getElementById("registroScreen").style.display="flex";
+    document
+        .getElementById("registroScreen")
+        .classList.remove("oculto");
 
     cargarIglesiasSupabase();
 
@@ -1740,7 +1834,9 @@ function mostrarRegistro(){
 
 function cerrarRegistro(){
 
-    document.getElementById("registroScreen").style.display="none";
+    document
+        .getElementById("registroScreen")
+        .classList.add("oculto");
 
 }
 
