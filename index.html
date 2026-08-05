@@ -1580,47 +1580,50 @@ async function probarConexionSupabase(){
 
 async function cargarIglesiasSupabase(){
 
+    console.log("=== CARGANDO IGLESIAS ===");
+
     const sel = document.getElementById("regIglesia");
 
-    if(!sel) return;
+    if(!sel){
 
-    sel.innerHTML = "";
-
-    const opcion = document.createElement("option");
-    opcion.value = "";
-    opcion.textContent = "Seleccione una iglesia";
-    sel.appendChild(opcion);
-
-    const { data, error } = await supabase
-        .from("iglesias")
-        .select("id,nombre")
-        .eq("activa", true)
-        .order("nombre");
-
-    if(error){
-
-        console.error(error);
-
-        mostrarAlerta("⚠️","No fue posible cargar las iglesias.");
+        console.log("No existe el select.");
 
         return;
 
     }
 
+    sel.innerHTML="";
+
+    sel.appendChild(new Option("Cargando...", ""));
+
+    const { data, error } = await supabase
+        .from("iglesias")
+        .select("*");
+
+    console.log("DATA:", data);
+    console.log("ERROR:", error);
+
+    if(error){
+
+        alert(error.message);
+
+        return;
+
+    }
+
+    sel.innerHTML="";
+
+    sel.appendChild(new Option("Seleccione una iglesia",""));
+
     data.forEach(i=>{
 
-        const o = document.createElement("option");
+        console.log(i);
 
-        o.value = i.id;
-
-        o.textContent = i.nombre;
-
-        sel.appendChild(o);
+        sel.appendChild(new Option(i.nombre,i.id));
 
     });
 
 }
-
 
 // 🎨 Función para cambiar el tema
 function changeTheme(theme) {
