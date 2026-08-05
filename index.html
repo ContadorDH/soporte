@@ -1754,7 +1754,15 @@ async function registrarUsuarioSupabase(){
 
         // 2. Crear usuario Auth
 
+        console.log("Datos para signUp:");
+console.log({
+    email: d.correo,
+    password: d.password
+});
+
   const { data, error } = await supabase.auth.signUp({
+
+    
 
     email: d.correo,
 
