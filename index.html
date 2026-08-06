@@ -1637,8 +1637,80 @@ function cambiarPinIglesia(id){
 
 async function guardarNuevoPin(){
 
-}
+    const pin = document
+        .getElementById("nuevoPinIglesia")
+        .value
+        .trim();
 
+    if(pin.length < 4){
+
+        return mostrarAlerta(
+            "⚠️",
+            "El PIN debe tener mínimo 4 caracteres."
+        );
+
+    }
+
+    showBusy(
+        "Actualizando PIN...",
+        "Guardando cambios"
+    );
+
+    try{
+
+        const { data, error } =
+        await supabase.rpc(
+            "cambiar_codigo_registro",
+            {
+                p_iglesia: iglesiaSeleccionadaAdmin,
+                p_codigo: pin
+            }
+        );
+
+        hideBusy();
+
+        if(error){
+
+            console.error(error);
+
+            return mostrarAlerta(
+                "❌",
+                error.message
+            );
+
+        }
+
+        if(!data){
+
+            return mostrarAlerta(
+                "⚠️",
+                "No fue posible actualizar el PIN."
+            );
+
+        }
+
+        cerrarModalPin();
+
+        mostrarAlerta(
+            "✅",
+            "PIN actualizado correctamente."
+        );
+
+    }
+    catch(err){
+
+        hideBusy();
+
+        console.error(err);
+
+        mostrarAlerta(
+            "❌",
+            "Ocurrió un error."
+        );
+
+    }
+
+}
 
 function cerrarModalPin(){
 
