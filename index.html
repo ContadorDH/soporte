@@ -1442,9 +1442,9 @@ Cancelar
 </section>
 
 
-<div id="modalSuperAdmin" class="modal" style="display:none;">
+<div id="modalSuperAdmin" class="modalOverlay oculto">
 
-    <div class="modal-content" style="max-width:900px;width:95%;">
+    <div class="modalCard" style="max-width:900px;width:95%;">
 
         <h2>👑 Super Administrador</h2>
 
@@ -1453,9 +1453,10 @@ Cancelar
         <div style="margin-top:20px;text-align:right;">
 
             <button
-                onclick="cerrarPanelSuperAdmin()"
-                class="btn-secundario">
+                onclick="cerrarPanelSuperAdmin()">
+
                 Cerrar
+
             </button>
 
         </div>
@@ -1574,7 +1575,9 @@ async function abrirPanelSuperAdmin(){
 
     });
 
-    document.getElementById("modalSuperAdmin").style.display="flex";
+    document
+.getElementById("modalSuperAdmin")
+.classList.remove("oculto");
 
 }
 
@@ -1582,9 +1585,9 @@ async function abrirPanelSuperAdmin(){
 
 function cerrarPanelSuperAdmin(){
 
-    document.getElementById(
-        "modalSuperAdmin"
-    ).style.display="none";
+    document
+    .getElementById("modalSuperAdmin")
+    .classList.add("oculto");
 
 }
 
