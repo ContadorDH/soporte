@@ -1516,12 +1516,48 @@ function actualizarMenuSuperAdmin(){
 
 }
 
-function abrirPanelSuperAdmin(){
+async function abrirPanelSuperAdmin(){
 
-    mostrarAlerta(
-        "👑",
-        "Bienvenido al Panel del Super Administrador."
+    const iglesias = await cargarIglesiasAdmin();
+
+    if(!iglesias.length){
+
+        return mostrarAlerta(
+            "ℹ️",
+            "No existen iglesias."
+        );
+
+    }
+
+    console.table(iglesias);
+
+}
+
+
+async function cargarIglesiasAdmin(){
+
+    const { data, error } = await supabase.rpc(
+        "listar_iglesias_admin"
     );
+
+    if(error){
+
+        console.error(error);
+
+        mostrarAlerta(
+            "❌",
+            "No fue posible cargar las iglesias."
+        );
+
+        return [];
+
+    }
+
+    console.log("Iglesias:");
+
+    console.table(data);
+
+    return data;
 
 }
 
