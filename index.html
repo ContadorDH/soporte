@@ -1510,15 +1510,15 @@ async function inicializarSupabase() {
 
         if (error) throw error;
 
-      App.session = data.session;
-App.usuario = data.session?.user ?? null;
+        App.session = data.session;
+        App.usuario = data.session?.user ?? null;
 
-if (!App.session) {
+        if (!App.session) {
             console.log("Sin sesión iniciada");
             return false;
         }
 
-        console.log("Sesión encontrada:", sessionActual.user.email);
+        console.log("Sesión encontrada:", App.usuario?.email);
 
         return true;
 
