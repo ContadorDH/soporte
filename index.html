@@ -2907,25 +2907,82 @@ Total: ${tot}`;
     }
   }
 }
-/* === ELIMINAR ASISTENCIA === */
-async function eliminarAsistencia(usuarioEnc,fechaEnc){
-  const usuario = decodeURIComponent(usuarioEnc);
-  const fecha = decodeURIComponent(fechaEnc);
-  mostrarPopupConfirm("Confirmar eliminación", `¿Eliminar el registro de ${usuario} en ${fecha}?`, async () => {
-    try{
-      if(!asegurarIglesia()) return;
-const res=await fetch(`${URL_SCRIPT}?accion=eliminar&iglesia=${encodeURIComponent(iglesiaId)}&token=${encodeURIComponent(tokenIglesia)}&usuario=${encodeURIComponent(usuario)}&fecha=${encodeURIComponent(fecha)}`);
-      const text=await res.text();
-      if(text.includes("ELIMINADA") || text.startsWith("ELIMINADAS_")){ 
-        mostrarAlerta("🗑️", "Registro eliminado."); 
-        refrescarMes(); 
-      } else {
-        mostrarAlerta("⚠️", text);
-      }
-    }catch(e){
-      mostrarAlerta("⚠️", "Error al eliminar.");
-    }
-  });
+/* === ELIMINAR ASISTENCIA (SUPABASE) === */
+async function eliminarAsistencia(id){
+
+    mostrarPopupConfirm(
+
+        "Confirmar eliminación",
+
+        "¿Deseas eliminar este registro?",
+
+        async()=>{
+
+            showBusy(
+                "Eliminando...",
+                "Espera un momento"
+            );
+
+            try{
+
+                const { data, error } = await supabase.rpc(
+                    "eliminar_asistencia",
+                    {
+                        p_id: id
+                    }
+                );
+
+                hideBusy();
+
+                if(error){
+
+                    console.error(error);
+
+                    return mostrarAlerta(
+                        "❌",
+                        error.message
+                    );
+
+                }
+
+                if(data){
+
+                    mostrarAlerta(
+                        "🗑️",
+                        "Registro eliminado correctamente."
+                    );
+
+                    // Recargar el mes actual
+                    const mes = document.getElementById("selectMes")?.value || mesActual;
+
+                    await verAsistencia(mes);
+
+                }else{
+
+                    mostrarAlerta(
+                        "⚠️",
+                        "No fue posible eliminar el registro."
+                    );
+
+                }
+
+            }catch(e){
+
+                hideBusy();
+
+                console.error(e);
+
+                mostrarAlerta(
+                    "❌",
+                    e.message || "Error eliminando registro."
+                );
+
+            }
+
+        }
+
+    );
+
 }
 /* === SOPORTE === */
 function contactarSoporte(){
