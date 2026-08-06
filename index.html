@@ -2421,71 +2421,175 @@ function asegurarIglesia(){
 /* === SUBIR ASISTENCIA MEJORADA === */
 /* === SUBIR ASISTENCIA MEJORADA === */
 async function subirAsistencia(){
-  if(!usuarioGlobal) return mostrarAlerta("⚠️", "Debes iniciar sesión primero.");
-  if(!asegurarIglesia()) return;
 
-  const total = Object.values(datos).reduce((a,b)=>a+b,0);
-  if(total === 0) return mostrarPopupConfirm("Sin registros", "No hay personas registradas.", null);
+    const total = Object.values(datos).reduce((a,b)=>a+b,0);
 
-  // 🔹 cerrar menú si está abierto
-  const menu = document.getElementById('menu');
-  const overlay = document.getElementById('menuOverlay');
-  if(menu.classList.contains('active')) { menu.classList.remove('active'); overlay.classList.remove('active'); }
+    if(total===0){
 
-  // 🔹 confirmar envío
-  mostrarPopupConfirm("Confirmar envío", "¿Deseas subir esta asistencia?", async () => {
-    const fecha = new Date().toLocaleString('es-CO', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-    });
+        return mostrarPopupConfirm(
+            "Sin registros",
+            "No hay personas registradas.",
+            null
+        );
 
-    const params = new URLSearchParams({
-      // ✅ IMPORTANTE
-      accion: "insertar",
-
-      // ✅ multi-iglesia
-      iglesia: iglesiaId,
-      token: tokenIglesia,
-
-      usuario: usuarioGlobal,
-      fecha,
-      hermanos: datos.hermanos,
-      hermanas: datos.hermanas,
-      amigos: datos.amigos,
-      adolescentes: datos.adolescentes,
-      niños: datos.niños,
-      total
-    });
-
-    try {
-      const res = await fetch(`${URL_SCRIPT}?${params.toString()}`, { cache: "no-store" });
-      const text = await res.text();
-
-      // Si el backend responde NOAUTH
-      if(String(text).includes("NOAUTH")){
-        localStorage.removeItem("iglesiaId");
-        localStorage.removeItem("tokenIglesia");
-        iglesiaId=""; tokenIglesia="";
-        mostrarPantallaIglesia();
-        return mostrarAlerta("🔒", "Tu sesión de iglesia expiró. Ingresa el PIN nuevamente.");
-      }
-
-      if (String(text).trim() === "OK") {
-        mostrarPopupConfirm("✅ Enviado", "Asistencia registrada correctamente.", null);
-        // 🔄 Reiniciar contadores
-        for (const k in datos) { datos[k] = 0; document.getElementById(k).textContent = 0; }
-        document.getElementById('total').textContent = 0;
-      } else if (String(text).includes("DUPLICADO")) {
-        mostrarPopupConfirm("⚠️ Duplicado", "Ya se envió recientemente.", null);
-      } else {
-        mostrarPopupConfirm("ℹ️ Servidor", text, null);
-      }
-    } catch (e) {
-      mostrarPopupConfirm("⚠️ Error", "No se pudo conectar con el servidor.\n" + (e?.message || String(e)), null);
     }
-  });
-}
 
+    // Cerrar menú lateral
+    const menu=document.getElementById("menu");
+    const overlay=document.getElementById("menuOverlay");
+
+    if(menu?.classList.contains("active")){
+
+        menu.classList.remove("active");
+        overlay?.classList.remove("active");
+
+    }
+
+    mostrarPopupConfirm(
+
+        "Confirmar envío",
+
+        "¿Deseas subir esta asistencia?",
+
+        async()=>{
+
+            showBusy(
+                "Subiendo asistencia...",
+                "Guardando información"
+            );
+
+            try{
+
+                const {data,error}=await supabase.rpc(
+
+                    "registrar_asistencia",
+
+                    {
+
+                        p_hermanos:datos.hermanos,
+
+                        p_hermanas:datos.hermanas,
+
+                        p_amigos:datos.amigos,
+
+                        p_adolescentes:datos.adolescentes,
+
+                        p_ninos:datos.niños
+
+                    }
+
+                );
+
+                hideBusy();
+
+                if(error){
+
+                    console.error(error);
+
+                    return mostrarPopupConfirm(
+
+                        "Error",
+
+                        error.message,
+
+                        null
+
+                    );
+
+                }
+
+                switch(data){
+
+                    case "OK":
+
+                        mostrarPopupConfirm(
+
+                            "✅ Enviado",
+
+                            "Asistencia registrada correctamente.",
+
+                            null
+
+                        );
+
+                        for(const k in datos){
+
+                            datos[k]=0;
+
+                            document.getElementById(k).textContent=0;
+
+                        }
+
+                        document.getElementById("total").textContent=0;
+
+                        break;
+
+                    case "DUPLICADO":
+
+                        mostrarPopupConfirm(
+
+                            "⚠️ Duplicado",
+
+                            "Ya registraste asistencia el día de hoy.",
+
+                            null
+
+                        );
+
+                        break;
+
+                    case "VACIO":
+
+                        mostrarPopupConfirm(
+
+                            "Sin registros",
+
+                            "No hay personas registradas.",
+
+                            null
+
+                        );
+
+                        break;
+
+                    default:
+
+                        mostrarPopupConfirm(
+
+                            "Servidor",
+
+                            data,
+
+                            null
+
+                        );
+
+                }
+
+            }
+            catch(e){
+
+                hideBusy();
+
+                console.error(e);
+
+                mostrarPopupConfirm(
+
+                    "Error",
+
+                    e.message,
+
+                    null
+
+                );
+
+            }
+
+        }
+
+    );
+
+}
 
 /* === VER === */
 function abrirVerPantalla(){ 
