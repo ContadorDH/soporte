@@ -2710,68 +2710,168 @@ async function descargarMesCSV(){
 
   
 async function verAsistencia(mes){
-  showLoading(true);
-  const listado=document.getElementById('listado');
-  listado.innerHTML='';
-  try{
-    if(!asegurarIglesia()) { showLoading(false); return; }
-const res=await fetch(`${URL_SCRIPT}?accion=listar&iglesia=${encodeURIComponent(iglesiaId)}&token=${encodeURIComponent(tokenIglesia)}&mes=${encodeURIComponent(mes)}`);
-    const text=await res.text();
-    let data;
-    try{data=JSON.parse(text);}catch(e){data=[];}
-    if(!data||data.length<=1){
-      listado.innerHTML=`<div class="row">⚠️ No hay registros en ${mes}.</div>`;
-      showLoading(false);
-      return;
-    }
-    const filas=data.slice(1).reverse();
-    listado.innerHTML=filas.map(r=>{
-      const [usuario,fecha,h,hm,am,ad,ni,tot]=r;
-      const esPropio = usuarioGlobal && usuarioGlobal.toLowerCase()===String(usuario).toLowerCase();
-      const usuarioEsc = escapeHTML(String(usuario || ''));
-      const fechaEsc = escapeHTML(String(fecha || ''));
-      const usuarioEnc = encodeURIComponent(String(usuario || ''));
-      const fechaEnc = encodeURIComponent(String(fecha || ''));
-     return `<div class="row">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
-    <div style="flex:1;min-width:0;">
-      <strong>👤 ${usuarioEsc}</strong>
-      <small>📅 ${fechaEsc}</small>
-    </div>
-   <button
-  title="Compartir"
-  onclick="compartirRegistro('${usuarioEnc}','${fechaEnc}','${h}','${hm}','${am}','${ad}','${ni}','${tot}')"
-  style="
-    width:40px;
-    height:40px;
-    border-radius:50%;
-    border:none;
-    background:linear-gradient(135deg, var(--primary-dark), var(--primary));
-    color:#fff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    box-shadow:0 4px 10px rgba(0,0,0,0.25);
-    transition:all .2s ease;
-  "
-  onmouseover="this.style.transform='scale(1.1)'"
-  onmouseout="this.style.transform='scale(1)'"
->
-  <i class="fas fa-share-alt"></i>
-</button>
-  </div>
 
-  <div style="margin-top:8px">🙋‍♂️ ${h} 🙋‍♀️ ${hm} 🤝 ${am} 👧 ${ad} 🧒 ${ni}</div>
-  <small>🔢 Total: <strong>${escapeHTML(tot)}</strong></small>
-  ${esPropio?`<button style="margin-top:8px;background:#ff4444;color:#fff;border:0;padding:6px 10px;border-radius:8px;cursor:pointer" onclick="eliminarAsistencia('${usuarioEnc}','${fechaEnc}')">🗑️ Eliminar</button>`:''}
-</div>`;
-    }).join('');
-  }catch(e){
-    listado.innerHTML=`<div class="row">⚠️ Error obteniendo datos.</div>`;
-  }finally{
-    showLoading(false);
-  }
+    showLoading(true);
+
+    const listado = document.getElementById("listado");
+    listado.innerHTML = "";
+
+    try{
+
+        const { data, error } = await supabase
+            .from("vista_asistencias")
+            .select("*")
+            .order("fecha", { ascending:false });
+
+        if(error){
+
+            console.error(error);
+
+            listado.innerHTML = `<div class="row">⚠️ Error obteniendo datos.</div>`;
+
+            return;
+
+        }
+
+        // Filtrar por mes
+        const filas = data.filter(r=>{
+
+            const fecha = new Date(r.fecha);
+
+            return meses[fecha.getMonth()] === mes;
+
+        });
+
+        if(filas.length===0){
+
+            listado.innerHTML = `<div class="row">⚠️ No hay registros en ${mes}.</div>`;
+
+            return;
+
+        }
+
+        listado.innerHTML = filas.map(r=>{
+
+            const fecha = new Date(r.fecha).toLocaleString("es-CO");
+
+            const esPropio = perfilActual && perfilActual.id === r.usuario_id;
+
+            const usuarioEsc = escapeHTML(r.usuario || "");
+            const fechaEsc = escapeHTML(fecha);
+
+            return `
+
+<div class="row">
+
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+
+<div style="flex:1;min-width:0;">
+
+<strong>👤 ${usuarioEsc}</strong>
+
+<small>📅 ${fechaEsc}</small>
+
+</div>
+
+<button
+
+title="Compartir"
+
+onclick="compartirRegistro(
+
+'${encodeURIComponent(r.usuario)}',
+
+'${encodeURIComponent(fecha)}',
+
+'${r.hermanos}',
+
+'${r.hermanas}',
+
+'${r.amigos}',
+
+'${r.adolescentes}',
+
+'${r.ninos}',
+
+'${r.total}'
+
+)"
+
+style="
+width:40px;
+height:40px;
+border-radius:50%;
+border:none;
+background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+color:#fff;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+box-shadow:0 4px 10px rgba(0,0,0,.25);
+">
+
+<i class="fas fa-share-alt"></i>
+
+</button>
+
+</div>
+
+<div style="margin-top:8px">
+
+🙋‍♂️ ${r.hermanos}
+🙋‍♀️ ${r.hermanas}
+🤝 ${r.amigos}
+👧 ${r.adolescentes}
+🧒 ${r.ninos}
+
+</div>
+
+<small>
+
+🔢 Total:
+<strong>${r.total}</strong>
+
+</small>
+
+${
+esPropio
+?
+
+`<button
+style="margin-top:8px;background:#ff4444;color:#fff;border:0;padding:6px 10px;border-radius:8px;cursor:pointer"
+onclick="eliminarAsistencia('${r.id}')">
+
+🗑️ Eliminar
+
+</button>`
+
+:
+
+""
+
+}
+
+</div>
+
+`;
+
+        }).join("");
+
+    }
+    catch(e){
+
+        console.error(e);
+
+        listado.innerHTML = `<div class="row">⚠️ Error obteniendo datos.</div>`;
+
+    }
+    finally{
+
+        showLoading(false);
+
+    }
+
 }
 async function compartirRegistro(usuarioEnc, fechaEnc, h, hm, am, ad, ni, tot){
   try{
