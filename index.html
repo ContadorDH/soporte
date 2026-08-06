@@ -1587,6 +1587,48 @@ const App = {
 
 };
 
+async function verificarSesionVigente(){
+
+    if(!App.iglesia)
+        return true;
+
+    const { data, error } =
+    await supabase.rpc(
+        "validar_version_sesion",
+        {
+            p_iglesia: App.iglesia.id,
+            p_version: App.iglesia.version_sesion
+        }
+    );
+
+    if(error){
+
+        console.error(error);
+
+        return false;
+
+    }
+
+    if(data)
+        return true;
+
+    mostrarPopupConfirm(
+
+        "🔑 Código de registro actualizado",
+
+        "El código de registro de tu iglesia fue actualizado.\n\nPor seguridad debes iniciar sesión nuevamente.",
+
+        async ()=>{
+
+            await cerrarSesion();
+
+        }
+
+    );
+
+    return false;
+
+}
 
 function actualizarMenuSuperAdmin(){
 
@@ -2696,6 +2738,9 @@ function actualizarTotal(){
 /* === SUBIR ASISTENCIA MEJORADA === */
 /* === SUBIR ASISTENCIA MEJORADA === */
 async function subirAsistencia(){
+
+  if(!await verificarSesionVigente())
+    return;
 
     const total = Object.values(datos).reduce((a,b)=>a+b,0);
 
