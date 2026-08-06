@@ -2435,14 +2435,12 @@ async function subirAsistencia(){
     }
 
     // Cerrar menú lateral
-    const menu=document.getElementById("menu");
-    const overlay=document.getElementById("menuOverlay");
+    const menu = document.getElementById("menu");
+    const overlay = document.getElementById("menuOverlay");
 
     if(menu?.classList.contains("active")){
-
         menu.classList.remove("active");
         overlay?.classList.remove("active");
-
     }
 
     mostrarPopupConfirm(
@@ -2460,24 +2458,15 @@ async function subirAsistencia(){
 
             try{
 
-                const {data,error}=await supabase.rpc(
-
+                const { data, error } = await supabase.rpc(
                     "registrar_asistencia",
-
                     {
-
-                        p_hermanos:datos.hermanos,
-
-                        p_hermanas:datos.hermanas,
-
-                        p_amigos:datos.amigos,
-
-                        p_adolescentes:datos.adolescentes,
-
-                        p_ninos:datos.niños
-
+                        p_hermanos: datos.hermanos,
+                        p_hermanas: datos.hermanas,
+                        p_amigos: datos.amigos,
+                        p_adolescentes: datos.adolescentes,
+                        p_ninos: datos.niños
                     }
-
                 );
 
                 hideBusy();
@@ -2487,13 +2476,9 @@ async function subirAsistencia(){
                     console.error(error);
 
                     return mostrarPopupConfirm(
-
-                        "Error",
-
+                        "❌ Error",
                         error.message,
-
                         null
-
                     );
 
                 }
@@ -2503,37 +2488,35 @@ async function subirAsistencia(){
                     case "OK":
 
                         mostrarPopupConfirm(
-
                             "✅ Enviado",
-
                             "Asistencia registrada correctamente.",
-
                             null
-
                         );
 
+                        // Reiniciar datos
                         for(const k in datos){
 
-                            datos[k]=0;
+                            datos[k] = 0;
 
-                            document.getElementById(k).textContent=0;
+                            const el = document.getElementById(k);
+
+                            if(el){
+                                el.textContent = "0";
+                            }
 
                         }
 
-                        document.getElementById("total").textContent=0;
+                        // Recalcular total
+                        actualizarTotal();
 
                         break;
 
                     case "DUPLICADO":
 
                         mostrarPopupConfirm(
-
                             "⚠️ Duplicado",
-
                             "Ya registraste asistencia el día de hoy.",
-
                             null
-
                         );
 
                         break;
@@ -2541,13 +2524,9 @@ async function subirAsistencia(){
                     case "VACIO":
 
                         mostrarPopupConfirm(
-
-                            "Sin registros",
-
+                            "⚠️ Sin registros",
                             "No hay personas registradas.",
-
                             null
-
                         );
 
                         break;
@@ -2555,32 +2534,23 @@ async function subirAsistencia(){
                     default:
 
                         mostrarPopupConfirm(
-
                             "Servidor",
-
-                            data,
-
+                            String(data),
                             null
-
                         );
 
                 }
 
-            }
-            catch(e){
+            }catch(e){
 
                 hideBusy();
 
                 console.error(e);
 
                 mostrarPopupConfirm(
-
-                    "Error",
-
-                    e.message,
-
+                    "❌ Error",
+                    e.message || String(e),
                     null
-
                 );
 
             }
