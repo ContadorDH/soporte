@@ -1441,6 +1441,29 @@ Cancelar
   <div id="listado"></div>
 </section>
 
+
+<div id="modalSuperAdmin" class="modal" style="display:none;">
+
+    <div class="modal-content" style="max-width:900px;width:95%;">
+
+        <h2>👑 Super Administrador</h2>
+
+        <div id="listaIglesiasAdmin"></div>
+
+        <div style="margin-top:20px;text-align:right;">
+
+            <button
+                onclick="cerrarPanelSuperAdmin()"
+                class="btn-secundario">
+                Cerrar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
 <script>
 /* ===========================================================
    CONTADOR DECOM
@@ -1520,16 +1543,58 @@ async function abrirPanelSuperAdmin(){
 
     const iglesias = await cargarIglesiasAdmin();
 
-    if(!iglesias.length){
+    const cont = document.getElementById("listaIglesiasAdmin");
 
-        return mostrarAlerta(
-            "ℹ️",
-            "No existen iglesias."
-        );
+    cont.innerHTML = "";
 
-    }
+    iglesias.forEach(i=>{
 
-    console.table(iglesias);
+        cont.innerHTML += `
+
+        <div class="row" style="margin-bottom:12px;">
+
+            <strong>${i.nombre}</strong><br>
+
+            Código: ${i.codigo}
+
+            <div style="margin-top:8px;display:flex;gap:8px;">
+
+                <button
+                    onclick="cambiarPinIglesia('${i.id}')">
+
+                    🔑 Cambiar PIN
+
+                </button>
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
+
+    document.getElementById("modalSuperAdmin").style.display="flex";
+
+}
+
+
+
+function cerrarPanelSuperAdmin(){
+
+    document.getElementById(
+        "modalSuperAdmin"
+    ).style.display="none";
+
+}
+
+
+function cambiarPinIglesia(id){
+
+    mostrarAlerta(
+        "🔑",
+        "Aquí cambiaremos el PIN de la iglesia:\n\n"+id
+    );
 
 }
 
