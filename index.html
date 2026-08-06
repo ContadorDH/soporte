@@ -1290,7 +1290,15 @@ Cancelar
   <button class="item" onclick="abrirVerPantalla()">👁️ Ver asistencia</button>
   <button class="item" onclick="descargarMesXLSX()">⬇️ Descargar (Excel)</button>
 <button class="item" onclick="refrescarPagina()">🔄 Refrescar</button>
-
+<button
+    id="btnSuperAdmin"
+    class="item"
+    onclick="abrirPanelSuperAdmin()"
+    style="display:none"
+>
+    <i class="fas fa-crown"></i>
+    Super Administrador
+</button>
 <button class="item" onclick="contactarSoporte()">📞 Soporte</button>
    <button class="item" onclick="cerrarSesion()">🔒 Cerrar sesión</button>
   <button class="item" onclick="abrirSobreNosotros()">ℹ️ Sobre nosotros</button>
@@ -1497,6 +1505,25 @@ const App = {
 };
 
 
+function actualizarMenuSuperAdmin(){
+
+    const btn = document.getElementById("btnSuperAdmin");
+
+    if(!btn) return;
+
+    btn.style.display =
+        App.esSuperAdmin ? "flex" : "none";
+
+}
+
+function abrirPanelSuperAdmin(){
+
+    mostrarAlerta(
+        "👑",
+        "Bienvenido al Panel del Super Administrador."
+    );
+
+}
 
 /* ===========================================================
    SUPABASE
@@ -1857,6 +1884,8 @@ console.log(errorPerfil);
 
       aplicarTituloApp();
 
+      actualizarMenuSuperAdmin();
+
 console.log("Super Admin:", App.esSuperAdmin);
 
         hideBusy();
@@ -1958,6 +1987,8 @@ async function loginSupabase(){
        await cargarPerfil();
 
        aplicarTituloApp();
+
+       actualizarMenuSuperAdmin();
 
        console.log("Super Admin:", App.esSuperAdmin);
 
@@ -3024,6 +3055,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         await cargarPerfil();
 
         aplicarTituloApp();
+
+        actualizarMenuSuperAdmin();
 
 
         console.log("Super Admin:", App.esSuperAdmin);
