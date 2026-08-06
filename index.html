@@ -1903,16 +1903,17 @@ async function cargarPerfil(){
 
     const { data, error } = await supabase
         .from("perfiles")
-        .select(`
-            *,
-            iglesias(
-                id,
-                nombre,
-                codigo,
-                color,
-                logo
-            )
-        `)
+   .select(`
+    *,
+    iglesias(
+        id,
+        nombre,
+        codigo,
+        color,
+        logo,
+        version_sesion
+    )
+`)
         .eq("id", App.session.user.id)
         .single();
 
@@ -1927,6 +1928,8 @@ async function cargarPerfil(){
 
     App.perfil = data;
     App.iglesia = data.iglesias ?? null;
+
+    console.log("Versión sesión:", App.iglesia.version_sesion);
 
     App.esSuperAdmin = data.rol === "superadmin";
 
