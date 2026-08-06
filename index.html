@@ -1490,7 +1490,9 @@ const App = {
 
     iglesia: null,
 
-    usuario: null
+    usuario: null,
+
+    esSuperAdmin: false
 
 };
 
@@ -1565,6 +1567,8 @@ async function cargarPerfil(){
 
     App.perfil = data;
     App.iglesia = data.iglesias ?? null;
+
+    App.esSuperAdmin = data.rol === "superadmin";
 
     return App.perfil;
 
@@ -1851,6 +1855,10 @@ console.log(errorPerfil);
 
       await cargarPerfil();
 
+      aplicarTituloApp();
+
+console.log("Super Admin:", App.esSuperAdmin);
+
         hideBusy();
 
         cerrarRegistro();
@@ -1951,6 +1959,8 @@ async function loginSupabase(){
 
        aplicarTituloApp();
 
+       console.log("Super Admin:", App.esSuperAdmin);
+
         hideBusy();
 
         document.getElementById("loginScreen").style.display="none";
@@ -1959,7 +1969,7 @@ async function loginSupabase(){
 
         mostrarAlerta(
             "✅",
-            "Bienvenido " + (App.perfill?.nombre || "")
+           "Bienvenido " + (App.perfil?.nombre || "")
         );
 
     }
@@ -3014,6 +3024,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         await cargarPerfil();
 
         aplicarTituloApp();
+
+
+        console.log("Super Admin:", App.esSuperAdmin);
 
         console.log("Usuario:", App.perfil?.nombre);
         console.log("Rol:", App.perfil?.rol);
