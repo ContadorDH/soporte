@@ -1465,6 +1465,35 @@ Cancelar
 
 </div>
 
+
+<div id="modalCambiarPin" class="modalOverlay oculto">
+
+    <div class="modalCard" style="max-width:420px;">
+
+        <h2>🔑 Cambiar PIN</h2>
+
+        <input
+            id="nuevoPinIglesia"
+            type="text"
+            maxlength="20"
+            placeholder="Nuevo PIN">
+
+        <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+
+            <button onclick="cerrarModalPin()">
+                Cancelar
+            </button>
+
+            <button onclick="guardarNuevoPin()">
+                Guardar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
 <script>
 /* ===========================================================
    CONTADOR DECOM
@@ -1506,6 +1535,8 @@ const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto"
 let mesActual = meses[(new Date()).getMonth()];
 
 let deferredPrompt = null;
+
+let iglesiaSeleccionadaAdmin = null;
 
 
 /* ===========================================================
@@ -1594,13 +1625,28 @@ function cerrarPanelSuperAdmin(){
 
 function cambiarPinIglesia(id){
 
-    mostrarAlerta(
-        "🔑",
-        "Aquí cambiaremos el PIN de la iglesia:\n\n"+id
-    );
+    iglesiaSeleccionadaAdmin = id;
+
+    document.getElementById("nuevoPinIglesia").value = "";
+
+    document
+        .getElementById("modalCambiarPin")
+        .classList.remove("oculto");
 
 }
 
+async function guardarNuevoPin(){
+
+}
+
+
+function cerrarModalPin(){
+
+    document
+        .getElementById("modalCambiarPin")
+        .classList.add("oculto");
+
+}
 
 async function cargarIglesiasAdmin(){
 
