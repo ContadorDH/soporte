@@ -1290,9 +1290,7 @@ Cancelar
   <button class="item" onclick="abrirVerPantalla()">👁️ Ver asistencia</button>
   <button class="item" onclick="descargarMesXLSX()">⬇️ Descargar (Excel)</button>
 <button class="item" onclick="refrescarPagina()">🔄 Refrescar</button>
-<button class="item" onclick="editarTituloApp()">
-  <i class="fas fa-pen"></i> Editar título
-</button>
+
 <button class="item" onclick="contactarSoporte()">📞 Soporte</button>
    <button class="item" onclick="cerrarSesion()">🔒 Cerrar sesión</button>
   <button class="item" onclick="abrirSobreNosotros()">ℹ️ Sobre nosotros</button>
@@ -1482,11 +1480,7 @@ let deferredPrompt = null;
    SESIÓN
 =========================================================== */
 
-let sessionActual = null;
 
-let perfilActual = null;
-
-let iglesiaActual = null;
 
 const App = {
 
@@ -1514,9 +1508,10 @@ async function inicializarSupabase() {
 
         if (error) throw error;
 
-        sessionActual = data.session;
+      App.session = data.session;
+App.usuario = data.session?.user ?? null;
 
-        if (!sessionActual) {
+if (!App.session) {
             console.log("Sin sesión iniciada");
             return false;
         }
@@ -1539,15 +1534,13 @@ async function inicializarSupabase() {
 
 
 
-async function obtenerPerfilActual(){
+async function cargarPerfil(){
 
     if(!App.session)
         return null;
 
     const { data, error } = await supabase
-
         .from("perfiles")
-
         .select(`
             *,
             iglesias(
@@ -1558,15 +1551,12 @@ async function obtenerPerfilActual(){
                 logo
             )
         `)
-
         .eq("id", App.session.user.id)
-
         .single();
 
     if(error){
 
         console.error("Error cargando perfil:");
-
         console.error(error);
 
         return null;
@@ -1574,15 +1564,11 @@ async function obtenerPerfilActual(){
     }
 
     App.perfil = data;
+    App.iglesia = data.iglesias ?? null;
 
-    App.iglesia = data.iglesias;
-
-    perfilActual = data;
-
-    return data;
+    return App.perfil;
 
 }
-
 
 async function probarConexionSupabase(){
 
@@ -1724,12 +1710,12 @@ function validarFormularioRegistro(){
 }
 
 
-async function verificarCodigoRegistro(iglesiaId,codigo){
+async function verificarCodigoRegistro(idIglesia,codigo){
 
     const { data, error } = await supabase.rpc(
         "verificar_codigo_registro",
         {
-            p_iglesia: iglesiaId,
+            p_iglesia: idIglesia,
             p_codigo: codigo
         }
     );
@@ -1742,7 +1728,7 @@ async function verificarCodigoRegistro(iglesiaId,codigo){
 
     }
 
-    return data===true;
+    return data === true;
 
 }
 
@@ -1863,7 +1849,7 @@ console.log(errorPerfil);
 
         // 5. Cargar perfil
 
-        await obtenerPerfilActual();
+      await cargarPerfil();
 
         hideBusy();
 
@@ -1959,9 +1945,11 @@ async function loginSupabase(){
 
         App.usuario = data.user;
 
-        sessionActual = data.session;
+        
 
-        await obtenerPerfilActual();
+       await cargarPerfil();
+
+       aplicarTituloApp();
 
         hideBusy();
 
@@ -1971,7 +1959,7 @@ async function loginSupabase(){
 
         mostrarAlerta(
             "✅",
-            "Bienvenido " + (perfilActual?.nombre || "")
+            "Bienvenido " + (App.perfill?.nombre || "")
         );
 
     }
@@ -2003,9 +1991,7 @@ function changeTheme(theme) {
  function refrescarPagina() {
   try {
     // Mantener la sesión
-    const usuario = localStorage.getItem("usuarioCelula");
-    const iglesia = localStorage.getItem("iglesiaId");
-    const token = localStorage.getItem("tokenIglesia");
+ 
     const theme = localStorage.getItem("theme");
 
     // Forzar limpieza de caché del sitio, pero sin cerrar sesión
@@ -2013,9 +1999,7 @@ function changeTheme(theme) {
       caches.keys().then(function(names) {
         Promise.all(names.map(name => caches.delete(name))).finally(() => {
           // restaurar por seguridad
-          if (usuario !== null) localStorage.setItem("usuarioCelula", usuario);
-          if (iglesia !== null) localStorage.setItem("iglesiaId", iglesia);
-          if (token !== null) localStorage.setItem("tokenIglesia", token);
+        
           if (theme !== null) localStorage.setItem("theme", theme);
 
           // forzar nueva petición del HTML a GitHub
@@ -2066,19 +2050,9 @@ async function cerrarSesion(){
                 App.perfil = null;
                 App.iglesia = null;
 
-                // Compatibilidad temporal
-                sessionActual = null;
-                perfilActual = null;
+             
 
-                // Variables antiguas (las quitaremos más adelante)
-                usuarioGlobal = "";
-                iglesiaId = "";
-                tokenIglesia = "";
-
-                // Limpiar localStorage antiguo
-                localStorage.removeItem("usuarioCelula");
-                localStorage.removeItem("iglesiaId");
-                localStorage.removeItem("tokenIglesia");
+             
 
                 // Limpiar formulario
                 document.getElementById("loginCorreo").value = "";
@@ -2129,7 +2103,7 @@ function actualizarUserCircle(){
 
     if(!circle) return;
 
-    if(!perfilActual){
+    if(!App.perfil){
 
         circle.style.display = "none";
 
@@ -2137,7 +2111,7 @@ function actualizarUserCircle(){
 
     }
 
-    const nombre = perfilActual.nombre || "";
+    const nombre = App.perfil.nombre || "";
 
     const partes = nombre.trim().split(" ");
 
@@ -2162,9 +2136,13 @@ function actualizarUserCircle(){
 }
 
 function mostrarNombreUsuario(){
-  if(!usuarioGlobal) return;
-  document.getElementById("popupNombre").textContent = usuarioGlobal;
-  document.getElementById("popupUsuario").style.display = "flex";
+
+    if(!App.perfil) return;
+
+    document.getElementById("popupNombre").textContent = App.perfil.nombre || "";
+
+    document.getElementById("popupUsuario").style.display = "flex";
+
 }
 
 function cerrarPopupUsuario(){
@@ -2190,25 +2168,24 @@ function cerrarRegistro(){
 }
 
 
-function editarTituloApp() {
-  const actual = localStorage.getItem("appTitle") || "📋 Asistencia Bochica Sur";
-  const nuevo = prompt("Edita el nombre que aparece arriba:", actual);
 
-  if (nuevo === null) return;
 
-  const limpio = nuevo.trim();
-  if (!limpio) return mostrarAlerta("⚠️", "El nombre no puede quedar vacío.");
+function aplicarTituloApp(){
 
-  localStorage.setItem("appTitle", limpio);
-  aplicarTituloApp();
-}
+    const nombreIglesia =
+        App.iglesia?.nombre || "Asistencia";
 
-function aplicarTituloApp() {
-  const titulo = localStorage.getItem("appTitle") || "📋 Asistencia Bochica Sur";
-  const el = document.getElementById("appTitleText");
-  if (el) el.textContent = titulo;
+    const titulo =
+        `📋 ${nombreIglesia}`;
 
-  document.title = titulo.replace(/^📋\s*/, "");
+    const el = document.getElementById("appTitleText");
+
+    if(el){
+        el.textContent = titulo;
+    }
+
+    document.title = nombreIglesia;
+
 }
 
 function esPWAInstalada() {
@@ -2337,15 +2314,6 @@ function actualizarTotal(){
 }
 
 
-// ✅ Requiere iglesia + token antes de permitir acciones
-function asegurarIglesia(){
-  if(!iglesiaId || !tokenIglesia){
-    mostrarPantallaIglesia();
-    mostrarAlerta("🔒", "Selecciona tu iglesia e ingresa el PIN para continuar.");
-    return false;
-  }
-  return true;
-}
 
 
 /* === SUBIR ASISTENCIA MEJORADA === */
@@ -2678,7 +2646,7 @@ async function verAsistencia(mes){
 
             const fecha = new Date(r.fecha).toLocaleString("es-CO");
 
-            const esPropio = perfilActual && perfilActual.id === r.usuario_id;
+            const esPropio = App.perfil && App.perfil.id === r.usuario_id;
 
             const usuarioEsc = escapeHTML(r.usuario || "");
             const fechaEsc = escapeHTML(fecha);
@@ -2993,7 +2961,7 @@ async function initApp() {
 
     // -------- LOGIN --------
 
-    if(sessionActual){
+    if(App.session){
 
         document.getElementById("loginScreen").style.display = "none";
 
@@ -3041,9 +3009,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         App.session = data.session;
         App.usuario = data.session.user;
-        sessionActual = data.session;
+       
 
-        await obtenerPerfilActual();
+        await cargarPerfil();
+
+        aplicarTituloApp();
 
         console.log("Usuario:", App.perfil?.nombre);
         console.log("Rol:", App.perfil?.rol);
