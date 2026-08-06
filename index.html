@@ -1587,48 +1587,7 @@ const App = {
 
 };
 
-async function verificarSesionVigente(){
 
-    if(!App.iglesia)
-        return true;
-
-    const { data, error } =
-    await supabase.rpc(
-        "validar_version_sesion",
-        {
-            p_iglesia: App.iglesia.id,
-            p_version: App.iglesia.version_sesion
-        }
-    );
-
-    if(error){
-
-        console.error(error);
-
-        return false;
-
-    }
-
-    if(data)
-        return true;
-
-    mostrarPopupConfirm(
-
-        "🔑 Código de registro actualizado",
-
-        "El código de registro de tu iglesia fue actualizado.\n\nPor seguridad debes iniciar sesión nuevamente.",
-
-        async ()=>{
-
-            await cerrarSesion();
-
-        }
-
-    );
-
-    return false;
-
-}
 
 function actualizarMenuSuperAdmin(){
 
@@ -1693,6 +1652,83 @@ function cerrarPanelSuperAdmin(){
 }
 
 
+
+function obtenerVersionesCodigoRegistro(){
+
+    try{
+
+        return JSON.parse(
+            localStorage.getItem("versionesCodigoRegistro")
+        ) || {};
+
+    }
+    catch{
+
+        return {};
+
+    }
+
+}
+
+function obtenerVersionCodigoRegistro(iglesiaId){
+
+    const versiones =
+        obtenerVersionesCodigoRegistro();
+
+    return versiones[iglesiaId] ?? null;
+
+}
+
+function guardarVersionCodigoRegistro(
+    iglesiaId,
+    version
+){
+
+    const versiones =
+        obtenerVersionesCodigoRegistro();
+
+    versiones[iglesiaId] = version;
+
+    localStorage.setItem(
+        "versionesCodigoRegistro",
+        JSON.stringify(versiones)
+    );
+
+}
+
+async function verificarCodigoRegistroActual(){
+
+    if(!App.iglesia)
+        return true;
+
+    const versionGuardada =
+        obtenerVersionCodigoRegistro(
+            App.iglesia.id
+        );
+
+    const versionActual =
+        App.iglesia.version_sesion;
+
+    if(versionGuardada === versionActual){
+
+        return true;
+
+    }
+
+    iglesiaSeleccionadaAdmin = App.iglesia.id;
+
+    document
+        .getElementById("codigoRegistroVerificar")
+        .value = "";
+
+    document
+        .getElementById("modalVerificarCodigoRegistro")
+        .classList.remove("oculto");
+
+    return false;
+
+}
+
 function cambiarPinIglesia(id){
 
     iglesiaSeleccionadaAdmin = id;
@@ -1706,6 +1742,8 @@ function cambiarPinIglesia(id){
 }
 
 async function guardarNuevoPin(){
+
+  
 
     const pin = document
         .getElementById("nuevoPinIglesia")
@@ -1874,6 +1912,8 @@ async function verificarNuevoCodigoRegistro(){
 
 
 async function cargarIglesiasAdmin(){
+
+
 
     const { data, error } = await supabase.rpc(
         "listar_iglesias_admin"
@@ -2364,6 +2404,8 @@ async function loginSupabase(){
 
        await cargarPerfil();
 
+       await verificarCodigoRegistroActual();
+
        aplicarTituloApp();
 
        actualizarMenuSuperAdmin();
@@ -2739,8 +2781,7 @@ function actualizarTotal(){
 /* === SUBIR ASISTENCIA MEJORADA === */
 async function subirAsistencia(){
 
-  if(!await verificarSesionVigente())
-    return;
+
 
     const total = Object.values(datos).reduce((a,b)=>a+b,0);
 
@@ -2920,6 +2961,8 @@ function showLoading(s){
 
 async function descargarMesXLSX(){
 
+
+
     showBusy(
         "Preparando Excel...",
         "Generando archivo"
@@ -3022,6 +3065,8 @@ async function descargarMesXLSX(){
 
   
 async function verAsistencia(mes){
+
+
 
     showLoading(true);
 
@@ -3221,6 +3266,7 @@ Total: ${tot}`;
 }
 /* === ELIMINAR ASISTENCIA (SUPABASE) === */
 async function eliminarAsistencia(id){
+ 
 
     mostrarPopupConfirm(
 
