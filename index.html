@@ -1654,18 +1654,18 @@ async function cargarIglesiasAdmin(){
         "listar_iglesias_admin"
     );
 
-    if(error){
+if(error){
 
-        console.error(error);
+    console.error(error);
 
-        mostrarAlerta(
-            "❌",
-            "No fue posible cargar las iglesias."
-        );
+    mostrarAlerta(
+        "❌",
+        error.message
+    );
 
-        return [];
+    return [];
 
-    }
+}
 
     console.log("Iglesias:");
 
