@@ -1250,13 +1250,13 @@ Cancelar
 <div id="churchScreen" style="position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:130;">
   <div style="background:var(--card);padding:28px;border-radius:14px;box-shadow:0 8px 24px var(--shadow);text-align:center;color:var(--text);width:320px;max-width:92vw;">
     <h2>Selecciona tu iglesia</h2>
-    <p style="color:var(--muted);margin-top:6px;">Elige la iglesia y escribe el PIN</p>
+    <p style="color:var(--muted);margin-top:6px;">Elige la iglesia y escribe el Código de invitación</p>
 
     <select id="iglesiaSelect" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--muted);background:var(--card);color:var(--text);font-size:1rem;"></select>
 
     <div style="height:10px"></div>
 
-    <input id="pinIglesia" type="password" placeholder="PIN"
+    <input id="pinIglesia" type="password" placeholder="Código de invitación"
       style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--muted);font-size:1rem;background:var(--card);color:var(--text);" />
 
  <button id="btnLoginIglesia" onclick="loginIglesia()"
@@ -1470,13 +1470,13 @@ Cancelar
 
     <div class="modalCard" style="max-width:420px;">
 
-        <h2>🔑 Cambiar PIN</h2>
+        <h2>🔑 Cambiar código de registro</h2>
 
         <input
             id="nuevoPinIglesia"
             type="text"
             maxlength="20"
-            placeholder="Nuevo PIN">
+            placeholder="Nuevo Código de invitación">
 
         <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
 
@@ -1486,6 +1486,34 @@ Cancelar
 
             <button onclick="guardarNuevoPin()">
                 Guardar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="modalVerificarCodigoRegistro" class="modalOverlay oculto">
+
+    <div class="modalCard" style="max-width:420px;">
+
+        <h2>🔑 Código de registro actualizado</h2>
+
+        <p style="margin:15px 0;">
+            Por seguridad, verifica el nuevo código de registro para continuar.
+        </p>
+
+        <input
+            id="codigoRegistroVerificar"
+            type="password"
+            placeholder="Código de registro">
+
+        <div style="margin-top:20px;text-align:right;">
+
+            <button onclick="verificarNuevoCodigoRegistro()">
+                Verificar
             </button>
 
         </div>
@@ -1594,7 +1622,7 @@ async function abrirPanelSuperAdmin(){
                 <button
                     onclick="cambiarPinIglesia('${i.id}')">
 
-                    🔑 Cambiar PIN
+                    🔑 Cambiar código de registro
 
                 </button>
 
@@ -1652,7 +1680,7 @@ async function guardarNuevoPin(){
     }
 
     showBusy(
-        "Actualizando PIN...",
+        "Actualizando Código de invitación...",
         "Guardando cambios"
     );
 
@@ -1684,17 +1712,21 @@ async function guardarNuevoPin(){
 
             return mostrarAlerta(
                 "⚠️",
-                "No fue posible actualizar el PIN."
+                "No fue posible actualizar el Código de invitación."
             );
 
         }
 
-        cerrarModalPin();
+  cerrarModalPin();
 
-        mostrarAlerta(
-            "✅",
-            "PIN actualizado correctamente."
-        );
+// Mostrar ventana de verificación
+document
+    .getElementById("codigoRegistroVerificar")
+    .value = "";
+
+document
+    .getElementById("modalVerificarCodigoRegistro")
+    .classList.remove("oculto");
 
     }
     catch(err){
@@ -1719,6 +1751,85 @@ function cerrarModalPin(){
         .classList.add("oculto");
 
 }
+
+
+async function verificarNuevoCodigoRegistro(){
+
+    const codigo = document
+        .getElementById("codigoRegistroVerificar")
+        .value
+        .trim();
+
+    if(!codigo){
+
+        return mostrarAlerta(
+            "⚠️",
+            "Ingresa el código de registro."
+        );
+
+    }
+
+    showBusy(
+        "Verificando...",
+        "Comprobando código"
+    );
+
+    try{
+
+        const { data, error } =
+        await supabase.rpc(
+            "verificar_codigo_registro",
+            {
+                p_iglesia: iglesiaSeleccionadaAdmin,
+                p_codigo: codigo
+            }
+        );
+
+        hideBusy();
+
+        if(error){
+
+            console.error(error);
+
+            return mostrarAlerta(
+                "❌",
+                error.message
+            );
+
+        }
+
+        if(!data){
+
+            return mostrarAlerta(
+                "❌",
+                "Código de registro incorrecto."
+            );
+
+        }
+
+        mostrarAlerta(
+            "✅",
+            "Código verificado correctamente."
+        );
+
+    }
+    catch(err){
+
+        hideBusy();
+
+        console.error(err);
+
+        mostrarAlerta(
+            "❌",
+            "Ocurrió un error."
+        );
+
+    }
+
+}
+
+
+
 
 async function cargarIglesiasAdmin(){
 
