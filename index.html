@@ -1829,6 +1829,35 @@ let iglesiaSeleccionadaAdmin = null;
    SESIÓN
 =========================================================== */
 
+const splashInicio = Date.now();
+
+function ocultarSplash(){
+
+    const splash = document.getElementById("splashScreen");
+
+    if(!splash)
+        return;
+
+    const tiempoMinimo = 500;
+
+    const transcurrido = Date.now() - splashInicio;
+
+    const esperar = Math.max(0, tiempoMinimo - transcurrido);
+
+    setTimeout(()=>{
+
+        splash.classList.add("oculto");
+
+        setTimeout(()=>{
+
+            splash.remove();
+
+        },450);
+
+    },esperar);
+
+}
+
 
 
 const App = {
@@ -3752,65 +3781,84 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.clear();
 
     console.log("======================================");
-    console.log("CONTADOR DECOM");
+    console.log("DECOMDH");
     console.log("Inicializando...");
     console.log("======================================");
 
-    // 1. Inicializar Supabase
-    await inicializarSupabase();
+    try{
 
-    // 2. Probar conexión
-    await probarConexionSupabase();
+        // 1. Inicializar Supabase
+        await inicializarSupabase();
 
-    // 3. Buscar sesión existente
-    const { data, error } = await supabase.auth.getSession();
+        // 2. Probar conexión
+        await probarConexionSupabase();
 
-    if(error){
-        console.error(error);
+        // 3. Buscar sesión existente
+        const { data, error } = await supabase.auth.getSession();
+
+        if(error){
+            console.error(error);
+        }
+
+        if(data.session){
+
+            console.log("✅ Sesión encontrada.");
+
+            App.session = data.session;
+
+            App.usuario = data.session.user;
+
+            await cargarPerfil();
+
+            aplicarTituloApp();
+
+            actualizarMenuSuperAdmin();
+
+            console.log("Super Admin:", App.esSuperAdmin);
+
+            console.log("Usuario:", App.perfil?.nombre);
+
+            console.log("Rol:", App.perfil?.rol);
+
+            const ok = await verificarCodigoRegistroActual();
+
+            if(ok){
+
+                document.getElementById("loginScreen").style.display = "none";
+
+            }else{
+
+                document.getElementById("loginScreen").style.display = "flex";
+
+            }
+
+        }else{
+
+            console.log("ℹ️ No existe sesión.");
+
+            document.getElementById("loginScreen").style.display = "flex";
+
+        }
+
+        // Inicializar aplicación
+        await initApp();
+
     }
+    catch(err){
 
-if(data.session){
+        console.error("Error al iniciar la aplicación:");
 
-    console.log("✅ Sesión encontrada.");
-
-    App.session = data.session;
-
-    App.usuario = data.session.user;
-
-    await cargarPerfil();
-
-    aplicarTituloApp();
-
-    actualizarMenuSuperAdmin();
-
-    console.log("Super Admin:", App.esSuperAdmin);
-
-    console.log("Usuario:", App.perfil?.nombre);
-
-    console.log("Rol:", App.perfil?.rol);
-
-    const ok = await verificarCodigoRegistroActual();
-
-    if(ok){
-
-        document.getElementById("loginScreen").style.display = "none";
-
-    }else{
+        console.error(err);
 
         document.getElementById("loginScreen").style.display = "flex";
 
     }
+    finally{
 
-}else{
+        // El Splash SIEMPRE desaparece
+        ocultarSplash();
 
-    console.log("ℹ️ No existe sesión.");
-
-    document.getElementById("loginScreen").style.display = "flex";
-
-}
-
-    // SIEMPRE AL FINAL
-    await initApp();
+    }
 
 });
 </script>
