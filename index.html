@@ -1512,9 +1512,24 @@ Cancelar
 
         <div style="margin-top:20px;text-align:right;">
 
-            <button onclick="verificarNuevoCodigoRegistro()">
-                Verificar
-            </button>
+         <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+
+    <button
+        onclick="cerrarSesionPorCodigoRegistro()"
+        style="background:#dc3545;color:#fff;">
+
+        Cerrar sesión
+
+    </button>
+
+    <button
+        onclick="verificarNuevoCodigoRegistro()">
+
+        Verificar
+
+    </button>
+
+</div>
 
         </div>
 
@@ -1698,6 +1713,10 @@ function guardarVersionCodigoRegistro(
 
 async function verificarCodigoRegistroActual(){
 
+  document
+    .getElementById("modalVerificarCodigoRegistro")
+    .style.zIndex = "999999";
+
     if(!App.iglesia)
         return true;
 
@@ -1728,6 +1747,19 @@ async function verificarCodigoRegistroActual(){
     return false;
 
 }
+
+
+async function cerrarSesionPorCodigoRegistro(){
+
+    document
+        .getElementById("modalVerificarCodigoRegistro")
+        .classList.add("oculto");
+
+    await cerrarSesion();
+
+}
+
+
 
 function cambiarPinIglesia(id){
 
@@ -1860,7 +1892,7 @@ async function verificarNuevoCodigoRegistro(){
         await supabase.rpc(
             "verificar_codigo_registro",
             {
-                p_iglesia: iglesiaSeleccionadaAdmin,
+                p_iglesia: App.iglesia.id,
                 p_codigo: codigo
             }
         );
@@ -1887,9 +1919,28 @@ async function verificarNuevoCodigoRegistro(){
 
         }
 
+        guardarVersionCodigoRegistro(
+
+            App.iglesia.id,
+
+            App.iglesia.version_sesion
+
+        );
+
+        document
+            .getElementById("modalVerificarCodigoRegistro")
+            .classList.add("oculto");
+
+        document.getElementById("loginScreen").style.display="none";
+
+        actualizarUserCircle();
+
         mostrarAlerta(
+
             "✅",
-            "Código verificado correctamente."
+
+            "Bienvenido " + (App.perfil?.nombre || "")
+
         );
 
     }
@@ -2400,19 +2451,24 @@ async function loginSupabase(){
 
         App.usuario = data.user;
 
-        
+        await cargarPerfil();
 
-       await cargarPerfil();
+        aplicarTituloApp();
 
-       await verificarCodigoRegistroActual();
+        actualizarMenuSuperAdmin();
 
-       aplicarTituloApp();
+        console.log("Super Admin:", App.esSuperAdmin);
 
-       actualizarMenuSuperAdmin();
-
-       console.log("Super Admin:", App.esSuperAdmin);
+        const ok = await verificarCodigoRegistroActual();
 
         hideBusy();
+
+        if(!ok){
+
+            // NO entra aún a la aplicación.
+            return;
+
+        }
 
         document.getElementById("loginScreen").style.display="none";
 
@@ -2420,7 +2476,7 @@ async function loginSupabase(){
 
         mostrarAlerta(
             "✅",
-           "Bienvenido " + (App.perfil?.nombre || "")
+            "Bienvenido " + (App.perfil?.nombre || "")
         );
 
     }
@@ -2438,7 +2494,6 @@ async function loginSupabase(){
     }
 
 }
-
 
 
 
@@ -3471,35 +3526,45 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error(error);
     }
 
-    if(data.session){
+if(data.session){
 
-        console.log("✅ Sesión encontrada.");
+    console.log("✅ Sesión encontrada.");
 
-        App.session = data.session;
-        App.usuario = data.session.user;
-       
+    App.session = data.session;
 
-        await cargarPerfil();
+    App.usuario = data.session.user;
 
-        aplicarTituloApp();
+    await cargarPerfil();
 
-        actualizarMenuSuperAdmin();
+    aplicarTituloApp();
 
+    actualizarMenuSuperAdmin();
 
-        console.log("Super Admin:", App.esSuperAdmin);
+    console.log("Super Admin:", App.esSuperAdmin);
 
-        console.log("Usuario:", App.perfil?.nombre);
-        console.log("Rol:", App.perfil?.rol);
+    console.log("Usuario:", App.perfil?.nombre);
+
+    console.log("Rol:", App.perfil?.rol);
+
+    const ok = await verificarCodigoRegistroActual();
+
+    if(ok){
 
         document.getElementById("loginScreen").style.display = "none";
 
     }else{
 
-        console.log("ℹ️ No existe sesión.");
-
         document.getElementById("loginScreen").style.display = "flex";
 
     }
+
+}else{
+
+    console.log("ℹ️ No existe sesión.");
+
+    document.getElementById("loginScreen").style.display = "flex";
+
+}
 
     // SIEMPRE AL FINAL
     await initApp();
