@@ -1010,6 +1010,198 @@ body {
     display:none !important;
 }
     
+
+
+/*==================================================
+=            SPLASH SCREEN DECOMDH
+==================================================*/
+
+#splashScreen{
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:999999;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:
+    radial-gradient(circle at top,#2f65ff 0%,#0d1b3d 45%,#050b18 100%);
+
+    transition:
+        opacity .45s ease,
+        visibility .45s ease;
+
+}
+
+#splashScreen.oculto{
+
+    opacity:0;
+
+    visibility:hidden;
+
+    pointer-events:none;
+
+}
+
+.splashCard{
+
+    width:min(90vw,430px);
+
+    padding:40px 30px;
+
+    border-radius:28px;
+
+    backdrop-filter:blur(18px);
+
+    background:rgba(255,255,255,.08);
+
+    border:1px solid rgba(255,255,255,.15);
+
+    box-shadow:
+        0 20px 70px rgba(0,0,0,.45);
+
+    text-align:center;
+
+    color:#fff;
+
+    animation:splashEntrada .8s ease;
+
+}
+
+.splashLogo{
+
+    width:115px;
+
+    height:115px;
+
+    object-fit:contain;
+
+    margin-bottom:18px;
+
+    animation:
+        flotarLogo 3s ease-in-out infinite;
+
+    filter:
+        drop-shadow(0 10px 25px rgba(0,0,0,.35));
+
+}
+
+.splashCard h1{
+
+    margin:0;
+
+    font-size:34px;
+
+    font-weight:800;
+
+    letter-spacing:2px;
+
+}
+
+.splashSub{
+
+    margin-top:10px;
+
+    opacity:.92;
+
+    font-size:15px;
+
+    line-height:1.45;
+
+}
+
+.splashLinea{
+
+    width:90px;
+
+    height:4px;
+
+    border-radius:10px;
+
+    background:#4da3ff;
+
+    margin:22px auto;
+
+}
+
+.splashInfo{
+
+    margin-top:12px;
+
+    font-size:15px;
+
+    line-height:1.6;
+
+    opacity:.95;
+
+}
+
+.splashVersion{
+
+    margin-top:30px;
+
+    font-size:13px;
+
+    opacity:.7;
+
+    letter-spacing:1px;
+
+}
+
+@keyframes splashEntrada{
+
+    from{
+
+        transform:
+            translateY(18px)
+            scale(.96);
+
+        opacity:0;
+
+    }
+
+    to{
+
+        transform:
+            translateY(0)
+            scale(1);
+
+        opacity:1;
+
+    }
+
+}
+
+@keyframes flotarLogo{
+
+    0%{
+
+        transform:translateY(0);
+
+    }
+
+    50%{
+
+        transform:translateY(-10px);
+
+    }
+
+    100%{
+
+        transform:translateY(0);
+
+    }
+
+}
+
+
+
   </style>
 </head>
 <body>
@@ -1094,6 +1286,54 @@ body {
 </div>
 
   
+<div id="splashScreen">
+
+    <div class="splashCard">
+
+        <img
+            src="icon-512.png"
+            class="splashLogo">
+
+        <h1>DECOMDH</h1>
+
+        <div class="splashSub">
+
+            Sistema Inteligente de Gestión
+            de Asistencia
+
+        </div>
+
+        <div class="splashLinea"></div>
+
+        <div class="splashInfo">
+
+            <strong>Desarrollado para</strong><br>
+
+            IPUC Bochica Sur<br>
+
+            Bogotá D.C.
+
+        </div>
+
+        <div class="splashInfo">
+
+            <strong>Desarrollador</strong><br>
+
+            Deimer Herrera
+
+        </div>
+
+        <div class="splashVersion">
+
+            Versión 2026
+
+        </div>
+
+    </div>
+
+</div>
+
+
 
 <!-- LOGIN -->
 <div id="loginScreen">
@@ -1509,6 +1749,9 @@ Cancelar
             id="codigoRegistroVerificar"
             type="password"
             placeholder="Código de registro">
+
+
+            
 
         <div style="margin-top:20px;text-align:right;">
 
