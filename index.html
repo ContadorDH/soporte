@@ -1545,6 +1545,69 @@ Cancelar
 </div>
 
 
+<div id="modalNuevaPassword"
+     class="modalOverlay oculto">
+
+    <div class="modalCard"
+         style="max-width:430px;">
+
+        <h2 style="margin-top:0;">
+            🔒 Nueva contraseña
+        </h2>
+
+        <p style="
+            color:#666;
+            margin-bottom:18px;
+            line-height:1.5;
+        ">
+
+            Escribe tu nueva contraseña para continuar.
+
+        </p>
+
+        <input
+            id="nuevaPassword1"
+            type="password"
+            placeholder="Nueva contraseña"
+            autocomplete="new-password">
+
+        <input
+            id="nuevaPassword2"
+            type="password"
+            placeholder="Confirmar contraseña"
+            autocomplete="new-password"
+            style="margin-top:12px;">
+
+        <div style="
+            display:flex;
+            gap:10px;
+            margin-top:22px;
+        ">
+
+            <button
+                class="btnSecundario"
+                style="flex:1;"
+                onclick="cerrarNuevaPassword();">
+
+                Cancelar
+
+            </button>
+
+            <button
+                class="btnPrincipal"
+                style="flex:1;"
+                onclick="guardarNuevaPassword();">
+
+                Guardar
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
 <!-- LOGIN IGLESIA (Paso 1 - NO activo aún) -->
 <div id="churchScreen" style="position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:130;">
   <div style="background:var(--card);padding:28px;border-radius:14px;box-shadow:0 8px 24px var(--shadow);text-align:center;color:var(--text);width:320px;max-width:92vw;">
@@ -1887,6 +1950,42 @@ let iglesiaSeleccionadaAdmin = null;
 /* ===========================================================
    SESIÓN
 =========================================================== */
+
+
+function abrirNuevaPassword(){
+
+    document
+        .getElementById("modalNuevaPassword")
+        .classList.remove("oculto");
+
+    document
+        .getElementById("nuevaPassword1")
+        .value = "";
+
+    document
+        .getElementById("nuevaPassword2")
+        .value = "";
+
+    setTimeout(()=>{
+
+        document
+            .getElementById("nuevaPassword1")
+            .focus();
+
+    },100);
+
+}
+
+function cerrarNuevaPassword(){
+
+    document
+        .getElementById("modalNuevaPassword")
+        .classList.add("oculto");
+
+}
+
+
+
 
 const splashInicio = Date.now();
 
