@@ -4251,41 +4251,6 @@ if(haySesion){
 
 }
 
-            console.log("===== PERFIL =====");
-console.log(App.perfil);
-console.log("===== IGLESIA =====");
-console.log(App.iglesia);
-
-            aplicarTituloApp();
-
-            actualizarMenuSuperAdmin();
-
-            console.log("Super Admin:", App.esSuperAdmin);
-
-            console.log("Usuario:", App.perfil?.nombre);
-
-            console.log("Rol:", App.perfil?.rol);
-
-            const ok = await verificarCodigoRegistroActual();
-
-            if(ok){
-
-                document.getElementById("loginScreen").style.display = "none";
-
-            }else{
-
-                document.getElementById("loginScreen").style.display = "flex";
-
-            }
-
-        }else{
-
-            console.log("ℹ️ No existe sesión.");
-
-            document.getElementById("loginScreen").style.display = "flex";
-
-        }
-
         // Inicializar aplicación
         await initApp();
 
