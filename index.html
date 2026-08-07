@@ -2623,6 +2623,11 @@ console.log(errorPerfil);
 
       await cargarPerfil();
 
+      console.log("===== PERFIL =====");
+console.log(App.perfil);
+console.log("===== IGLESIA =====");
+console.log(App.iglesia);
+
       aplicarTituloApp();
 
       actualizarMenuSuperAdmin();
@@ -2724,6 +2729,11 @@ async function loginSupabase(){
         App.usuario = data.user;
 
         await cargarPerfil();
+
+        console.log("===== PERFIL =====");
+console.log(App.perfil);
+console.log("===== IGLESIA =====");
+console.log(App.iglesia);
 
         aplicarTituloApp();
 
@@ -3395,17 +3405,27 @@ async function verAsistencia(mes){
 
 
 
-    showLoading(true);
+showLoading(true);
 
-    const listado = document.getElementById("listado");
-    listado.innerHTML = "";
+const listado = document.getElementById("listado");
+listado.innerHTML = "";
 
-    try{
+try{
 
-        const { data, error } = await supabase
-            .from("vista_asistencias")
-            .select("*")
-            .order("fecha", { ascending:false });
+    console.log("===== VER ASISTENCIA =====");
+    console.log("Usuario autenticado:", App.usuario?.id);
+    console.log("Perfil:", App.perfil?.id);
+    console.log("Iglesia perfil:", App.perfil?.iglesia_id);
+    console.log("Iglesia objeto:", App.iglesia?.id);
+
+ const { data, error } = await supabase
+    .from("asistencias")
+    .select("*")
+    .order("fecha", { ascending:false });
+
+console.log(data);
+
+console.log(data);
 
             console.log(data);
 
@@ -3809,6 +3829,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             App.usuario = data.session.user;
 
             await cargarPerfil();
+
+            console.log("===== PERFIL =====");
+console.log(App.perfil);
+console.log("===== IGLESIA =====");
+console.log(App.iglesia);
 
             aplicarTituloApp();
 
