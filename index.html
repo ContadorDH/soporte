@@ -2026,7 +2026,93 @@ async function cerrarNuevaPassword(){
 
 const splashInicio = Date.now();
 
+// --- Red de seguridad para el Splash ---
+// A veces una consulta a Supabase (sesión, perfil, conexión) puede
+// quedarse "colgada" (sin responder y sin lanzar error) si hay
+// problemas de red. Como el código de inicio usa await en cadena,
+// si una de esas llamadas nunca resuelve, el bloque finally que
+// oculta el Splash tampoco se ejecuta nunca y la app se queda
+// pegada en el Splash para siempre.
+//
+// Para evitar eso se agregan dos protecciones:
+//   1) conLimiteDeTiempo(): envuelve una promesa y, si no responde
+//      dentro del tiempo dado, sigue adelante con un valor por
+//      defecto en vez de quedarse esperando.
+//   2) Un "vigilante" (watchdog) que, pase lo que pase, fuerza el
+//      cierre del Splash pasado un tiempo máximo absoluto. Es la
+//      última línea de defensa por si algo inesperado se cuelga.
+function conLimiteDeTiempo(promesa, ms, valorPorDefecto, etiqueta){
+
+    return new Promise((resolve) => {
+
+        let resuelto = false;
+
+        const temporizador = setTimeout(()=>{
+
+            if(resuelto) return;
+
+            resuelto = true;
+
+            console.warn(
+                "⏱️ Tiempo de espera agotado en:",
+                etiqueta || "operación",
+                "- se continúa con valor por defecto."
+            );
+
+            resolve(valorPorDefecto);
+
+        }, ms);
+
+        Promise.resolve(promesa)
+            .then((valor)=>{
+
+                if(resuelto) return;
+
+                resuelto = true;
+
+                clearTimeout(temporizador);
+
+                resolve(valor);
+
+            })
+            .catch((err)=>{
+
+                if(resuelto) return;
+
+                resuelto = true;
+
+                clearTimeout(temporizador);
+
+                console.error(
+                    "Error en operación con límite de tiempo:",
+                    etiqueta || "",
+                    err
+                );
+
+                resolve(valorPorDefecto);
+
+            });
+
+    });
+
+}
+
+const VIGILANTE_SPLASH_MS = 8000;
+
+const vigilanteSplash = setTimeout(()=>{
+
+    console.warn(
+        "⏱️ El Splash tardó demasiado en cerrarse solo. " +
+        "Se fuerza el cierre por seguridad."
+    );
+
+    ocultarSplash();
+
+}, VIGILANTE_SPLASH_MS);
+
 function ocultarSplash(){
+
+    clearTimeout(vigilanteSplash);
 
     const splash = document.getElementById("splashScreen");
 
@@ -2468,7 +2554,12 @@ async function inicializarSupabase() {
 
     try {
 
-        const { data, error } = await supabase.auth.getSession();
+        const { data, error } = await conLimiteDeTiempo(
+            supabase.auth.getSession(),
+            6000,
+            { data: { session: null }, error: null },
+            "obtener sesión (getSession)"
+        );
 
         if (error) throw error;
 
@@ -2503,21 +2594,26 @@ async function cargarPerfil(){
     if(!App.session)
         return null;
 
-    const { data, error } = await supabase
-        .from("perfiles")
-   .select(`
-    *,
-    iglesias(
-        id,
-        nombre,
-        codigo,
-        color,
-        logo,
-        version_sesion
-    )
-`)
-        .eq("id", App.session.user.id)
-        .single();
+    const { data, error } = await conLimiteDeTiempo(
+        supabase
+            .from("perfiles")
+       .select(`
+        *,
+        iglesias(
+            id,
+            nombre,
+            codigo,
+            color,
+            logo,
+            version_sesion
+        )
+    `)
+            .eq("id", App.session.user.id)
+            .single(),
+        7000,
+        { data: null, error: { message: "Tiempo de espera agotado cargando el perfil." } },
+        "cargar perfil"
+    );
 
     if(error){
 
@@ -2545,10 +2641,27 @@ async function probarConexionSupabase(){
 
     try{
 
-        const { data, error } = await supabase
-            .from("iglesias")
-            .select("id,nombre,codigo")
-            .limit(5);
+        const { data, error, timeout } = await conLimiteDeTiempo(
+            supabase
+                .from("iglesias")
+                .select("id,nombre,codigo")
+                .limit(5)
+                .then(r => ({ ...r, timeout: false })),
+            6000,
+            { data: null, error: null, timeout: true },
+            "probar conexión"
+        );
+
+        if(timeout){
+
+            // Solo es una prueba de conexión en segundo plano: si no
+            // responde a tiempo, no se interrumpe ni se molesta al
+            // usuario con una alerta, simplemente se sigue adelante.
+            console.warn("No se pudo confirmar la conexión a tiempo.");
+
+            return;
+
+        }
 
         if(error){
 
