@@ -3744,10 +3744,15 @@ async function descargarMesXLSX(){
             overlay?.classList.remove("active");
         }
 
-        const { data, error } = await supabase
-           .from("asistencias")
-            .select("*")
-            .order("fecha",{ascending:true});
+     const { data, error } = await supabase
+        .from("asistencias")
+        .select(`
+            *,
+            perfiles!usuario_id (
+                nombre
+            )
+        `)
+        .order("fecha", { ascending: false });
 
         if(error) throw error;
 
@@ -3845,9 +3850,14 @@ try{
     console.log("Iglesia objeto:", App.iglesia?.id);
 
  const { data, error } = await supabase
-    .from("asistencias")
-    .select("*")
-    .order("fecha", { ascending:false });
+        .from("asistencias")
+        .select(`
+            *,
+            perfiles!usuario_id (
+                nombre
+            )
+        `)
+        .order("fecha", { ascending: false });
 
 console.log(data);
 
