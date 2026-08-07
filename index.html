@@ -4195,6 +4195,13 @@ console.log(window.location.search);
        // 1. Inicializar Supabase
 const haySesion = await inicializarSupabase();
 
+supabase.auth.onAuthStateChange(async (event, session)=>{
+
+    console.log("===== AUTH EVENT =====");
+    console.log(event);
+
+});
+
 const hash = window.location.hash;
 
 if(hash.includes("type=recovery")){
@@ -4202,17 +4209,6 @@ if(hash.includes("type=recovery")){
     console.log("Modo recuperación detectado.");
 
     abrirNuevaPassword();
-
-    // IMPORTANTE: limpiar el hash de la URL AHORA MISMO.
-    // Si no se limpia aquí, cada vez que se recargue esta pestaña
-    // (aunque el usuario haya cerrado sesión) Supabase vuelve a leer
-    // el access_token/refresh_token que quedó en la URL y crea una
-    // sesión nueva automáticamente. Por eso "revivía" la sesión.
-    history.replaceState(
-        {},
-        document.title,
-        window.location.pathname
-    );
 
 }
 
