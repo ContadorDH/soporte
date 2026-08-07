@@ -4195,6 +4195,13 @@ console.log(window.location.search);
        // 1. Inicializar Supabase
 const haySesion = await inicializarSupabase();
 
+supabase.auth.onAuthStateChange(async (event, session)=>{
+
+    console.log("===== AUTH EVENT =====");
+    console.log(event);
+
+});
+
 const hash = window.location.hash;
 
 if(hash.includes("type=recovery")){
