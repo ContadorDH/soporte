@@ -3744,15 +3744,15 @@ async function descargarMesXLSX(){
             overlay?.classList.remove("active");
         }
 
-     const { data, error } = await supabase
-        .from("asistencias")
-        .select(`
-            *,
-            perfiles!usuario_id (
-                nombre
-            )
-        `)
-        .order("fecha", { ascending: false });
+    const { data, error } = await supabase
+    .from("asistencias")
+    .select(`
+        *,
+        perfiles!usuario_id (
+            nombre
+        )
+    `)
+    .order("fecha",{ascending:true});
 
         if(error) throw error;
 
@@ -3777,7 +3777,7 @@ async function descargarMesXLSX(){
 
         const datosExcel = filas.map(r=>({
 
-            Usuario: r.usuario,
+           Usuario: r.perfiles?.nombre || "Sin nombre",
             Fecha: new Date(r.fecha).toLocaleString("es-CO"),
             Hermanos: r.hermanos,
             Hermanas: r.hermanas,
@@ -3849,15 +3849,15 @@ try{
     console.log("Iglesia perfil:", App.perfil?.iglesia_id);
     console.log("Iglesia objeto:", App.iglesia?.id);
 
- const { data, error } = await supabase
-        .from("asistencias")
-        .select(`
-            *,
-            perfiles!usuario_id (
-                nombre
-            )
-        `)
-        .order("fecha", { ascending: false });
+const { data, error } = await supabase
+    .from("asistencias")
+    .select(`
+        *,
+        perfiles!usuario_id (
+            nombre
+        )
+    `)
+    .order("fecha", { ascending:false });
 
 console.log(data);
 
@@ -3896,7 +3896,9 @@ console.log(data);
 
             const esPropio = App.perfil && App.perfil.id === r.usuario_id;
 
-            const usuarioEsc = escapeHTML(r.usuario || "");
+           const usuarioEsc = escapeHTML(
+    r.perfiles?.nombre || "Sin nombre"
+);
             const fechaEsc = escapeHTML(fecha);
 
             return `
@@ -3919,7 +3921,7 @@ title="Compartir"
 
 onclick="compartirRegistro(
 
-'${encodeURIComponent( r.perfiles?.nombre || "Sin nombre")}',
+'${encodeURIComponent(r.usuario)}',
 
 '${encodeURIComponent(fecha)}',
 
