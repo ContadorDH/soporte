@@ -1,16 +1,13 @@
 {
-  "name": "Asistencia IPUC Bochica Sur",
-  "short_name": "AsistenciaIPUC",
-  "description": "Aplicación de asistencia para IPUC Bochica Sur",
-
+  "name": "Asistencia Bochica Sur",
+  "short_name": "Asistencia Bochica",
+  "description": "App para registrar asistencias en Bochica Sur",
+ 
   "start_url": "/soporte/",
   "scope": "/soporte/",
-
   "display": "standalone",
-  "background_color": "#0a5c30",
-  "theme_color": "#0a5c30",
-  "orientation": "landscape",
-
+  "theme_color": "#0066ff",
+  "background_color": "#f4f6fb",
   "icons": [
     {
       "src": "icon-192.png",
