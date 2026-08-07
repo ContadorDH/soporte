@@ -4192,10 +4192,10 @@ console.log("===== SEARCH =====");
 console.log(window.location.search);
 
 
-        // 1. Inicializar Supabase
-        await inicializarSupabase();
+       // 1. Inicializar Supabase
+const haySesion = await inicializarSupabase();
 
-        const hash = window.location.hash;
+const hash = window.location.hash;
 
 if(hash.includes("type=recovery")){
 
@@ -4205,25 +4205,51 @@ if(hash.includes("type=recovery")){
 
 }
 
-        // 2. Probar conexión
-        await probarConexionSupabase();
+// 2. Probar conexión
+await probarConexionSupabase();
 
-        // 3. Buscar sesión existente
-        const { data, error } = await supabase.auth.getSession();
+// 3. Si inicializarSupabase encontró sesión, cargar perfil
+if(haySesion){
 
-        if(error){
-            console.error(error);
-        }
+    console.log("✅ Sesión encontrada.");
 
-        if(data.session){
+    await cargarPerfil();
 
-            console.log("✅ Sesión encontrada.");
+    console.log("===== PERFIL =====");
+    console.log(App.perfil);
 
-            App.session = data.session;
+    console.log("===== IGLESIA =====");
+    console.log(App.iglesia);
 
-            App.usuario = data.session.user;
+    aplicarTituloApp();
 
-            await cargarPerfil();
+    actualizarMenuSuperAdmin();
+
+    console.log("Super Admin:", App.esSuperAdmin);
+
+    console.log("Usuario:", App.perfil?.nombre);
+
+    console.log("Rol:", App.perfil?.rol);
+
+    const ok = await verificarCodigoRegistroActual();
+
+    if(ok){
+
+        document.getElementById("loginScreen").style.display = "none";
+
+    }else{
+
+        document.getElementById("loginScreen").style.display = "flex";
+
+    }
+
+}else{
+
+    console.log("ℹ️ No existe sesión.");
+
+    document.getElementById("loginScreen").style.display = "flex";
+
+}
 
             console.log("===== PERFIL =====");
 console.log(App.perfil);
