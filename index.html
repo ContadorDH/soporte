@@ -1377,6 +1377,83 @@ CENTRO ADMINISTRADOR
 }
 
 
+
+.cardAdminHeader{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    margin-bottom:20px;
+
+}
+
+.cardEstado{
+
+    display:inline-block;
+
+    margin-top:8px;
+
+    padding:4px 12px;
+
+    border-radius:20px;
+
+    background:#e9f9ee;
+
+    color:#22863a;
+
+    font-weight:700;
+
+    font-size:.85rem;
+
+}
+
+.cardResumen{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:16px;
+
+    margin-bottom:22px;
+
+}
+
+.datoAdmin{
+
+    background:#f8f9fb;
+
+    border-radius:14px;
+
+    padding:14px;
+
+    text-align:center;
+
+}
+
+.datoAdmin span{
+
+    display:block;
+
+    color:#666;
+
+    font-size:.86rem;
+
+    margin-bottom:8px;
+
+}
+
+.datoAdmin strong{
+
+    font-size:1.35rem;
+
+}
+
+
+
   </style>
 </head>
 <body>
@@ -2395,7 +2472,7 @@ async function abrirPanelSuperAdmin(){
 
     try{
 
-        const iglesias = await cargarIglesiasAdmin();
+        const iglesias = await cargarDashboardIglesias();
 
         pintarIglesiasAdmin(iglesias);
 
@@ -2433,6 +2510,19 @@ function cerrarPanelSuperAdmin(){
 
 
 
+async function cargarDashboardIglesias(){
+
+    const { data, error } = await supabase.rpc(
+        "listar_iglesias_dashboard"
+    );
+
+    if(error) throw error;
+
+    return data || [];
+
+}
+
+
 
 function pintarIglesiasAdmin(iglesias){
 
@@ -2461,40 +2551,57 @@ function pintarIglesiasAdmin(iglesias){
 
 function crearTarjetaIglesia(iglesia){
 
-    const card =
-        document.createElement("div");
+    const card = document.createElement("div");
 
-    card.className =
-        "tarjetaIglesia";
+    card.className = "tarjetaIglesia";
 
     card.innerHTML = `
 
-        <h3>
+        <div class="cardAdminHeader">
 
-            🏛 ${escapeHTML(iglesia.nombre)}
+            <div>
 
-        </h3>
+                <h3>
 
-        <div class="tarjetaCodigo">
+                    🏛 ${escapeHTML(iglesia.nombre)}
 
-            🔑 Código:
-            <strong>
+                </h3>
 
-                ${escapeHTML(iglesia.codigo)}
+                <div class="cardEstado">
 
-            </strong>
+                    🟢 Activa
+
+                </div>
+
+            </div>
 
         </div>
 
-        <div
-            style="
-                margin-top:12px;
-                color:var(--muted);
-                font-size:.92rem;
-            ">
+        <div class="cardResumen">
 
-            ID:
-            ${escapeHTML(iglesia.id)}
+            <div class="datoAdmin">
+
+                <span>👥 Usuarios</span>
+
+                <strong>${iglesia.usuarios}</strong>
+
+            </div>
+
+            <div class="datoAdmin">
+
+                <span>📊 Asistencias</span>
+
+                <strong>${iglesia.asistencias}</strong>
+
+            </div>
+
+            <div class="datoAdmin">
+
+                <span>🔑 Código</span>
+
+                <strong>${escapeHTML(iglesia.codigo)}</strong>
+
+            </div>
 
         </div>
 
@@ -2528,7 +2635,6 @@ function crearTarjetaIglesia(iglesia){
     return card;
 
 }
-
 
 
 function abrirUsuariosIglesia(id){
