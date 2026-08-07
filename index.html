@@ -3011,6 +3011,115 @@ async function recuperarPassword(){
 }
 
 
+async function guardarNuevaPassword(){
+
+    const pass1 = document
+        .getElementById("nuevaPassword1")
+        .value;
+
+    const pass2 = document
+        .getElementById("nuevaPassword2")
+        .value;
+
+    if(!pass1){
+
+        mostrarAlerta(
+            "⚠️",
+            "Ingresa la nueva contraseña."
+        );
+
+        return;
+
+    }
+
+    if(pass1.length < 6){
+
+        mostrarAlerta(
+            "⚠️",
+            "La contraseña debe tener al menos 6 caracteres."
+        );
+
+        return;
+
+    }
+
+    if(pass1 !== pass2){
+
+        mostrarAlerta(
+            "⚠️",
+            "Las contraseñas no coinciden."
+        );
+
+        return;
+
+    }
+
+    showBusy(
+        "Actualizando contraseña...",
+        "Espera un momento"
+    );
+
+    try{
+
+        const { error } =
+            await supabase.auth.updateUser({
+
+                password: pass1
+
+            });
+
+        hideBusy();
+
+        if(error){
+
+            console.error(error);
+
+            mostrarAlerta(
+                "❌",
+                error.message
+            );
+
+            return;
+
+        }
+
+        cerrarNuevaPassword();
+
+        // Limpiar la URL
+        history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+        );
+
+        // Cerrar sesión temporal
+        await supabase.auth.signOut();
+
+        App.session = null;
+        App.usuario = null;
+
+        document.getElementById("loginScreen").style.display = "flex";
+
+        mostrarAlerta(
+            "✅",
+            "Contraseña actualizada correctamente. Ahora inicia sesión con tu nueva contraseña."
+        );
+
+    }
+    catch(err){
+
+        hideBusy();
+
+        console.error(err);
+
+        mostrarAlerta(
+            "❌",
+            "No fue posible actualizar la contraseña."
+        );
+
+    }
+
+}
 
 
 // 🎨 Función para cambiar el tema
@@ -4085,6 +4194,16 @@ console.log(window.location.search);
 
         // 1. Inicializar Supabase
         await inicializarSupabase();
+
+        const hash = window.location.hash;
+
+if(hash.includes("type=recovery")){
+
+    console.log("Modo recuperación detectado.");
+
+    abrirNuevaPassword();
+
+}
 
         // 2. Probar conexión
         await probarConexionSupabase();
