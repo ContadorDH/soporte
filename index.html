@@ -1229,10 +1229,20 @@ body {
 
 <!-- Popup de usuario -->
 <div id="popupUsuario">
-  <div>
-    <h3>Usuario actual</h3>
-    <p id="popupNombre"></p>
-    <button onclick="cerrarPopupUsuario()">Cerrar</button>
+  <div style="max-width:360px;text-align:left;">
+
+    <h3 style="text-align:center;margin-bottom:18px;">
+        👤 Información del usuario
+    </h3>
+
+    <div id="popupNombre"></div>
+
+    <div style="margin-top:18px;text-align:center;">
+        <button onclick="cerrarPopupUsuario()">
+            Cerrar
+        </button>
+    </div>
+
   </div>
 </div>
 
@@ -3335,7 +3345,45 @@ function mostrarNombreUsuario(){
 
     if(!App.perfil) return;
 
-    document.getElementById("popupNombre").textContent = App.perfil.nombre || "";
+    const p = App.perfil;
+
+    document.getElementById("popupNombre").innerHTML = `
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+
+            <div>
+                <strong>👤 Nombre</strong><br>
+                ${escapeHTML(p.nombre || "-")}
+            </div>
+
+            <div>
+                <strong>📧 Correo</strong><br>
+                ${escapeHTML(p.correo || App.usuario?.email || "-")}
+            </div>
+
+            <div>
+                <strong>💼 Cargo</strong><br>
+                ${escapeHTML(p.cargo || "-")}
+            </div>
+
+            <div>
+                <strong>🛡️ Rol</strong><br>
+                ${escapeHTML(p.rol || "-")}
+            </div>
+
+            <div>
+                <strong>🏛️ Iglesia</strong><br>
+                ${escapeHTML(App.iglesia?.nombre || "-")}
+            </div>
+
+            <div>
+                <strong>📱 Teléfono</strong><br>
+                ${escapeHTML(p.telefono || "-")}
+            </div>
+
+        </div>
+
+    `;
 
     document.getElementById("popupUsuario").style.display = "flex";
 
