@@ -1202,6 +1202,175 @@ body {
 
 
 
+/*=========================================
+CENTRO ADMINISTRADOR
+=========================================*/
+
+#superAdminScreen{
+
+    position:fixed;
+
+    inset:64px 0 0 0;
+
+    background:var(--bg);
+
+    display:none;
+
+    flex-direction:column;
+
+    z-index:250;
+
+    overflow:hidden;
+
+}
+
+#superAdminScreen.active{
+
+    display:flex;
+
+}
+
+#superAdminHeader{
+
+    background:var(--primary);
+
+    color:#fff;
+
+    padding:18px 22px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    box-shadow:0 3px 12px rgba(0,0,0,.18);
+
+}
+
+#superAdminHeader .left{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:16px;
+
+}
+
+#superAdminHeader .left button{
+
+    width:46px;
+
+    height:46px;
+
+    border-radius:12px;
+
+    border:none;
+
+    cursor:pointer;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+}
+
+#superAdminHeader .titulo{
+
+    font-size:22px;
+
+    font-weight:700;
+
+}
+
+#btnNuevaIglesia{
+
+    border:none;
+
+    background:#fff;
+
+    color:var(--primary);
+
+    font-weight:700;
+
+    padding:12px 18px;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+}
+
+#contenedorIglesiasAdmin{
+
+    flex:1;
+
+    overflow:auto;
+
+    padding:22px;
+
+    display:grid;
+
+    gap:18px;
+
+}
+
+.tarjetaIglesia{
+
+    background:var(--card);
+
+    border-radius:18px;
+
+    padding:20px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+
+}
+
+.tarjetaIglesia h3{
+
+    margin:0;
+
+    font-size:22px;
+
+}
+
+.tarjetaCodigo{
+
+    margin-top:8px;
+
+    color:var(--muted);
+
+}
+
+.accionesIglesia{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-top:18px;
+
+    flex-wrap:wrap;
+
+}
+
+.accionesIglesia button{
+
+    border:none;
+
+    padding:10px 16px;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+}
+
+
   </style>
 </head>
 <body>
@@ -1835,7 +2004,48 @@ Cancelar
 
     </div>
 
-</div>
+</div> 
+
+
+<section id="superAdminScreen" aria-hidden="true">
+
+    <div id="superAdminHeader">
+
+        <div class="left">
+
+            <button onclick="cerrarPanelSuperAdmin()">
+                ←
+            </button>
+
+            <div>
+
+                <div class="titulo">
+                    👑 Centro de Administración
+                </div>
+
+                <small>
+                    Administración global del sistema
+                </small>
+
+            </div>
+
+        </div>
+
+        <button
+            id="btnNuevaIglesia"
+            onclick="abrirCrearIglesia()">
+
+            ➕ Nueva iglesia
+
+        </button>
+
+    </div>
+
+    <div id="contenedorIglesiasAdmin">
+
+    </div>
+
+</section>
 
 
 <div id="modalCambiarPin" class="modalOverlay oculto">
