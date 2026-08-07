@@ -3,8 +3,8 @@
   "short_name": "AsistenciaIPUC",
   "description": "Aplicación de asistencia para IPUC Bochica Sur",
 
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/soporte/",
+  "scope": "/soporte/",
 
   "display": "standalone",
   "background_color": "#0a5c30",
