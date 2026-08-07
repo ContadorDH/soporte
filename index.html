@@ -1976,11 +1976,38 @@ function abrirNuevaPassword(){
 
 }
 
-function cerrarNuevaPassword(){
+async function cerrarNuevaPassword(){
 
     document
         .getElementById("modalNuevaPassword")
         .classList.add("oculto");
+
+    // Si este modal se abrió por un link de recuperación y el
+    // usuario cancela sin definir la nueva contraseña, hay que
+    // cerrar esa sesión temporal que Supabase creó a partir del
+    // link. De lo contrario, quedaría con sesión iniciada sin
+    // haber puesto una contraseña nueva (falla de seguridad).
+    if(App.modoRecuperacion){
+
+        try{
+            await supabase.auth.signOut({ scope: 'local' });
+        }catch(e){
+            console.error("Aviso cerrando sesión temporal:", e);
+        }
+
+        try{
+            Object.keys(localStorage)
+                .filter(k => k.startsWith("sb-"))
+                .forEach(k => localStorage.removeItem(k));
+        }catch(e){}
+
+        App.session = null;
+        App.usuario = null;
+        App.modoRecuperacion = false;
+
+        document.getElementById("loginScreen").style.display = "flex";
+
+    }
 
 }
 
@@ -2028,7 +2055,9 @@ const App = {
 
     usuario: null,
 
-    esSuperAdmin: false
+    esSuperAdmin: false,
+
+    modoRecuperacion: false
 
 };
 
@@ -3106,6 +3135,7 @@ async function guardarNuevaPassword(){
 
         App.session = null;
         App.usuario = null;
+        App.modoRecuperacion = false;
 
         document.getElementById("loginScreen").style.display = "flex";
 
@@ -4217,16 +4247,25 @@ console.log("===== SEARCH =====");
 console.log(window.location.search);
 
 
+       // 0. Detectar ANTES que nada si esto es un link de
+       // recuperación de contraseña. Supabase, al crear el cliente,
+       // lee automáticamente el access_token/refresh_token que
+       // vienen en el hash y arma una sesión válida con ellos
+       // (esto pasa aunque el usuario haya cerrado sesión antes).
+       // Por eso NUNCA se debe tratar esa sesión como un inicio de
+       // sesión real: solo sirve para autorizar el cambio de
+       // contraseña dentro del modal.
+const hash = window.location.hash;
+const esRecuperacion = hash.includes("type=recovery");
+
        // 1. Inicializar Supabase
 const haySesion = await inicializarSupabase();
 
-const hash = window.location.hash;
-
-if(hash.includes("type=recovery")){
+if(esRecuperacion){
 
     console.log("Modo recuperación detectado.");
 
-    abrirNuevaPassword();
+    App.modoRecuperacion = true;
 
     // IMPORTANTE: limpiar el hash de la URL AHORA MISMO.
     // Si no se limpia aquí, cada vez que se recargue esta pestaña
@@ -4244,8 +4283,21 @@ if(hash.includes("type=recovery")){
 // 2. Probar conexión
 await probarConexionSupabase();
 
-// 3. Si inicializarSupabase encontró sesión, cargar perfil
-if(haySesion){
+// 3. Si es un link de recuperación, NUNCA se entra como si el
+// usuario hubiera iniciado sesión: se deja la pantalla de login
+// visible detrás y solo se muestra el modal de nueva contraseña.
+// Si el usuario cancela el modal sin definir una contraseña
+// nueva, cerrarNuevaPassword() se encarga de cerrar esa sesión
+// temporal (ver App.modoRecuperacion).
+if(esRecuperacion){
+
+    console.log("🔒 Sesión de recuperación: no se inicia sesión real.");
+
+    document.getElementById("loginScreen").style.display = "flex";
+
+    abrirNuevaPassword();
+
+}else if(haySesion){
 
     console.log("✅ Sesión encontrada.");
 
