@@ -1378,12 +1378,12 @@ body {
 
     <br>
 
-    <a
-      href="#"
-      onclick="recuperarPassword();return false;"
-      style="display:block;margin-top:18px;">
-      ¿Olvidaste tu contraseña?
-    </a>
+<a
+    href="#"
+    onclick="abrirModalRecuperarPassword();return false;"
+    style="display:block;margin-top:18px;">
+    ¿Olvidaste tu contraseña?
+</a>
 
   </div>
 
@@ -1485,6 +1485,65 @@ Cancelar
 </div>
 
 </div>
+
+
+<div id="modalRecuperarPassword"
+     class="modalOverlay oculto">
+
+    <div class="modalCard"
+         style="max-width:420px;">
+
+        <h2 style="margin-top:0;">
+            🔐 Recuperar contraseña
+        </h2>
+
+        <p style="
+            color:#666;
+            line-height:1.5;
+            margin-bottom:18px;
+        ">
+
+            Escribe el correo con el que registraste tu cuenta.
+            Te enviaremos un enlace para restablecer tu contraseña.
+
+        </p>
+
+        <input
+            id="recuperarCorreo"
+            type="email"
+            placeholder="Correo electrónico"
+            autocomplete="email">
+
+        <div style="
+            display:flex;
+            gap:10px;
+            margin-top:20px;
+        ">
+
+            <button
+                class="btnSecundario"
+                style="flex:1;"
+                onclick="cerrarModalRecuperarPassword()">
+
+                Cancelar
+
+            </button>
+
+            <button
+                class="btnPrincipal"
+                style="flex:1;"
+                onclick="recuperarPassword()">
+
+                Enviar enlace
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
 
 <!-- LOGIN IGLESIA (Paso 1 - NO activo aún) -->
 <div id="churchScreen" style="position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:130;">
@@ -2965,6 +3024,34 @@ function cerrarRegistro(){
 
 }
 
+
+function abrirModalRecuperarPassword(){
+
+    document
+        .getElementById("modalRecuperarPassword")
+        .classList.remove("oculto");
+
+    document
+        .getElementById("recuperarCorreo")
+        .value = "";
+
+    setTimeout(()=>{
+
+        document
+            .getElementById("recuperarCorreo")
+            .focus();
+
+    },100);
+
+}
+
+function cerrarModalRecuperarPassword(){
+
+    document
+        .getElementById("modalRecuperarPassword")
+        .classList.add("oculto");
+
+}
 
 
 
