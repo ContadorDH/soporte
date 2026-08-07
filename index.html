@@ -1454,6 +1454,112 @@ CENTRO ADMINISTRADOR
 
 
 
+/*====================================
+ADMINISTRAR USUARIOS
+====================================*/
+
+#usuariosAdminScreen{
+
+    position:fixed;
+
+    inset:0;
+
+    background:#f6f8fc;
+
+    display:none;
+
+    flex-direction:column;
+
+    z-index:10000;
+
+}
+
+#usuariosAdminScreen.active{
+
+    display:flex;
+
+}
+
+#usuariosAdminHeader{
+
+    background:var(--primary);
+
+    color:#fff;
+
+    padding:18px 22px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+#usuariosAdminHeader .left{
+
+    display:flex;
+
+    gap:16px;
+
+    align-items:center;
+
+}
+
+#usuariosAdminHeader button{
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:12px 16px;
+
+    cursor:pointer;
+
+}
+
+.usuariosToolbar{
+
+    padding:18px;
+
+    background:#fff;
+
+    border-bottom:1px solid #e5e5e5;
+
+}
+
+.usuariosToolbar input{
+
+    width:100%;
+
+    padding:14px;
+
+    border-radius:12px;
+
+    border:1px solid #ddd;
+
+    font-size:15px;
+
+}
+
+#listaUsuariosAdmin{
+
+    flex:1;
+
+    overflow:auto;
+
+    padding:22px;
+
+    display:grid;
+
+    gap:16px;
+
+}
+
+
+
+
+
   </style>
 </head>
 <body>
@@ -2131,6 +2237,62 @@ Cancelar
 </section>
 
 
+
+<section id="usuariosAdminScreen" aria-hidden="true">
+
+    <div id="usuariosAdminHeader">
+
+        <div class="left">
+
+            <button onclick="cerrarUsuariosAdmin()">
+                ←
+            </button>
+
+            <div>
+
+                <div class="titulo" id="tituloUsuariosAdmin">
+                    Usuarios
+                </div>
+
+                <small id="subtituloUsuariosAdmin">
+                    Administración de usuarios
+                </small>
+
+            </div>
+
+        </div>
+
+        <button
+            id="btnNuevoUsuarioAdmin">
+
+            ➕ Nuevo usuario
+
+        </button>
+
+    </div>
+
+    <div class="usuariosToolbar">
+
+        <input
+
+            id="buscarUsuarioAdmin"
+
+            type="text"
+
+            placeholder="🔍 Buscar usuario..."
+
+            oninput="filtrarUsuariosAdmin()">
+
+    </div>
+
+    <div id="listaUsuariosAdmin">
+
+    </div>
+
+</section>
+
+
+
 <div id="modalCambiarPin" class="modalOverlay oculto">
 
     <div class="modalCard" style="max-width:420px;">
@@ -2637,12 +2799,153 @@ function crearTarjetaIglesia(iglesia){
 }
 
 
-function abrirUsuariosIglesia(id){
+async function abrirUsuariosIglesia(id){
 
-    mostrarAlerta(
-        "👥",
-        "Esta función estará disponible en el siguiente paso."
+    try{
+
+        showBusy(
+            "Cargando...",
+            "Usuarios"
+        );
+
+        const usuarios =
+            await cargarUsuariosAdmin(id);
+
+        App.adminUsuarios =
+            usuarios;
+
+        App.adminIglesia =
+            id;
+
+        document
+            .getElementById(
+                "usuariosAdminScreen"
+            )
+            .classList.add(
+                "active"
+            );
+
+        pintarUsuariosAdmin(
+            usuarios
+        );
+
+    }
+    finally{
+
+        hideBusy();
+
+    }
+
+}
+
+
+
+
+
+async function cargarUsuariosAdmin(iglesiaId){
+
+    const { data,error } =
+    await supabase.rpc(
+
+        "listar_usuarios_iglesia_admin",
+
+        {
+
+            p_iglesia_id: iglesiaId
+
+        }
+
     );
+
+    if(error) throw error;
+
+    return data || [];
+
+}
+
+
+
+function cerrarUsuariosAdmin(){
+
+    document
+
+        .getElementById(
+
+            "usuariosAdminScreen"
+
+        )
+
+        .classList.remove(
+
+            "active"
+
+        );
+
+}
+
+
+
+
+function pintarUsuariosAdmin(usuarios){
+
+    const cont =
+    document.getElementById(
+        "listaUsuariosAdmin"
+    );
+
+    cont.innerHTML="";
+
+    usuarios.forEach(u=>{
+
+        cont.innerHTML += `
+
+        <div class="tarjetaIglesia">
+
+            <h3>
+
+                👤
+
+                ${escapeHTML(
+                    u.nombre
+                )}
+
+            </h3>
+
+            <div>
+
+                📧
+
+                ${escapeHTML(
+                    u.correo
+                )}
+
+            </div>
+
+            <div>
+
+                💼
+
+                ${escapeHTML(
+                    u.cargo || "-"
+                )}
+
+            </div>
+
+            <div>
+
+                🛡️
+
+                ${escapeHTML(
+                    u.rol
+                )}
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
 
 }
 
