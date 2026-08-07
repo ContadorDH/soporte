@@ -2382,56 +2382,168 @@ function actualizarMenuSuperAdmin(){
 
 async function abrirPanelSuperAdmin(){
 
-    const iglesias = await cargarIglesiasAdmin();
+    showBusy(
+        "Cargando...",
+        "Centro de Administración"
+    );
 
-    const cont = document.getElementById("listaIglesiasAdmin");
+    try{
 
-    cont.innerHTML = "";
+        const iglesias = await cargarIglesiasAdmin();
 
-    iglesias.forEach(i=>{
+        pintarIglesiasAdmin(iglesias);
 
-        cont.innerHTML += `
+        document
+            .getElementById("superAdminScreen")
+            .classList.add("active");
 
-        <div class="row" style="margin-bottom:12px;">
+    }
+    catch(err){
 
-            <strong>${i.nombre}</strong><br>
+        console.error(err);
 
-            Código: ${i.codigo}
+        mostrarAlerta(
+            "❌",
+            "No fue posible cargar las iglesias."
+        );
 
-            <div style="margin-top:8px;display:flex;gap:8px;">
+    }
+    finally{
 
-                <button
-                    onclick="cambiarPinIglesia('${i.id}')">
+        hideBusy();
 
-                    🔑 Cambiar código de registro
-
-                </button>
-
-            </div>
-
-        </div>
-
-        `;
-
-    });
-
-    document
-.getElementById("modalSuperAdmin")
-.classList.remove("oculto");
+    }
 
 }
-
 
 
 function cerrarPanelSuperAdmin(){
 
     document
-    .getElementById("modalSuperAdmin")
-    .classList.add("oculto");
+        .getElementById("superAdminScreen")
+        .classList.remove("active");
 
 }
 
 
+
+
+function pintarIglesiasAdmin(iglesias){
+
+    const cont =
+        document.getElementById(
+            "contenedorIglesiasAdmin"
+        );
+
+    cont.innerHTML = "";
+
+    iglesias.forEach(iglesia=>{
+
+        cont.appendChild(
+
+            crearTarjetaIglesia(
+                iglesia
+            )
+
+        );
+
+    });
+
+}
+
+
+
+function crearTarjetaIglesia(iglesia){
+
+    const card =
+        document.createElement("div");
+
+    card.className =
+        "tarjetaIglesia";
+
+    card.innerHTML = `
+
+        <h3>
+
+            🏛 ${escapeHTML(iglesia.nombre)}
+
+        </h3>
+
+        <div class="tarjetaCodigo">
+
+            🔑 Código:
+            <strong>
+
+                ${escapeHTML(iglesia.codigo)}
+
+            </strong>
+
+        </div>
+
+        <div
+            style="
+                margin-top:12px;
+                color:var(--muted);
+                font-size:.92rem;
+            ">
+
+            ID:
+            ${escapeHTML(iglesia.id)}
+
+        </div>
+
+        <div class="accionesIglesia">
+
+            <button
+                onclick="abrirUsuariosIglesia('${iglesia.id}')">
+
+                👥 Usuarios
+
+            </button>
+
+            <button
+                onclick="cambiarPinIglesia('${iglesia.id}')">
+
+                🔑 Código
+
+            </button>
+
+            <button
+                onclick="entrarComoIglesia('${iglesia.id}')">
+
+                ➡️ Entrar
+
+            </button>
+
+        </div>
+
+    `;
+
+    return card;
+
+}
+
+
+
+function abrirUsuariosIglesia(id){
+
+    mostrarAlerta(
+        "👥",
+        "Esta función estará disponible en el siguiente paso."
+    );
+
+}
+
+
+
+function entrarComoIglesia(id){
+
+    mostrarAlerta(
+        "🏛",
+        "Esta función estará disponible en el siguiente paso."
+    );
+
+}
 
 function obtenerVersionesCodigoRegistro(){
 
