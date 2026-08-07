@@ -2,7 +2,7 @@
   "name": "Asistencia IPUC Bochica Sur",
   "short_name": "AsistenciaIPUC",
   "description": "Aplicación de asistencia para IPUC Bochica Sur",
-  "start_url": "contadorDHpc.html",
+  "start_url": "contadorDH.html",
   "display": "standalone",
   "background_color": "#0a5c30",
   "theme_color": "#0a5c30",
