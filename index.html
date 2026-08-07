@@ -3319,7 +3319,7 @@ async function descargarMesXLSX(){
         }
 
         const { data, error } = await supabase
-            .from("vista_asistencias")
+           .from("asistencias")
             .select("*")
             .order("fecha",{ascending:true});
 
@@ -3425,9 +3425,7 @@ try{
 
 console.log(data);
 
-console.log(data);
 
-            console.log(data);
 
         if(error){
 
@@ -3579,6 +3577,11 @@ onclick="eliminarAsistencia('${r.id}')">
     }
 
 }
+
+
+
+
+
 async function compartirRegistro(usuarioEnc, fechaEnc, h, hm, am, ad, ni, tot){
   try{
     const usuario = decodeURIComponent(usuarioEnc);
