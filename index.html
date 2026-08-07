@@ -3092,8 +3092,17 @@ async function guardarNuevaPassword(){
             window.location.pathname
         );
 
-        // Cerrar sesión temporal
-        await supabase.auth.signOut();
+        // Cerrar sesión temporal (solo local, ver nota en cerrarSesion())
+        try{
+            await supabase.auth.signOut({ scope: 'local' });
+        }catch(e){
+            console.error("Aviso cerrando sesión temporal:", e);
+        }
+        try{
+            Object.keys(localStorage)
+                .filter(k => k.startsWith("sb-"))
+                .forEach(k => localStorage.removeItem(k));
+        }catch(e){}
 
         App.session = null;
         App.usuario = null;
@@ -3182,18 +3191,44 @@ async function cerrarSesion(){
 
             try{
 
-                // Cerrar sesión en Supabase
-                await supabase.auth.signOut();
+                // Cerrar sesión SOLO localmente (scope:'local').
+                // No dependemos del endpoint /auth/v1/logout?scope=global,
+                // que a veces responde 403 si el token ya quedó inválido
+                // en el servidor (sesión vieja, ya usada, etc). Con
+                // scope:'local' Supabase borra el token guardado en este
+                // navegador sin necesitar esa llamada al servidor.
+                const { error } = await supabase.auth.signOut({ scope: 'local' });
+
+                if(error){
+                    console.error("Aviso al cerrar sesión (se continúa igual):", error);
+                }
+
+            }
+            catch(err){
+
+                console.error("Error inesperado cerrando sesión (se continúa igual):", err);
+
+            }
+            finally{
+
+                // Pase lo que pase arriba, esto SIEMPRE se ejecuta,
+                // para que la app nunca quede "atascada" con sesión.
+
+                // Respaldo extra: borrar a mano cualquier token de
+                // Supabase que haya quedado en localStorage.
+                try{
+                    Object.keys(localStorage)
+                        .filter(k => k.startsWith("sb-"))
+                        .forEach(k => localStorage.removeItem(k));
+                }catch(e){
+                    console.error("No se pudo limpiar localStorage:", e);
+                }
 
                 // Limpiar objeto global
                 App.session = null;
                 App.usuario = null;
                 App.perfil = null;
                 App.iglesia = null;
-
-             
-
-             
 
                 // Limpiar formulario
                 document.getElementById("loginCorreo").value = "";
@@ -3217,16 +3252,6 @@ async function cerrarSesion(){
                 mostrarAlerta(
                     "✅",
                     "Sesión cerrada correctamente DH."
-                );
-
-            }
-            catch(err){
-
-                console.error(err);
-
-                mostrarAlerta(
-                    "❌",
-                    "No fue posible cerrar la sesión."
                 );
 
             }
@@ -4195,13 +4220,6 @@ console.log(window.location.search);
        // 1. Inicializar Supabase
 const haySesion = await inicializarSupabase();
 
-supabase.auth.onAuthStateChange(async (event, session)=>{
-
-    console.log("===== AUTH EVENT =====");
-    console.log(event);
-
-});
-
 const hash = window.location.hash;
 
 if(hash.includes("type=recovery")){
@@ -4209,6 +4227,17 @@ if(hash.includes("type=recovery")){
     console.log("Modo recuperación detectado.");
 
     abrirNuevaPassword();
+
+    // IMPORTANTE: limpiar el hash de la URL AHORA MISMO.
+    // Si no se limpia aquí, cada vez que se recargue esta pestaña
+    // (aunque el usuario haya cerrado sesión) Supabase vuelve a leer
+    // el access_token/refresh_token que quedó en la URL y crea una
+    // sesión nueva automáticamente. Por eso "revivía" la sesión.
+    history.replaceState(
+        {},
+        document.title,
+        window.location.pathname
+    );
 
 }
 
