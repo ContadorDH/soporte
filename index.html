@@ -3919,7 +3919,7 @@ title="Compartir"
 
 onclick="compartirRegistro(
 
-'${encodeURIComponent(r.usuario)}',
+'${encodeURIComponent( r.perfiles?.nombre || "Sin nombre")}',
 
 '${encodeURIComponent(fecha)}',
 
