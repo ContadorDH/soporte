@@ -2838,6 +2838,82 @@ console.log(App.iglesia);
 
 
 
+async function recuperarPassword(){
+
+    const correo = document
+        .getElementById("recuperarCorreo")
+        .value
+        .trim()
+        .toLowerCase();
+
+    if(!correo){
+
+        mostrarAlerta(
+            "⚠️",
+            "Ingresa tu correo electrónico."
+        );
+
+        return;
+
+    }
+
+    showBusy(
+        "Enviando enlace...",
+        "Espera un momento"
+    );
+
+    try{
+
+        const { error } =
+        await supabase.auth.resetPasswordForEmail(
+            correo,
+            {
+                redirectTo:
+                "https://contadordh.github.io/soporte/"
+            }
+        );
+
+        hideBusy();
+
+        if(error){
+
+            console.error(error);
+
+            mostrarAlerta(
+                "❌",
+                error.message
+            );
+
+            return;
+
+        }
+
+        cerrarModalRecuperarPassword();
+
+        mostrarAlerta(
+            "✅",
+            "Si existe una cuenta con ese correo, hemos enviado un enlace para restablecer la contraseña. Revisa también la carpeta de correo no deseado."
+        );
+
+    }
+    catch(err){
+
+        hideBusy();
+
+        console.error(err);
+
+        mostrarAlerta(
+            "❌",
+            "No fue posible enviar el correo de recuperación."
+        );
+
+    }
+
+}
+
+
+
+
 // 🎨 Función para cambiar el tema
 function changeTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
