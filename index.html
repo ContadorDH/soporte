@@ -2599,13 +2599,13 @@ Cancelar
 
         </div>
 
-        <button
-            id="btnGuardarUsuario">
+   <button
+    id="btnGuardarUsuario"
+    onclick="guardarUsuarioAdmin()">
 
-            💾 Guardar cambios
+    💾 Guardar cambios
 
-        </button>
-
+</button>
     </div>
 
 </section>
@@ -3358,6 +3358,91 @@ function editarUsuarioAdmin(id){
 
 }
 
+
+
+
+async function guardarUsuarioAdmin(){
+
+    const u = App.usuarioEditando;
+
+    if(!u) return;
+
+    showBusy(
+        "Guardando...",
+        "Usuario"
+    );
+
+    try{
+
+        const { error } = await supabase.rpc(
+
+            "editar_usuario_admin",
+
+            {
+
+                p_usuario_id : u.id,
+
+                p_nombre : editNombre.value.trim(),
+
+                p_telefono : editTelefono.value.trim(),
+
+                p_cargo : editCargo.value.trim(),
+
+                p_rol : editRol.value,
+
+                p_estado : editEstado.value
+
+            }
+
+        );
+
+        if(error) throw error;
+
+        u.nombre = editNombre.value.trim();
+
+        u.telefono = editTelefono.value.trim();
+
+        u.cargo = editCargo.value.trim();
+
+        u.rol = editRol.value;
+
+        u.estado = editEstado.value;
+
+        pintarUsuariosAdmin(
+            App.adminUsuarios
+        );
+
+        cerrarEditarUsuario();
+
+        mostrarAlerta(
+
+            "✅",
+
+            "Usuario actualizado correctamente."
+
+        );
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        mostrarAlerta(
+
+            "❌",
+
+            err.message
+
+        );
+
+    }
+    finally{
+
+        hideBusy();
+
+    }
+
+}
 
 function cerrarEditarUsuario(){
 
