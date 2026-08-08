@@ -3819,45 +3819,229 @@ if(error){
 /* ===========================================================
    SUPABASE
 =========================================================== */
-
 async function inicializarSupabase() {
 
     try {
 
-        const { data, error } = await conLimiteDeTiempo(
+        const resultado = await conLimiteDeTiempo(
             supabase.auth.getSession(),
             6000,
-            { data: { session: null }, error: null },
+            null,
             "obtener sesión (getSession)"
         );
 
-        if (error) throw error;
+        // Error real de Supabase
+        if (resultado?.error) {
 
-        App.session = data.session;
-        App.usuario = data.session?.user ?? null;
+            console.error(
+                "Error obteniendo sesión:",
+                resultado.error
+            );
 
-        if (!App.session) {
-            console.log("Sin sesión iniciada");
-            return false;
+            return null;
+
         }
 
-        console.log("Sesión encontrada:", App.usuario?.email);
+        // No respondió a tiempo.
+        // Esto NO significa que no exista sesión.
+        if (!resultado || !resultado.data) {
 
-        return true;
+            console.warn(
+                "⚠️ No se pudo obtener la sesión inmediatamente."
+            );
 
-    } catch (err) {
+            return null;
 
-        console.error("Error iniciando Supabase:", err);
+        }
+
+        const session = resultado.data.session;
+
+        // Sesión encontrada
+        if (session) {
+
+            App.session = session;
+            App.usuario = session.user;
+
+            console.log(
+                "✅ Sesión encontrada:",
+                App.usuario?.email
+            );
+
+            return true;
+
+        }
+
+        // Supabase respondió correctamente
+        // y confirmó que no existe sesión.
+        App.session = null;
+        App.usuario = null;
+
+        console.log(
+            "ℹ️ Supabase confirmó que no existe sesión."
+        );
 
         return false;
+
+    }
+    catch (err) {
+
+        console.error(
+            "Error iniciando Supabase:",
+            err
+        );
+
+        // Error de red / timeout:
+        // NO asumir que el usuario cerró sesión.
+        return null;
 
     }
 
 }
 
 
+function escucharCambiosDeSesion(){
 
+    supabase.auth.onAuthStateChange(
+        async (event, session) => {
 
+            console.log(
+                "🔐 Cambio de autenticación:",
+                event
+            );
+
+            // ========================================================
+            // SESIÓN DISPONIBLE
+            // ========================================================
+
+            if(session){
+
+                App.session = session;
+                App.usuario = session.user;
+
+                console.log(
+                    "✅ Sesión activa:",
+                    App.usuario?.email
+                );
+
+                // Si el arranque normal ya está procesando
+                // esta sesión, no duplicamos el trabajo.
+                if(window._restaurandoSesionAuth){
+                    return;
+                }
+
+                // ====================================================
+                // RECUPERACIÓN DE CONTRASEÑA
+                // ====================================================
+
+                if(App.modoRecuperacion){
+                    return;
+                }
+
+                // ====================================================
+                // RESTAURACIÓN EN SEGUNDO PLANO
+                // ====================================================
+
+                window._restaurandoSesionAuth = true;
+
+                try{
+
+                    const perfil = await cargarPerfil();
+
+                    if(!perfil){
+                        console.warn(
+                            "⚠️ No se pudo cargar el perfil todavía."
+                        );
+                        return;
+                    }
+
+                    console.log(
+                        "✅ Perfil restaurado en segundo plano."
+                    );
+
+                    aplicarTituloApp();
+
+                    actualizarMenuSuperAdmin();
+
+                    console.log(
+                        "Super Admin:",
+                        App.esSuperAdmin
+                    );
+
+                    console.log(
+                        "Usuario:",
+                        App.perfil?.nombre
+                    );
+
+                    console.log(
+                        "Rol:",
+                        App.perfil?.rol
+                    );
+
+                    const ok =
+                        await verificarCodigoRegistroActual();
+
+                    if(ok){
+
+                        document.getElementById(
+                            "loginScreen"
+                        ).style.display = "none";
+
+                        console.log(
+                            "✅ Sesión restaurada correctamente."
+                        );
+
+                    }else{
+
+                        console.warn(
+                            "⚠️ No se pudo validar el código de registro."
+                        );
+
+                    }
+
+                }
+                catch(err){
+
+                    console.error(
+                        "Error restaurando sesión:",
+                        err
+                    );
+
+                }
+                finally{
+
+                    window._restaurandoSesionAuth = false;
+
+                }
+
+                return;
+            }
+
+            // ========================================================
+            // CIERRE DE SESIÓN REAL
+            // ========================================================
+
+            if(event === "SIGNED_OUT"){
+
+                console.log(
+                    "🚪 Supabase confirmó cierre de sesión."
+                );
+
+                App.session = null;
+                App.usuario = null;
+                App.perfil = null;
+                App.iglesia = null;
+                App.esSuperAdmin = false;
+
+                document.getElementById(
+                    "loginScreen"
+                ).style.display = "flex";
+
+            }
+
+        }
+    );
+
+}
 
 async function cargarPerfil(){
 
@@ -5701,7 +5885,9 @@ console.log(window.location.search);
 const hash = window.location.hash;
 const esRecuperacion = hash.includes("type=recovery");
 
-       // 1. Inicializar Supabase
+escucharCambiosDeSesion();
+
+// 1. Inicializar Supabase
 const haySesion = await inicializarSupabase();
 
 if(esRecuperacion){
@@ -5723,8 +5909,9 @@ if(esRecuperacion){
 
 }
 
-// 2. Probar conexión
-await probarConexionSupabase();
+// 2. No probar conexión durante el arranque.
+// La autenticación no debe depender de una consulta adicional
+// a la tabla iglesias. Las consultas se harán cuando sean necesarias.
 
 // 3. Si es un link de recuperación, NUNCA se entra como si el
 // usuario hubiera iniciado sesión: se deja la pantalla de login
@@ -5774,33 +5961,51 @@ if(esRecuperacion){
 
     }
 
+}else if(haySesion === false){
+
+    // Supabase respondió correctamente y confirmó
+    // que realmente NO existe una sesión.
+    console.log("ℹ️ Supabase confirmó que no existe sesión.");
+
+    document.getElementById("loginScreen").style.display = "flex";
+
 }else{
 
-    console.log("ℹ️ No existe sesión.");
+    // ============================================================
+    // SESIÓN NO CONFIRMADA
+    // ============================================================
+    //
+    // Puede tratarse de una conexión lenta o de un timeout.
+    // NO mostramos el login porque todavía no sabemos si
+    // el usuario tiene una sesión persistida.
+    //
+    console.log(
+        "⏳ No fue posible confirmar la sesión todavía."
+    );
+
+    // Mantener la pantalla actual.
+    // No forzar login.
+}
+
+    // Inicializar aplicación
+    await initApp();
+
+}
+catch(err){
+
+    console.error("Error al iniciar la aplicación:");
+
+    console.error(err);
 
     document.getElementById("loginScreen").style.display = "flex";
 
 }
+finally{
 
-        // Inicializar aplicación
-        await initApp();
+    // El Splash SIEMPRE desaparece
+    ocultarSplash();
 
-    }
-    catch(err){
-
-        console.error("Error al iniciar la aplicación:");
-
-        console.error(err);
-
-        document.getElementById("loginScreen").style.display = "flex";
-
-    }
-    finally{
-
-        // El Splash SIEMPRE desaparece
-        ocultarSplash();
-
-    }
+}
 
 });
 </script>
