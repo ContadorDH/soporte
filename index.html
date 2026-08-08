@@ -886,8 +886,8 @@ body {
 /* Fuerza scroll en el contenido principal de la PWA */
 #principal{
 
-    height: calc(100vh - 64px) !important;   /* Compatibilidad */
-    height: calc(100dvh - 64px) !important;  /* Android moderno */
+    height: calc(100vh - 64px) !important;
+    height: calc(100dvh - 64px) !important;
 
     overflow-y: auto !important;
     overflow-x: hidden !important;
@@ -896,12 +896,12 @@ body {
 
     padding-bottom: max(20px, env(safe-area-inset-bottom));
 
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    align-items:center;
 
-    gap: 8px;
+    gap:8px;
 
 }
 
@@ -2350,11 +2350,14 @@ gap:8px;
     </div>
   </div>
 
- <div style="
-width:98%;
-margin-top:10px;
-margin-bottom:20px;
-flex-shrink:0;
+<div
+style="
+    width:98%;
+    margin-top:auto;
+    margin-bottom:0;
+    padding-top:12px;
+    padding-bottom:max(12px, env(safe-area-inset-bottom));
+    flex-shrink:0;
 ">
     <button 
       onclick="subirAsistencia()" 
