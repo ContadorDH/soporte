@@ -2736,8 +2736,6 @@ let deferredPrompt = null;
 
 let iglesiaSeleccionadaAdmin = null;
 
-let modoVerAdmin = false;
-
 
 /* ===========================================================
    SESIÓN
@@ -2935,13 +2933,7 @@ const App = {
 
     esSuperAdmin: false,
 
-    modoRecuperacion: false,
-
-    adminUsuarios: [],
-
-    usuarioEditando: null,
-
-    adminIglesia: null
+    modoRecuperacion: false
 
 };
 
@@ -2969,7 +2961,7 @@ async function abrirPanelSuperAdmin(){
 
         const iglesias = await cargarDashboardIglesias();
 
-      
+        App.dashboardIglesias = iglesias;
 
         pintarIglesiasAdmin(iglesias);
 
@@ -3006,10 +2998,58 @@ function cerrarPanelSuperAdmin(){
 }
 
 
+function actualizarModoSuperAdmin(){
+
+    const titulo = document.getElementById("nombreIglesia");
+
+    if(!titulo) return;
+
+    if(App.modoSuperAdmin){
+
+        titulo.innerHTML =
+
+            `${App.iglesia.nombre}
+            <br>
+            <small style="color:#d32f2f;">
+            👑 Modo Super Administrador
+            </small>`;
+
+    }else{
+
+        titulo.textContent = App.iglesia.nombre;
+
+    }
+
+}
 
 
 
 
+function salirModoSuperAdmin(){
+
+    if(!App.iglesiaOriginal) return;
+
+    App.iglesia = {
+
+        ...App.iglesiaOriginal
+
+    };
+
+    App.iglesiaOriginal = null;
+
+    App.modoSuperAdmin = false;
+
+    actualizarModoSuperAdmin();
+
+    mostrarAlerta(
+
+        "✅",
+
+        "Regresaste a tu iglesia."
+
+    );
+
+}
 
 
 async function cargarDashboardIglesias(){
@@ -3473,70 +3513,39 @@ function cerrarEditarUsuario(){
 
 async function entrarComoIglesia(id){
 
-    iglesiaSeleccionadaAdmin = id;
+    const iglesia = App.dashboardIglesias.find(
+        x => x.id === id
+    );
 
-    cerrarPanelSuperAdmin();
+    if(!iglesia) return;
 
-    abrirVerPantallaAdmin(id);
+    if(!App.iglesiaOriginal){
 
-}
-
-
-
-
-async function abrirVerPantallaAdmin(id){
-
-    modoVerAdmin = true;
-
-    iglesiaSeleccionadaAdmin = id;
-
-    const select = document.getElementById("selectMes");
-
-    if(select.options.length===0){
-
-        meses.forEach(m=>{
-
-            const o=document.createElement("option");
-
-            o.value=m;
-
-            o.text=m;
-
-            select.appendChild(o);
-
-        });
+        App.iglesiaOriginal = {...App.iglesia};
 
     }
 
-    select.value = mesActual;
+    App.iglesia = {
 
-const iglesia = await cargarIglesiasAdmin();
+        id: iglesia.id,
 
-const info = iglesia.find(i => i.id === id);
+        nombre: iglesia.nombre,
 
-document.getElementById("tituloMes").innerHTML = `
+        codigo: iglesia.codigo
 
-    🏛 ${escapeHTML(info?.nombre || "Iglesia")}
+    };
 
-    <br>
+    App.modoSuperAdmin = true;
 
-    <small style="font-size:.9rem;font-weight:500;opacity:.8;">
+    cerrarPanelSuperAdmin();
 
-        Vista del Super Administrador
+    actualizarModoSuperAdmin();
 
-    </small>
+    mostrarAlerta(
 
-`;
+        "🏛",
 
-    document
-        .getElementById("verPantalla")
-        .classList.add("active");
-
-    await verAsistenciaAdmin(
-
-        iglesiaSeleccionadaAdmin,
-
-        mesActual
+        `Ahora administras ${iglesia.nombre}`
 
     );
 
@@ -4879,30 +4888,19 @@ function cerrarModalRecuperarPassword(){
 
 function aplicarTituloApp(){
 
+    const nombreIglesia =
+        App.iglesia?.nombre || "Asistencia";
+
+    const titulo =
+        `📋 ${nombreIglesia}`;
+
     const el = document.getElementById("appTitleText");
 
-    if(!el) return;
-
-    if(App.modoSuperAdmin){
-
-        el.innerHTML = `
-            👑 Administrando:
-            <strong>${escapeHTML(App.iglesia?.nombre || "")}</strong>
-        `;
-
-        document.title =
-            `👑 ${App.iglesia?.nombre || "Super Administrador"}`;
-
-    }else{
-
-        const nombre =
-            App.iglesia?.nombre || "Asistencia";
-
-        el.textContent = `📋 ${nombre}`;
-
-        document.title = nombre;
-
+    if(el){
+        el.textContent = titulo;
     }
+
+    document.title = nombreIglesia;
 
 }
 
@@ -5197,80 +5195,18 @@ function abrirVerPantalla(){
   document.getElementById('verPantalla').classList.add('active');
   verAsistencia(select.value);
 }
-
-
-
 function cerrarVerPantalla(){
-
-    modoVerAdmin = false;
-
-    iglesiaSeleccionadaAdmin = null;
-
-    document
-        .getElementById("verPantalla")
-        .classList.remove("active");
-
+  document.getElementById('verPantalla').classList.remove('active');
 }
-
-
-
 function mesSeleccionado(){
-
-    const mes =
-        document.getElementById("selectMes").value;
-
-    mesActual = mes;
-
-    document.getElementById("tituloMes").textContent =
-        "Asistencia de: " + mes;
-
-    if(modoVerAdmin){
-
-        verAsistenciaAdmin(
-
-            iglesiaSeleccionadaAdmin,
-
-            mes
-
-        );
-
-    }else{
-
-        verAsistencia(mes);
-
-    }
-
+  const select=document.getElementById('selectMes');
+  mesActual=select.value;
+  document.getElementById('tituloMes').textContent='Asistencia de: '+mesActual;
+  verAsistencia(mesActual);
 }
-
-
-
 function refrescarMes(){
-
-    if(modoVerAdmin){
-
-        verAsistenciaAdmin(
-
-            iglesiaSeleccionadaAdmin,
-
-            document.getElementById("selectMes").value
-
-        );
-
-    }else{
-
-        verAsistencia(
-
-            document.getElementById("selectMes").value
-
-        );
-
-    }
-
+  verAsistencia(document.getElementById('selectMes').value);
 }
-
-
-
-
 function showLoading(s){
   document.getElementById('loadingIndicator').style.display=s?'block':'none';
 }
@@ -5390,254 +5326,178 @@ async function descargarMesXLSX(){
   
 async function verAsistencia(mes){
 
-    showLoading(true);
 
-    const listado=document.getElementById("listado");
 
-    listado.innerHTML="";
+showLoading(true);
 
-    try{
+const listado = document.getElementById("listado");
+listado.innerHTML = "";
 
-        const { data,error }=await supabase
+try{
 
-            .from("asistencias")
+    console.log("===== VER ASISTENCIA =====");
+    console.log("Usuario autenticado:", App.usuario?.id);
+    console.log("Perfil:", App.perfil?.id);
+    console.log("Iglesia perfil:", App.perfil?.iglesia_id);
+    console.log("Iglesia objeto:", App.iglesia?.id);
 
-            .select(`
-                *,
-                perfiles!usuario_id(
-                    nombre
-                )
-            `)
+const { data, error } = await supabase
+    .from("asistencias")
+    .select(`
+        *,
+        perfiles!usuario_id (
+            nombre
+        )
+    `)
+    .order("fecha", { ascending:false });
 
-            .order("fecha",{
-                ascending:false
-            });
+console.log(data);
 
-        if(error) throw error;
 
-        const filas=data.filter(r=>{
 
-            const fecha=new Date(r.fecha);
+        if(error){
 
-            return meses[
-                fecha.getMonth()
-            ]===mes;
+            console.error(error);
+
+            listado.innerHTML = `<div class="row">⚠️ Error obteniendo datos.</div>`;
+
+            return;
+
+        }
+
+        // Filtrar por mes
+        const filas = data.filter(r=>{
+
+            const fecha = new Date(r.fecha);
+
+            return meses[fecha.getMonth()] === mes;
 
         });
 
-        pintarTablaAsistencia(filas);
+        if(filas.length===0){
 
-    }
-    catch(e){
+            listado.innerHTML = `<div class="row">⚠️ No hay registros en ${mes}.</div>`;
 
-        console.error(e);
+            return;
 
-        listado.innerHTML=`
-        <div class="row">
-            ⚠️ Error obteniendo datos.
-        </div>`;
+        }
 
-    }
-    finally{
+        listado.innerHTML = filas.map(r=>{
 
-        showLoading(false);
+            const fecha = new Date(r.fecha).toLocaleString("es-CO");
 
-    }
+            const esPropio = App.perfil && App.perfil.id === r.usuario_id;
 
-}
+           const usuarioEsc = escapeHTML(
+    r.perfiles?.nombre || "Sin nombre"
+);
+            const fechaEsc = escapeHTML(fecha);
 
-
-
-
-function pintarTablaAsistencia(filas){
-
-    const listado = document.getElementById("listado");
-
-    if(filas.length===0){
-
-        listado.innerHTML=`<div class="row">⚠️ No hay registros.</div>`;
-
-        return;
-
-    }
-
-    listado.innerHTML=filas.map(r=>{
-
-        const fecha=new Date(r.fecha).toLocaleString("es-CO");
-
-     const puedeEliminar =
-
-    App.esSuperAdmin ||
-
-    (
-
-        App.perfil &&
-        App.perfil.id===r.usuario_id
-
-    );
-
-        const usuarioEsc=
-            escapeHTML(
-                r.perfiles?.nombre || "Sin nombre"
-            );
-
-        const fechaEsc=
-            escapeHTML(fecha);
-
-        return `
+            return `
 
 <div class="row">
 
-    <div>
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
 
-        <strong>👤 ${usuarioEsc}</strong><br>
+<div style="flex:1;min-width:0;">
 
-        <small>📅 ${fechaEsc}</small>
+<strong>👤 ${usuarioEsc}</strong>
 
-    </div>
+<small>📅 ${fechaEsc}</small>
 
-    <button
+</div>
 
-        title="Compartir"
+<button
 
-        onclick="compartirRegistro(
+title="Compartir"
 
-            '${encodeURIComponent(usuarioEsc)}',
+onclick="compartirRegistro(
 
-            '${encodeURIComponent(fecha)}',
+'${encodeURIComponent(r.usuario)}',
 
-            '${r.hermanos}',
+'${encodeURIComponent(fecha)}',
 
-            '${r.hermanas}',
+'${r.hermanos}',
 
-            '${r.amigos}',
+'${r.hermanas}',
 
-            '${r.adolescentes}',
+'${r.amigos}',
 
-            '${r.ninos}',
+'${r.adolescentes}',
 
-            '${r.total}'
+'${r.ninos}',
 
-        )"
+'${r.total}'
 
-        style="
-            width:40px;
-            height:40px;
-            border-radius:50%;
-            border:none;
-            background:linear-gradient(135deg,var(--primary-dark),var(--primary));
-            color:#fff;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            cursor:pointer;
-            box-shadow:0 4px 10px rgba(0,0,0,.25);
-        ">
+)"
 
-        📤
+style="
+width:40px;
+height:40px;
+border-radius:50%;
+border:none;
+background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+color:#fff;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+box-shadow:0 4px 10px rgba(0,0,0,.25);
+">
 
-    </button>
+<i class="fas fa-share-alt"></i>
 
-    <div class="stats">
+</button>
 
-        <div>🙋‍♂️ ${r.hermanos}</div>
+</div>
 
-        <div>🙋‍♀️ ${r.hermanas}</div>
+<div style="margin-top:8px">
 
-        <div>🤝 ${r.amigos}</div>
+🙋‍♂️ ${r.hermanos}
+🙋‍♀️ ${r.hermanas}
+🤝 ${r.amigos}
+👧 ${r.adolescentes}
+🧒 ${r.ninos}
 
-        <div>👧 ${r.adolescentes}</div>
+</div>
 
-        <div>🧒 ${r.ninos}</div>
+<small>
 
-    </div>
+🔢 Total:
+<strong>${r.total}</strong>
 
-    <strong>
+</small>
 
-        🔢 Total: ${r.total}
+${
+esPropio
+?
 
-    </strong>
+`<button
+style="margin-top:8px;background:#ff4444;color:#fff;border:0;padding:6px 10px;border-radius:8px;cursor:pointer"
+onclick="eliminarAsistencia('${r.id}')">
 
-    ${
-       puedeEliminar
-        ?
+🗑️ Eliminar
 
-        `
-        <button
-            class="danger"
-            onclick="eliminarRegistro('${r.id}')">
+</button>`
 
-            🗑️ Eliminar
+:
 
-        </button>
-        `
+""
 
-        :
-
-        ""
-
-    }
+}
 
 </div>
 
 `;
 
-    }).join("");
-
-}
-
-
-
-async function verAsistenciaAdmin(iglesiaId,mes){
-
-    showLoading(true);
-
-    const listado=document.getElementById("listado");
-
-    listado.innerHTML="";
-
-    try{
-
-        const { data,error }=await supabase
-
-            .from("asistencias")
-
-            .select(`
-                *,
-                perfiles!usuario_id(
-                    nombre
-                )
-            `)
-
-            .eq("iglesia_id",iglesiaId)
-
-            .order("fecha",{
-                ascending:false
-            });
-
-        if(error) throw error;
-
-        const filas=data.filter(r=>{
-
-            const fecha=new Date(r.fecha);
-
-            return meses[
-                fecha.getMonth()
-            ]===mes;
-
-        });
-
-        pintarTablaAsistencia(filas);
+        }).join("");
 
     }
     catch(e){
 
         console.error(e);
 
-        listado.innerHTML=`
-        <div class="row">
-            ⚠️ Error obteniendo datos.
-        </div>`;
+        listado.innerHTML = `<div class="row">⚠️ Error obteniendo datos.</div>`;
 
     }
     finally{
@@ -5650,66 +5510,6 @@ async function verAsistenciaAdmin(iglesiaId,mes){
 
 
 
-
-async function verAsistenciaAdmin(iglesiaId, mes){
-
-    try{
-
-        showBusy(
-            "Cargando...",
-            "Asistencia"
-        );
-
-        const { data, error } = await supabase
-
-            .from("asistencias")
-
-            .select(`
-                *,
-                perfiles!usuario_id(
-                    nombre
-                )
-            `)
-
-            .eq("iglesia_id", iglesiaId)
-
-            .order("fecha",{
-                ascending:false
-            });
-
-        if(error) throw error;
-
-        const filas = data.filter(r=>{
-
-            const f = new Date(r.fecha);
-
-            return meses[f.getMonth()]===mes;
-
-        });
-
-        pintarTablaAsistencia(filas);
-
-    }
-    catch(err){
-
-        console.error(err);
-
-        mostrarAlerta(
-
-            "❌",
-
-            err.message
-
-        );
-
-    }
-    finally{
-
-        hideBusy();
-
-    }
-
-}
 
 
 async function compartirRegistro(usuarioEnc, fechaEnc, h, hm, am, ad, ni, tot){
@@ -5746,6 +5546,7 @@ Total: ${tot}`;
 }
 /* === ELIMINAR ASISTENCIA (SUPABASE) === */
 async function eliminarAsistencia(id){
+ 
 
     mostrarPopupConfirm(
 
@@ -5789,23 +5590,10 @@ async function eliminarAsistencia(id){
                         "Registro eliminado correctamente."
                     );
 
-                    const mes =
-                        document.getElementById("selectMes")?.value || mesActual;
+                    // Recargar el mes actual
+                    const mes = document.getElementById("selectMes")?.value || mesActual;
 
-                    // ✅ Si el visor fue abierto desde el Super Administrador
-                    if(modoVerAdmin){
-
-                        await verAsistenciaAdmin(
-                            iglesiaSeleccionadaAdmin,
-                            mes
-                        );
-
-                    }else{
-
-                        // ✅ Vista normal
-                        await verAsistencia(mes);
-
-                    }
+                    await verAsistencia(mes);
 
                 }else{
 
