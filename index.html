@@ -2340,18 +2340,7 @@ Cancelar
     </div>
   </div>
 
-  <div style="
-    text-align: center;
-    width: 98%;
-    margin: 2px 0;
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
-    flex-shrink: 0;
-    background: var(--bg);
-    padding-top: 6px;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  ">
+  <div style="text-align: center; width: 98%; margin: 2px 0;">
     <button 
       onclick="subirAsistencia()" 
       id="btn-subir"
@@ -2367,9 +2356,6 @@ Cancelar
         width: 100%;
         box-shadow: 0 3px 8px rgba(0,0,0,0.2);
         white-space: nowrap;
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
       "
     >📤 Subir asistencia</button>
   </div>
@@ -4543,39 +4529,23 @@ function changeTheme(theme) {
 }
 
 
- function refrescarPagina() {
-  try {
-    // Mantener la sesión
- 
-    const theme = localStorage.getItem("theme");
+async function refrescarPagina(){
 
-    // Forzar limpieza de caché del sitio, pero sin cerrar sesión
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        Promise.all(names.map(name => caches.delete(name))).finally(() => {
-          // restaurar por seguridad
-        
-          if (theme !== null) localStorage.setItem("theme", theme);
+    if(navigator.serviceWorker){
 
-          // forzar nueva petición del HTML a GitHub
-          const url = new URL(window.location.href);
-          url.searchParams.set("_update", Date.now());
-          window.location.replace(url.toString());
-        });
-      });
-    } else {
-      const url = new URL(window.location.href);
-      url.searchParams.set("_update", Date.now());
-      window.location.replace(url.toString());
+        const reg = await navigator.serviceWorker.getRegistration();
+
+        if(reg){
+
+            await reg.update();
+
+        }
+
     }
-  } catch (e) {
-    console.error("Error al refrescar:", e);
-    const url = new URL(window.location.href);
-    url.searchParams.set("_update", Date.now());
-    window.location.replace(url.toString());
-  }
-}
 
+    location.reload();
+
+}
   
 
 
