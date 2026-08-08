@@ -2297,71 +2297,71 @@ overflow-y:auto;
 display:flex;
 flex-direction:column;
 align-items:center;
-justify-content:space-evenly;
-gap:10px;
-padding:10px 0;
+gap:clamp(4px, 1.2vh, 8px);
+padding:clamp(4px, 1vh, 8px) 0;
 ">
 
   <div class="totalCard" style="
-    font-size: 28px;
+    font-size: clamp(18px, 3.2vh, 24px);
     font-weight: 700;
     background: var(--card);
     border-radius: 10px;
-    padding: 8px 10px;
+    padding: clamp(4px, 1vh, 6px) 10px;
     width: 98%;
     text-align: center;
     margin: 2px 0;
+    flex: 0 0 auto;
   ">
-    Total asistencia: <span id="total" style="font-size: 3.5rem;">0</span>
+    Total asistencia: <span id="total" style="font-size: clamp(1.8rem, 4.6vh, 2.8rem);">0</span>
   </div>
 
   <!-- Tarjeta Hermanos -->
-  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 12px 0; text-align: center;">
-    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Hermanos</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
-      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanos', -1)">−</button>
-      <div class="value" id="hermanos" style="font-size: 2.5rem; font-weight: 700;">0</div>
-      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanos', 1)">+</button>
+  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center; flex:1 1 0; min-height:0; display:flex; flex-direction:column; justify-content:center; overflow:hidden;">
+    <div class="label" style="font-size: clamp(0.8rem, 2.6vh, 1.05rem); font-weight: 600; margin-bottom: clamp(2px,0.6vh,6px);">Hermanos</div>
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: clamp(14px, 6vw, 24px);"> <!-- Aumentado de 6px a 36vw con límite máximo -->
+      <button class="counterBtn minus" style="width: clamp(42px, 7.5vh, 58px); height: clamp(42px, 7.5vh, 58px); border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: clamp(1.4rem, 3.4vh, 2rem);" onclick="changeCount('hermanos', -1)">−</button>
+      <div class="value" id="hermanos" style="font-size: clamp(1.3rem, 3.6vh, 2rem); font-weight: 700;">0</div>
+      <button class="counterBtn plus" style="width: clamp(42px, 7.5vh, 58px); height: clamp(42px, 7.5vh, 58px); border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: clamp(1.4rem, 3.4vh, 2rem);" onclick="changeCount('hermanos', 1)">+</button>
     </div>
   </div>
 
   <!-- Tarjeta Hermanas -->
-  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 12px 0; text-align: center;">
-    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Hermanas</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
-      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanas', -1)">−</button>
-      <div class="value" id="hermanas" style="font-size: 2.5rem; font-weight: 700;">0</div>
-      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('hermanas', 1)">+</button>
+  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center; flex:1 1 0; min-height:0; display:flex; flex-direction:column; justify-content:center; overflow:hidden;">
+    <div class="label" style="font-size: clamp(0.8rem, 2.6vh, 1.05rem); font-weight: 600; margin-bottom: clamp(2px,0.6vh,6px);">Hermanas</div>
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: clamp(14px, 6vw, 24px);"> <!-- Aumentado de 6px a 36vw con límite máximo -->
+      <button class="counterBtn minus" style="width: clamp(42px, 7.5vh, 58px); height: clamp(42px, 7.5vh, 58px); border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: clamp(1.4rem, 3.4vh, 2rem);" onclick="changeCount('hermanas', -1)">−</button>
+      <div class="value" id="hermanas" style="font-size: clamp(1.3rem, 3.6vh, 2rem); font-weight: 700;">0</div>
+      <button class="counterBtn plus" style="width: clamp(42px, 7.5vh, 58px); height: clamp(42px, 7.5vh, 58px); border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: clamp(1.4rem, 3.4vh, 2rem);" onclick="changeCount('hermanas', 1)">+</button>
     </div>
   </div>
 
   <!-- Tarjeta Amigos -->
-  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 12px 0; text-align: center;">
-    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Amigos</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
-      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('amigos', -1)">−</button>
-      <div class="value" id="amigos" style="font-size: 2.5rem; font-weight: 700;">0</div>
-      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('amigos', 1)">+</button>
+  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center; flex:1 1 0; min-height:0; display:flex; flex-direction:column; justify-content:center; overflow:hidden;">
+    <div class="label" style="font-size: clamp(0.8rem, 2.6vh, 1.05rem); font-weight: 600; margin-bottom: clamp(2px,0.6vh,6px);">Amigos</div>
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: clamp(14px, 6vw, 24px);"> <!-- Aumentado de 6px a 36vw con límite máximo -->
+      <button class="counterBtn minus" style="width: clamp(42px, 7.5vh, 58px); height: clamp(42px, 7.5vh, 58px); border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: clamp(1.4rem, 3.4vh, 2rem);" onclick="changeCount('amigos', -1)">−</button>
+      <div class="value" id="amigos" style="font-size: clamp(1.3rem, 3.6vh, 2rem); font-weight: 700;">0</div>
+      <button class="counterBtn plus" style="width: clamp(42px, 7.5vh, 58px); height: clamp(42px, 7.5vh, 58px); border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: clamp(1.4rem, 3.4vh, 2rem);" onclick="changeCount('amigos', 1)">+</button>
     </div>
   </div>
 
   <!-- Tarjeta Adolescentes -->
-  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 12px 0; text-align: center;">
-    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Adolescentes</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
-      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('adolescentes', -1)">−</button>
-      <div class="value" id="adolescentes" style="font-size: 2.5rem; font-weight: 700;">0</div>
-      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('adolescentes', 1)">+</button>
+  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center; flex:1 1 0; min-height:0; display:flex; flex-direction:column; justify-content:center; overflow:hidden;">
+    <div class="label" style="font-size: clamp(0.8rem, 2.6vh, 1.05rem); font-weight: 600; margin-bottom: clamp(2px,0.6vh,6px);">Adolescentes</div>
+    <div class="controls" style="display: flex; justify-content: center; align-items: center; gap: clamp(14px, 6vw, 24px);"> <!-- Aumentado de 6px a 36vw con límite máximo -->
+      <button class="counterBtn minus" style="width: clamp(42px, 7.5vh, 58px); height: clamp(42px, 7.5vh, 58px); border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: clamp(1.4rem, 3.4vh, 2rem);" onclick="changeCount('adolescentes', -1)">−</button>
+      <div class="value" id="adolescentes" style="font-size: clamp(1.3rem, 3.6vh, 2rem); font-weight: 700;">0</div>
+      <button class="counterBtn plus" style="width: clamp(42px, 7.5vh, 58px); height: clamp(42px, 7.5vh, 58px); border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: clamp(1.4rem, 3.4vh, 2rem);" onclick="changeCount('adolescentes', 1)">+</button>
     </div>
   </div>
 
   <!-- Tarjeta Niños -->
-  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 12px 0; text-align: center;">
-    <div class="label" style="font-size: 1.2rem; font-weight: 600;">Niños</div>
-    <div class="controls" style="display: flex; justify-content: center; align-items: center;gap: 30px;"> <!-- Aumentado de 6px a 36vw con límite máximo -->
-      <button class="counterBtn minus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('niños', -1)">−</button>
-      <div class="value" id="niños" style="font-size: 2.5rem; font-weight: 700;">0</div>
-      <button class="counterBtn plus" style="width: 70px; height: 70px; border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: 2.5rem;" onclick="changeCount('niños', 1)">+</button>
+  <div class="card" style="width: 98%; background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 4px 0; text-align: center; flex:1 1 0; min-height:0; display:flex; flex-direction:column; justify-content:center; overflow:hidden;">
+    <div class="label" style="font-size: clamp(0.8rem, 2.6vh, 1.05rem); font-weight: 600; margin-bottom: clamp(2px,0.6vh,6px);">Niños</div>
+    <div class="controls" style="display: flex; justify-content: center; align-items: center;gap: clamp(14px, 6vw, 24px);"> <!-- Aumentado de 6px a 36vw con límite máximo -->
+      <button class="counterBtn minus" style="width: clamp(42px, 7.5vh, 58px); height: clamp(42px, 7.5vh, 58px); border-radius: 50%; background: var(--button-minus); color: #fff; border: none; font-size: clamp(1.4rem, 3.4vh, 2rem);" onclick="changeCount('niños', -1)">−</button>
+      <div class="value" id="niños" style="font-size: clamp(1.3rem, 3.6vh, 2rem); font-weight: 700;">0</div>
+      <button class="counterBtn plus" style="width: clamp(42px, 7.5vh, 58px); height: clamp(42px, 7.5vh, 58px); border-radius: 50%; background: var(--button-plus); color: #fff; border: none; font-size: clamp(1.4rem, 3.4vh, 2rem);" onclick="changeCount('niños', 1)">+</button>
     </div>
   </div>
 
@@ -2370,8 +2370,8 @@ style="
     width:98%;
     margin-top:0;
     margin-bottom:0;
-    padding-bottom:calc(env(safe-area-inset-bottom) + 10px);
-    flex-shrink:0;
+    padding-bottom:calc(env(safe-area-inset-bottom) + 6px);
+    flex:0 0 auto;
 ">
     <button 
       onclick="subirAsistencia()" 
@@ -2380,10 +2380,10 @@ style="
         background: var(--primary);
         color: #fff;
         border: none;
-        padding: 12px 0;
+        padding: clamp(8px, 1.6vh, 10px) 0;
         border-radius: 12px;
         font-weight: 600;
-        font-size: 1.5rem;
+        font-size: clamp(1.05rem, 3vh, 1.3rem);
         cursor: pointer;
         width: 100%;
         box-shadow: 0 3px 8px rgba(0,0,0,0.2);
