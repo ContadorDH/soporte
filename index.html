@@ -883,12 +883,22 @@ body {
 }
 
 /* Tu main tiene overflow:hidden inline. Esto evita que se corte en pantallas bajas. */
-#principal {
-  height: calc(100vh - 64px) !important;   /* fallback */
-  height: calc(100dvh - 64px) !important;  /* moderno */
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
+/* Fuerza scroll en el contenido principal de la PWA */
+#principal{
+
+    height: calc(100dvh - 64px) !important;
+
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+
+    gap:8px;
+
+    padding-bottom:0;
+
 }
 
 /* Evita que los controles “revienten” en pantallas angostas */
@@ -2261,15 +2271,13 @@ Cancelar
 
 
 
-<main id="principal" style="
-  height: calc(100vh - 64px);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2px 0;
-  overflow: hidden;
-  gap: 2px;
+<main id="principal"
+style="
+height:calc(100dvh - 64px);
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:8px;
 ">
 
   <div class="totalCard" style="
@@ -2335,7 +2343,14 @@ Cancelar
     </div>
   </div>
 
-  <div style="text-align: center; width: 98%; margin: 2px 0;">
+<div
+style="
+    width:98%;
+    margin-top:8px;
+    margin-bottom:0;
+    padding-bottom:env(safe-area-inset-bottom);
+    flex-shrink:0;
+">
     <button 
       onclick="subirAsistencia()" 
       id="btn-subir"
