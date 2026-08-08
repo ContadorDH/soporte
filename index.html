@@ -3902,7 +3902,7 @@ async function inicializarSupabase() {
 function escucharCambiosDeSesion(){
 
     supabase.auth.onAuthStateChange(
-        async (event, session) => {
+        (event, session) => {
 
             console.log(
                 "🔐 Cambio de autenticación:",
@@ -3922,96 +3922,6 @@ function escucharCambiosDeSesion(){
                     "✅ Sesión activa:",
                     App.usuario?.email
                 );
-
-                // Si el arranque normal ya está procesando
-                // esta sesión, no duplicamos el trabajo.
-                if(window._restaurandoSesionAuth){
-                    return;
-                }
-
-                // ====================================================
-                // RECUPERACIÓN DE CONTRASEÑA
-                // ====================================================
-
-                if(App.modoRecuperacion){
-                    return;
-                }
-
-                // ====================================================
-                // RESTAURACIÓN EN SEGUNDO PLANO
-                // ====================================================
-
-                window._restaurandoSesionAuth = true;
-
-                try{
-
-                    const perfil = await cargarPerfil();
-
-                    if(!perfil){
-                        console.warn(
-                            "⚠️ No se pudo cargar el perfil todavía."
-                        );
-                        return;
-                    }
-
-                    console.log(
-                        "✅ Perfil restaurado en segundo plano."
-                    );
-
-                    aplicarTituloApp();
-
-                    actualizarMenuSuperAdmin();
-
-                    console.log(
-                        "Super Admin:",
-                        App.esSuperAdmin
-                    );
-
-                    console.log(
-                        "Usuario:",
-                        App.perfil?.nombre
-                    );
-
-                    console.log(
-                        "Rol:",
-                        App.perfil?.rol
-                    );
-
-                    const ok =
-                        await verificarCodigoRegistroActual();
-
-                    if(ok){
-
-                        document.getElementById(
-                            "loginScreen"
-                        ).style.display = "none";
-
-                        console.log(
-                            "✅ Sesión restaurada correctamente."
-                        );
-
-                    }else{
-
-                        console.warn(
-                            "⚠️ No se pudo validar el código de registro."
-                        );
-
-                    }
-
-                }
-                catch(err){
-
-                    console.error(
-                        "Error restaurando sesión:",
-                        err
-                    );
-
-                }
-                finally{
-
-                    window._restaurandoSesionAuth = false;
-
-                }
 
                 return;
             }
