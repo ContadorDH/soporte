@@ -2694,10 +2694,6 @@ Cancelar
    SUPABASE
 =========================================================== */
 
-
-
-
-
 const SUPABASE_URL = "https://cyplynvqtixvqsnybnzg.supabase.co";
 
 const SUPABASE_ANON_KEY = "sb_publishable_X-4qMIQpLdCOEx7Xi29joA_86kQOLxl";
@@ -2961,8 +2957,6 @@ async function abrirPanelSuperAdmin(){
 
         const iglesias = await cargarDashboardIglesias();
 
-        App.dashboardIglesias = iglesias;
-
         pintarIglesiasAdmin(iglesias);
 
         document
@@ -2997,59 +2991,6 @@ function cerrarPanelSuperAdmin(){
 
 }
 
-
-function actualizarModoSuperAdmin(){
-
-    const titulo = document.getElementById("nombreIglesia");
-
-    if(!titulo) return;
-
-    if(App.modoSuperAdmin){
-
-        titulo.innerHTML =
-
-            `${App.iglesia.nombre}
-            <br>
-            <small style="color:#d32f2f;">
-            👑 Modo Super Administrador
-            </small>`;
-
-    }else{
-
-        titulo.textContent = App.iglesia.nombre;
-
-    }
-
-}
-
-
-
-
-function salirModoSuperAdmin(){
-
-    if(!App.iglesiaOriginal) return;
-
-    App.iglesia = {
-
-        ...App.iglesiaOriginal
-
-    };
-
-    App.iglesiaOriginal = null;
-
-    App.modoSuperAdmin = false;
-
-    actualizarModoSuperAdmin();
-
-    mostrarAlerta(
-
-        "✅",
-
-        "Regresaste a tu iglesia."
-
-    );
-
-}
 
 
 async function cargarDashboardIglesias(){
@@ -3511,48 +3452,14 @@ function cerrarEditarUsuario(){
 
 
 
-async function entrarComoIglesia(id){
-
-    const iglesia = App.dashboardIglesias.find(
-        x => x.id === id
-    );
-
-    if(!iglesia) return;
-
-    if(!App.iglesiaOriginal){
-
-        App.iglesiaOriginal = {...App.iglesia};
-
-    }
-
-    App.iglesia = {
-
-        id: iglesia.id,
-
-        nombre: iglesia.nombre,
-
-        codigo: iglesia.codigo
-
-    };
-
-    App.modoSuperAdmin = true;
-
-    cerrarPanelSuperAdmin();
-
-    actualizarModoSuperAdmin();
+function entrarComoIglesia(id){
 
     mostrarAlerta(
-
         "🏛",
-
-        `Ahora administras ${iglesia.nombre}`
-
+        "Esta función estará disponible en el siguiente paso."
     );
 
 }
-
-
-
 
 function obtenerVersionesCodigoRegistro(){
 
