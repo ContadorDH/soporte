@@ -3,6 +3,19 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<script>
+  // Fix del bug de 100vh/100dvh en navegadores móviles:
+  // mide el alto REAL y visible de la ventana y lo guarda en --app-height
+  function setAppHeight() {
+    document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+  }
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
+  window.addEventListener('orientationchange', setAppHeight);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', setAppHeight);
+  }
+</script>
 
 <title>Asistencia Bochica Sur</title>
 
@@ -177,6 +190,7 @@
       color: var(--text);
       height: 100vh;
       height: 100dvh;
+      height: calc(var(--app-height, 100dvh));
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -2356,7 +2370,7 @@ style="
     width:98%;
     margin-top:0;
     margin-bottom:0;
-    padding-bottom:calc(env(safe-area-inset-bottom) + 14px);
+    padding-bottom:calc(env(safe-area-inset-bottom) + 10px);
     flex-shrink:0;
 ">
     <button 
