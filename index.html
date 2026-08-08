@@ -1689,6 +1689,86 @@ ADMINISTRAR USUARIOS
 }
 
 
+#editarUsuarioScreen{
+
+    position:fixed;
+
+    inset:0;
+
+    background:#f6f8fc;
+
+    display:none;
+
+    flex-direction:column;
+
+    z-index:10001;
+
+}
+
+#editarUsuarioScreen.active{
+
+    display:flex;
+
+}
+
+#editarUsuarioHeader{
+
+    background:var(--primary);
+
+    color:#fff;
+
+    padding:18px;
+
+}
+
+.editarUsuarioBody{
+
+    padding:24px;
+
+    overflow:auto;
+
+}
+
+.campo{
+
+    margin-bottom:18px;
+
+}
+
+.campo label{
+
+    display:block;
+
+    margin-bottom:6px;
+
+    font-weight:600;
+
+}
+
+.campo input,
+.campo select{
+
+    width:100%;
+
+    padding:12px;
+
+    border-radius:10px;
+
+    border:1px solid #ddd;
+
+}
+
+#btnGuardarUsuario{
+
+    width:100%;
+
+    margin-top:20px;
+
+}
+
+
+
+
 
 
   </style>
@@ -2424,6 +2504,116 @@ Cancelar
 
 
 
+<section id="editarUsuarioScreen">
+
+    <div id="editarUsuarioHeader">
+
+        <div class="left">
+
+            <button onclick="cerrarEditarUsuario()">
+                ←
+            </button>
+
+            <div>
+
+                <div class="titulo">
+                    Editar usuario
+                </div>
+
+                <small>
+                    Información del usuario
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="editarUsuarioBody">
+
+        <div class="campo">
+
+            <label>Nombre</label>
+
+            <input
+                id="editNombre">
+
+        </div>
+
+        <div class="campo">
+
+            <label>Correo</label>
+
+            <input
+                id="editCorreo"
+                disabled>
+
+        </div>
+
+        <div class="campo">
+
+            <label>Teléfono</label>
+
+            <input
+                id="editTelefono">
+
+        </div>
+
+        <div class="campo">
+
+            <label>Cargo</label>
+
+            <input
+                id="editCargo">
+
+        </div>
+
+        <div class="campo">
+
+            <label>Rol</label>
+
+            <select id="editRol">
+
+                <option value="usuario">Usuario</option>
+
+                <option value="administrador">Administrador</option>
+
+                <option value="superadmin">Super Administrador</option>
+
+            </select>
+
+        </div>
+
+        <div class="campo">
+
+            <label>Estado</label>
+
+            <select id="editEstado">
+
+                <option value="Activo">Activo</option>
+
+                <option value="Inactivo">Inactivo</option>
+
+            </select>
+
+        </div>
+
+        <button
+            id="btnGuardarUsuario">
+
+            💾 Guardar cambios
+
+        </button>
+
+    </div>
+
+</section>
+
+
+
+
+
 <div id="modalCambiarPin" class="modalOverlay oculto">
 
     <div class="modalCard" style="max-width:420px;">
@@ -3146,16 +3336,34 @@ function crearTarjetaUsuario(u){
 
 function editarUsuarioAdmin(id){
 
-    mostrarAlerta(
+    const u = App.adminUsuarios.find(x=>x.id===id);
 
-        "✏",
+    if(!u) return;
 
-        "En el siguiente paso abriremos el editor del usuario."
+    App.usuarioEditando = u;
 
-    );
+    editNombre.value = u.nombre || "";
+
+    editCorreo.value = u.correo || "";
+
+    editTelefono.value = u.telefono || "";
+
+    editCargo.value = u.cargo || "";
+
+    editRol.value = u.rol || "usuario";
+
+    editEstado.value = u.estado || "Activo";
+
+    editarUsuarioScreen.classList.add("active");
 
 }
 
+
+function cerrarEditarUsuario(){
+
+    editarUsuarioScreen.classList.remove("active");
+
+}
 
 
 
