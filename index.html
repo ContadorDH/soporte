@@ -2340,7 +2340,18 @@ Cancelar
     </div>
   </div>
 
-  <div style="text-align: center; width: 98%; margin: 2px 0;">
+  <div style="
+    text-align: center;
+    width: 98%;
+    margin: 2px 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    flex-shrink: 0;
+    background: var(--bg);
+    padding-top: 6px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  ">
     <button 
       onclick="subirAsistencia()" 
       id="btn-subir"
@@ -2356,6 +2367,9 @@ Cancelar
         width: 100%;
         box-shadow: 0 3px 8px rgba(0,0,0,0.2);
         white-space: nowrap;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
       "
     >📤 Subir asistencia</button>
   </div>
