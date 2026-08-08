@@ -837,12 +837,7 @@ body {
 
 /* El main en tu HTML tiene overflow:hidden inline. 
    Forzamos scroll vertical cuando haga falta. */
-#principal {
-  height: calc(100dvh - 64px) !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
-}
+
 
 /* Permite que los controles no "exploten" horizontalmente */
 .controls {
@@ -888,12 +883,26 @@ body {
 }
 
 /* Tu main tiene overflow:hidden inline. Esto evita que se corte en pantallas bajas. */
-#principal {
-  height: calc(100vh - 64px) !important;   /* fallback */
-  height: calc(100dvh - 64px) !important;  /* moderno */
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
+/* Fuerza scroll en el contenido principal de la PWA */
+#principal{
+
+    height: calc(100vh - 64px) !important;   /* Compatibilidad */
+    height: calc(100dvh - 64px) !important;  /* Android moderno */
+
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
+    -webkit-overflow-scrolling: touch;
+
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+
+    gap: 8px;
+
 }
 
 /* Evita que los controles “revienten” en pantallas angostas */
@@ -2266,15 +2275,16 @@ Cancelar
 
 
 
-<main id="principal" style="
-  height: calc(100vh - 64px);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2px 0;
-  overflow: hidden;
-  gap: 2px;
+<main id="principal"
+style="
+height:calc(100dvh - 64px);
+display:flex;
+flex-direction:column;
+align-items:center;
+padding:8px 0 20px;
+overflow-y:auto;
+overflow-x:hidden;
+gap:8px;
 ">
 
   <div class="totalCard" style="
@@ -2340,7 +2350,12 @@ Cancelar
     </div>
   </div>
 
-  <div style="text-align: center; width: 98%; margin: 2px 0;">
+ <div style="
+width:98%;
+margin-top:10px;
+margin-bottom:20px;
+flex-shrink:0;
+">
     <button 
       onclick="subirAsistencia()" 
       id="btn-subir"
@@ -4529,23 +4544,39 @@ function changeTheme(theme) {
 }
 
 
-async function refrescarPagina(){
+ function refrescarPagina() {
+  try {
+    // Mantener la sesión
+ 
+    const theme = localStorage.getItem("theme");
 
-    if(navigator.serviceWorker){
+    // Forzar limpieza de caché del sitio, pero sin cerrar sesión
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        Promise.all(names.map(name => caches.delete(name))).finally(() => {
+          // restaurar por seguridad
+        
+          if (theme !== null) localStorage.setItem("theme", theme);
 
-        const reg = await navigator.serviceWorker.getRegistration();
-
-        if(reg){
-
-            await reg.update();
-
-        }
-
+          // forzar nueva petición del HTML a GitHub
+          const url = new URL(window.location.href);
+          url.searchParams.set("_update", Date.now());
+          window.location.replace(url.toString());
+        });
+      });
+    } else {
+      const url = new URL(window.location.href);
+      url.searchParams.set("_update", Date.now());
+      window.location.replace(url.toString());
     }
-
-    location.reload();
-
+  } catch (e) {
+    console.error("Error al refrescar:", e);
+    const url = new URL(window.location.href);
+    url.searchParams.set("_update", Date.now());
+    window.location.replace(url.toString());
+  }
 }
+
   
 
 
