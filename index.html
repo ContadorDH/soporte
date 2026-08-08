@@ -176,13 +176,17 @@
       background: var(--bg);
       color: var(--text);
       height: 100vh;
+      height: 100dvh;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     /* === Header moderno y centrado === */
    header {
   position: relative;
   height: 64px;
+  flex-shrink: 0;
   background: var(--primary);
   color: #fff;
   display: grid;
@@ -2273,7 +2277,9 @@ Cancelar
 
 <main id="principal"
 style="
-height:calc(100dvh - 64px);
+flex:1 1 auto;
+min-height:0;
+overflow-y:auto;
 display:flex;
 flex-direction:column;
 align-items:center;
