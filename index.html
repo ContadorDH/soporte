@@ -2933,7 +2933,19 @@ const App = {
 
     esSuperAdmin: false,
 
-    modoRecuperacion: false
+    modoRecuperacion: false,
+
+    modoSuperAdmin: false,
+
+    iglesiaOriginal: null,
+
+    dashboardIglesias: [],
+
+    adminUsuarios: [],
+
+    usuarioEditando: null,
+
+    adminIglesia: null
 
 };
 
@@ -3000,25 +3012,7 @@ function cerrarPanelSuperAdmin(){
 
 function actualizarModoSuperAdmin(){
 
-    const titulo = document.getElementById("nombreIglesia");
-
-    if(!titulo) return;
-
-    if(App.modoSuperAdmin){
-
-        titulo.innerHTML =
-
-            `${App.iglesia.nombre}
-            <br>
-            <small style="color:#d32f2f;">
-            👑 Modo Super Administrador
-            </small>`;
-
-    }else{
-
-        titulo.textContent = App.iglesia.nombre;
-
-    }
+    aplicarTituloApp();
 
 }
 
@@ -3040,6 +3034,8 @@ function salirModoSuperAdmin(){
     App.modoSuperAdmin = false;
 
     actualizarModoSuperAdmin();
+
+    aplicarTituloApp();
 
     mostrarAlerta(
 
@@ -3540,6 +3536,8 @@ async function entrarComoIglesia(id){
     cerrarPanelSuperAdmin();
 
     actualizarModoSuperAdmin();
+
+    aplicarTituloApp();
 
     mostrarAlerta(
 
@@ -4888,19 +4886,30 @@ function cerrarModalRecuperarPassword(){
 
 function aplicarTituloApp(){
 
-    const nombreIglesia =
-        App.iglesia?.nombre || "Asistencia";
-
-    const titulo =
-        `📋 ${nombreIglesia}`;
-
     const el = document.getElementById("appTitleText");
 
-    if(el){
-        el.textContent = titulo;
-    }
+    if(!el) return;
 
-    document.title = nombreIglesia;
+    if(App.modoSuperAdmin){
+
+        el.innerHTML = `
+            👑 Administrando:
+            <strong>${escapeHTML(App.iglesia?.nombre || "")}</strong>
+        `;
+
+        document.title =
+            `👑 ${App.iglesia?.nombre || "Super Administrador"}`;
+
+    }else{
+
+        const nombre =
+            App.iglesia?.nombre || "Asistencia";
+
+        el.textContent = `📋 ${nombre}`;
+
+        document.title = nombre;
+
+    }
 
 }
 
