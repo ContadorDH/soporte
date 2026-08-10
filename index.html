@@ -1287,21 +1287,92 @@ CENTRO ADMINISTRADOR
 
 }
 
+/* =========================================================
+   BOTÓN ATRÁS — CENTRO DE ADMINISTRACIÓN
+========================================================= */
+
 #superAdminHeader .left button{
 
-    width:46px;
+    width:48px;
 
-    height:46px;
+    height:48px;
 
-    border-radius:12px;
+    min-width:48px;
 
-    border:none;
+    padding:0;
+
+    border-radius:14px;
+
+    border:1px solid rgba(255,255,255,.28);
+
+    background:rgba(255,255,255,.14);
+
+    color:#fff;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
 
     cursor:pointer;
 
-    font-size:22px;
+    font-size:0;
 
-    font-weight:bold;
+    box-shadow:
+        0 6px 18px rgba(0,0,0,.18),
+        inset 0 1px 0 rgba(255,255,255,.18);
+
+    backdrop-filter:blur(8px);
+
+    -webkit-backdrop-filter:blur(8px);
+
+    transition:
+        transform .2s ease,
+        background .2s ease,
+        box-shadow .2s ease,
+        border-color .2s ease;
+
+}
+
+#superAdminHeader .left button::before{
+
+    content:"";
+
+    width:10px;
+
+    height:10px;
+
+    border-left:2.5px solid #fff;
+
+    border-bottom:2.5px solid #fff;
+
+    transform:rotate(45deg);
+
+    margin-left:4px;
+
+}
+
+#superAdminHeader .left button:hover{
+
+    background:rgba(255,255,255,.23);
+
+    border-color:rgba(255,255,255,.45);
+
+    transform:translateX(-2px);
+
+    box-shadow:
+        0 8px 22px rgba(0,0,0,.25),
+        inset 0 1px 0 rgba(255,255,255,.22);
+
+}
+
+#superAdminHeader .left button:active{
+
+    transform:translateX(-1px) scale(.96);
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.20);
 
 }
 
@@ -1313,23 +1384,7 @@ CENTRO ADMINISTRADOR
 
 }
 
-#btnNuevaIglesia{
 
-    border:none;
-
-    background:#fff;
-
-    color:var(--primary);
-
-    font-weight:700;
-
-    padding:12px 18px;
-
-    border-radius:12px;
-
-    cursor:pointer;
-
-}
 
 #contenedorIglesiasAdmin{
 
@@ -1529,18 +1584,94 @@ ADMINISTRAR USUARIOS
 
 }
 
-#usuariosAdminHeader button{
+/* =========================================================
+   BOTÓN ATRÁS — ADMINISTRACIÓN DE USUARIOS
+========================================================= */
 
-    border:none;
+#usuariosAdminHeader .left button{
 
-    border-radius:12px;
+    width:48px;
 
-    padding:12px 16px;
+    height:48px;
+
+    min-width:48px;
+
+    padding:0;
+
+    border-radius:14px;
+
+    border:1px solid rgba(255,255,255,.28);
+
+    background:rgba(255,255,255,.14);
+
+    color:#fff;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
 
     cursor:pointer;
 
+    font-size:0;
+
+    box-shadow:
+        0 6px 18px rgba(0,0,0,.18),
+        inset 0 1px 0 rgba(255,255,255,.18);
+
+    backdrop-filter:blur(8px);
+
+    -webkit-backdrop-filter:blur(8px);
+
+    transition:
+        transform .2s ease,
+        background .2s ease,
+        box-shadow .2s ease,
+        border-color .2s ease;
+
 }
 
+#usuariosAdminHeader .left button::before{
+
+    content:"";
+
+    width:10px;
+
+    height:10px;
+
+    border-left:2.5px solid #fff;
+
+    border-bottom:2.5px solid #fff;
+
+    transform:rotate(45deg);
+
+    margin-left:4px;
+
+}
+
+#usuariosAdminHeader .left button:hover{
+
+    background:rgba(255,255,255,.23);
+
+    border-color:rgba(255,255,255,.45);
+
+    transform:translateX(-2px);
+
+    box-shadow:
+        0 8px 22px rgba(0,0,0,.25),
+        inset 0 1px 0 rgba(255,255,255,.22);
+
+}
+
+#usuariosAdminHeader .left button:active{
+
+    transform:translateX(-1px) scale(.96);
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.20);
+
+}
 .usuariosToolbar{
 
     padding:18px;
@@ -2463,13 +2594,7 @@ style="
 
         </div>
 
-        <button
-            id="btnNuevaIglesia"
-            onclick="abrirCrearIglesia()">
-
-            ➕ Nueva iglesia
-
-        </button>
+  
 
     </div>
 
@@ -2505,12 +2630,7 @@ style="
 
         </div>
 
-        <button
-            id="btnNuevoUsuarioAdmin">
-
-            ➕ Nuevo usuario
-
-        </button>
+    
 
     </div>
 
@@ -2952,16 +3072,16 @@ function ocultarSplash(){
 const App = {
 
     session: null,
-
     perfil: null,
-
     iglesia: null,
-
     usuario: null,
-
     esSuperAdmin: false,
+    modoRecuperacion: false,
+    sesionLista: false,
 
-    modoRecuperacion: false
+    // Iglesia que el superadmin está consultando.
+    // NO reemplaza App.iglesia.
+    iglesiaVisualizada: null
 
 };
 
@@ -3130,16 +3250,16 @@ function crearTarjetaIglesia(iglesia){
             </button>
 
             <button
-                onclick="cambiarPinIglesia('${iglesia.id}')">
+                onclick="entrarComoIglesia('${iglesia.id}')">
 
-                🔑 Código
+                ➡️ Asitencia
 
             </button>
 
             <button
-                onclick="entrarComoIglesia('${iglesia.id}')">
+                onclick="cambiarPinIglesia('${iglesia.id}')">
 
-                ➡️ Entrar
+                🔑 Código
 
             </button>
 
@@ -3484,12 +3604,140 @@ function cerrarEditarUsuario(){
 
 
 
-function entrarComoIglesia(id){
+async function entrarComoIglesia(id){
 
-    mostrarAlerta(
-        "🏛",
-        "Esta función estará disponible en el siguiente paso."
-    );
+    try{
+
+        // =====================================================
+        // SEGURIDAD
+        // =====================================================
+
+        if(!App.session || !App.usuario){
+
+            mostrarAlerta(
+                "⚠️",
+                "No existe una sesión activa."
+            );
+
+            return;
+
+        }
+
+        if(!App.esSuperAdmin){
+
+            mostrarAlerta(
+                "❌",
+                "No tienes permisos para entrar a otra iglesia."
+            );
+
+            return;
+
+        }
+
+        if(!id){
+
+            mostrarAlerta(
+                "⚠️",
+                "No se recibió la iglesia seleccionada."
+            );
+
+            return;
+
+        }
+
+        // =====================================================
+        // BUSCAR DIRECTAMENTE LA IGLESIA SELECCIONADA
+        // =====================================================
+
+        const { data: iglesia, error } =
+            await supabase
+                .from("iglesias")
+                .select(`
+                    id,
+                    nombre,
+                    codigo,
+                    color,
+                    logo,
+                    version_sesion
+                `)
+                .eq("id", id)
+                .single();
+
+        if(error){
+
+            console.error(
+                "❌ Error cargando iglesia seleccionada:",
+                error
+            );
+
+            mostrarAlerta(
+                "❌",
+                "No fue posible cargar la iglesia seleccionada."
+            );
+
+            return;
+
+        }
+
+        if(!iglesia){
+
+            mostrarAlerta(
+                "❌",
+                "La iglesia seleccionada no existe."
+            );
+
+            return;
+
+        }
+
+        // =====================================================
+        // GUARDAR CONTEXTO DE VISUALIZACIÓN
+        // =====================================================
+
+        App.iglesiaVisualizada = iglesia;
+
+        console.log(
+            "🏛️ Iglesia seleccionada para consulta:",
+            App.iglesiaVisualizada
+        );
+
+        console.log(
+            "🔐 Iglesia REAL del superadmin:",
+            App.iglesia
+        );
+
+        // =====================================================
+        // CERRAR CENTRO DE ADMINISTRACIÓN
+        // =====================================================
+
+        document
+            .getElementById("superAdminScreen")
+            .classList.remove("active");
+
+        // =====================================================
+        // AVISO
+        // =====================================================
+
+        mostrarAlerta(
+            "🏛️",
+            "Iglesia seleccionada: " +
+            (iglesia.nombre || "Iglesia")
+        );
+
+    }
+    catch(err){
+
+        console.error(
+            "❌ Error entrando a la iglesia:",
+            err
+        );
+
+        mostrarAlerta(
+            "❌",
+            "No fue posible abrir la iglesia seleccionada."
+        );
+
+    }
 
 }
 
@@ -3538,12 +3786,67 @@ function guardarVersionCodigoRegistro(
 
 async function verificarCodigoRegistroActual(){
 
-  document
-    .getElementById("modalVerificarCodigoRegistro")
-    .style.zIndex = "999999";
+    document
+        .getElementById("modalVerificarCodigoRegistro")
+        .style.zIndex = "999999";
 
-    if(!App.iglesia)
+    // =========================================================
+    // VALIDACIÓN REAL DE SESIÓN
+    // =========================================================
+
+    if(!App.session || !App.usuario?.id){
+
+        console.error(
+            "❌ No existe una sesión real."
+        );
+
+        App.sesionLista = false;
+
+        return false;
+
+    }
+
+    if(!App.perfil){
+
+        console.error(
+            "❌ No existe perfil para la sesión."
+        );
+
+        App.sesionLista = false;
+
+        return false;
+
+    }
+
+    // Superadmin puede no tener iglesia asociada.
+    // Para usuarios normales sí exigimos iglesia.
+    if(
+        App.perfil.rol !== "superadmin" &&
+        !App.iglesia
+    ){
+
+        console.error(
+            "❌ El usuario tiene sesión pero no tiene iglesia cargada."
+        );
+
+        App.sesionLista = false;
+
+        return false;
+
+    }
+
+    // =========================================================
+    // VERIFICACIÓN DEL CÓDIGO DE REGISTRO
+    // =========================================================
+
+    if(!App.iglesia){
+
+        // Superadmin sin iglesia.
+        App.sesionLista = true;
+
         return true;
+
+    }
 
     const versionGuardada =
         obtenerVersionCodigoRegistro(
@@ -3555,11 +3858,14 @@ async function verificarCodigoRegistroActual(){
 
     if(versionGuardada === versionActual){
 
+        App.sesionLista = true;
+
         return true;
 
     }
 
-    iglesiaSeleccionadaAdmin = App.iglesia.id;
+    iglesiaSeleccionadaAdmin =
+        App.iglesia.id;
 
     document
         .getElementById("codigoRegistroVerificar")
@@ -3568,6 +3874,8 @@ async function verificarCodigoRegistroActual(){
     document
         .getElementById("modalVerificarCodigoRegistro")
         .classList.remove("oculto");
+
+    App.sesionLista = false;
 
     return false;
 
@@ -3822,88 +4130,275 @@ if(error){
 
 async function inicializarSupabase() {
 
-    try {
+    const MAX_INTENTOS = 4;
+    const ESPERA_ENTRE_INTENTOS = 700;
 
-        const { data, error } = await conLimiteDeTiempo(
-            supabase.auth.getSession(),
-            6000,
-            { data: { session: null }, error: null },
-            "obtener sesión (getSession)"
-        );
+    App.session = null;
+    App.usuario = null;
+    App.perfil = null;
+    App.iglesia = null;
+    App.esSuperAdmin = false;
+    App.sesionLista = false;
 
-        if (error) throw error;
+    for(let intento = 1; intento <= MAX_INTENTOS; intento++){
 
-        App.session = data.session;
-        App.usuario = data.session?.user ?? null;
+        try{
 
-        if (!App.session) {
-            console.log("Sin sesión iniciada");
-            return false;
+            console.log(
+                `🔐 Restaurando sesión Supabase. Intento ${intento}/${MAX_INTENTOS}`
+            );
+
+            const resultado = await conLimiteDeTiempo(
+                supabase.auth.getSession(),
+                10000,
+                null,
+                `obtener sesión - intento ${intento}`
+            );
+
+            // Si la operación completa no respondió,
+            // NO debemos interpretar eso como "sin sesión".
+            if(!resultado){
+
+                console.warn(
+                    "⚠️ getSession no respondió."
+                );
+
+            }
+            else{
+
+                const { data, error } = resultado;
+
+                if(error){
+
+                    console.error(
+                        "❌ Error obteniendo sesión:",
+                        error
+                    );
+
+                }
+                else if(data?.session){
+
+                    const session = data.session;
+                    const user = session.user;
+
+                    // Validaciones mínimas.
+                    if(session.access_token && user?.id){
+
+                        App.session = session;
+                        App.usuario = user;
+
+                        console.log(
+                            "✅ Sesión real encontrada:",
+                            user.email
+                        );
+
+                        return true;
+
+                    }
+
+                }
+                else{
+
+                    console.log(
+                        "ℹ️ Supabase confirmó que no existe sesión."
+                    );
+
+                    // Aquí sí podemos salir inmediatamente.
+                    return false;
+
+                }
+
+            }
+
+        }
+        catch(err){
+
+            console.error(
+                `❌ Error restaurando sesión. Intento ${intento}:`,
+                err
+            );
+
         }
 
-        console.log("Sesión encontrada:", App.usuario?.email);
+        // Esperar antes del siguiente intento.
+        if(intento < MAX_INTENTOS){
 
-        return true;
+            await new Promise(resolve =>
+                setTimeout(
+                    resolve,
+                    ESPERA_ENTRE_INTENTOS
+                )
+            );
 
-    } catch (err) {
-
-        console.error("Error iniciando Supabase:", err);
-
-        return false;
+        }
 
     }
 
-}
+    // Muy importante:
+    // si agotamos los intentos NO inventamos una sesión
+    // y tampoco ocultamos el login.
+    App.session = null;
+    App.usuario = null;
 
+    console.warn(
+        "⚠️ No fue posible confirmar una sesión real."
+    );
+
+    return false;
+
+}
 
 
 
 
 async function cargarPerfil(){
 
-    if(!App.session)
-        return null;
+    if(!App.session || !App.usuario?.id){
 
-    const { data, error } = await conLimiteDeTiempo(
-        supabase
-            .from("perfiles")
-       .select(`
-        *,
-        iglesias(
-            id,
-            nombre,
-            codigo,
-            color,
-            logo,
-            version_sesion
-        )
-    `)
-            .eq("id", App.session.user.id)
-            .single(),
-        7000,
-        { data: null, error: { message: "Tiempo de espera agotado cargando el perfil." } },
-        "cargar perfil"
-    );
-
-    if(error){
-
-        console.error("Error cargando perfil:");
-        console.error(error);
+        console.warn(
+            "⚠️ No existe sesión/usuario para cargar perfil."
+        );
 
         return null;
 
     }
 
-    App.perfil = data;
-    App.iglesia = data.iglesias ?? null;
+    const MAX_INTENTOS = 3;
 
-    console.log("Versión sesión:", App.iglesia.version_sesion);
+    for(let intento = 1; intento <= MAX_INTENTOS; intento++){
 
-    App.esSuperAdmin = data.rol === "superadmin";
+        try{
 
-    return App.perfil;
+            console.log(
+                `👤 Cargando perfil. Intento ${intento}/${MAX_INTENTOS}`
+            );
+
+            const resultado = await conLimiteDeTiempo(
+                supabase
+                    .from("perfiles")
+                    .select(`
+                        *,
+                        iglesias(
+                            id,
+                            nombre,
+                            codigo,
+                            color,
+                            logo,
+                            version_sesion
+                        )
+                    `)
+                    .eq("id", App.session.user.id)
+                    .single(),
+                10000,
+                null,
+                `cargar perfil - intento ${intento}`
+            );
+
+            if(!resultado){
+
+                console.warn(
+                    "⚠️ La consulta del perfil no respondió."
+                );
+
+            }
+            else{
+
+                const { data, error } = resultado;
+
+                if(error){
+
+                    console.error(
+                        `❌ Error cargando perfil. Intento ${intento}:`,
+                        error
+                    );
+
+                }
+                else if(data){
+
+                    // Validación importante.
+                    // El perfil debe pertenecer al usuario autenticado.
+                    if(data.id !== App.session.user.id){
+
+                        console.error(
+                            "❌ El perfil obtenido no corresponde al usuario autenticado."
+                        );
+
+                    }
+                    else{
+
+                        App.perfil = data;
+                        App.iglesia = data.iglesias ?? null;
+
+                        App.esSuperAdmin =
+                            data.rol === "superadmin";
+
+                        console.log(
+                            "✅ Perfil cargado correctamente."
+                        );
+
+                        console.log(
+                            "Usuario:",
+                            data.nombre
+                        );
+
+                        console.log(
+                            "Correo:",
+                            data.correo
+                        );
+
+                        console.log(
+                            "Iglesia:",
+                            App.iglesia?.nombre
+                        );
+
+                        console.log(
+                            "Rol:",
+                            data.rol
+                        );
+
+                        return App.perfil;
+
+                    }
+
+                }
+
+            }
+
+        }
+        catch(err){
+
+            console.error(
+                `❌ Error inesperado cargando perfil. Intento ${intento}:`,
+                err
+            );
+
+        }
+
+        if(intento < MAX_INTENTOS){
+
+            await new Promise(resolve =>
+                setTimeout(resolve, 700)
+            );
+
+        }
+
+    }
+
+    // Si llegamos aquí, NO tenemos un inicio completo.
+    App.perfil = null;
+    App.iglesia = null;
+    App.esSuperAdmin = false;
+
+    console.error(
+        "❌ No fue posible cargar el perfil del usuario."
+    );
+
+    return null;
 
 }
+
+
+
 
 async function probarConexionSupabase(){
 
@@ -4278,6 +4773,11 @@ async function loginSupabase(){
         "Validando usuario"
     );
 
+    // Estado inicial seguro.
+    App.sesionLista = false;
+    App.perfil = null;
+    App.iglesia = null;
+
     try{
 
         const { data, error } =
@@ -4304,41 +4804,145 @@ async function loginSupabase(){
 
         }
 
-        App.session = data.session;
+        // =====================================================
+        // VALIDAR QUE SUPABASE REALMENTE ENTREGÓ SESIÓN
+        // =====================================================
 
+        if(
+            !data?.session ||
+            !data?.user?.id ||
+            !data.session.access_token
+        ){
+
+            console.error(
+                "❌ Supabase respondió sin una sesión válida."
+            );
+
+            App.session = null;
+            App.usuario = null;
+
+            hideBusy();
+
+            mostrarAlerta(
+                "❌",
+                "No fue posible confirmar la sesión. Intenta nuevamente."
+            );
+
+            return;
+
+        }
+
+        App.session = data.session;
         App.usuario = data.user;
 
-        await cargarPerfil();
+        console.log(
+            "✅ Autenticación Supabase confirmada:",
+            App.usuario.email
+        );
+
+        // =====================================================
+        // CARGAR PERFIL
+        // =====================================================
+
+        const perfil =
+            await cargarPerfil();
+
+        if(!perfil){
+
+            console.error(
+                "❌ Usuario autenticado pero perfil no disponible."
+            );
+
+            App.sesionLista = false;
+
+            hideBusy();
+
+            mostrarAlerta(
+                "⚠️",
+                "La cuenta fue autenticada, pero no pudimos cargar tus datos. Verifica tu conexión e intenta nuevamente."
+            );
+
+            return;
+
+        }
+
+        // =====================================================
+        // VALIDAR DATOS DEL PERFIL
+        // =====================================================
+
+        if(
+            !App.perfil?.id ||
+            App.perfil.id !== App.usuario.id
+        ){
+
+            console.error(
+                "❌ El perfil no corresponde al usuario autenticado."
+            );
+
+            App.sesionLista = false;
+
+            hideBusy();
+
+            mostrarAlerta(
+                "❌",
+                "No fue posible validar los datos del usuario."
+            );
+
+            return;
+
+        }
+
+        // =====================================================
+        // DATOS CORRECTOS
+        // =====================================================
 
         console.log("===== PERFIL =====");
-console.log(App.perfil);
-console.log("===== IGLESIA =====");
-console.log(App.iglesia);
+        console.log(App.perfil);
+
+        console.log("===== IGLESIA =====");
+        console.log(App.iglesia);
 
         aplicarTituloApp();
 
         actualizarMenuSuperAdmin();
 
-        console.log("Super Admin:", App.esSuperAdmin);
+        console.log(
+            "Super Admin:",
+            App.esSuperAdmin
+        );
 
-        const ok = await verificarCodigoRegistroActual();
+        // =====================================================
+        // VERIFICAR CÓDIGO DE REGISTRO
+        // =====================================================
+
+        const ok =
+            await verificarCodigoRegistroActual();
 
         hideBusy();
 
         if(!ok){
 
-            // NO entra aún a la aplicación.
+            // No ocultar login.
             return;
 
         }
 
-        document.getElementById("loginScreen").style.display="none";
+        // =====================================================
+        // SESIÓN COMPLETAMENTE VALIDADA
+        // =====================================================
+
+        App.sesionLista = true;
+
+        document
+            .getElementById("loginScreen")
+            .style.display = "none";
 
         actualizarUserCircle();
 
         mostrarAlerta(
             "✅",
-            "Bienvenido " + (App.perfil?.nombre || "")
+            "Bienvenido " +
+            (App.perfil?.nombre || "")
         );
 
     }
@@ -4346,7 +4950,12 @@ console.log(App.iglesia);
 
         hideBusy();
 
-        console.error(err);
+        App.sesionLista = false;
+
+        console.error(
+            "❌ Error iniciando sesión:",
+            err
+        );
 
         mostrarAlerta(
             "❌",
@@ -5261,50 +5870,159 @@ async function descargarMesXLSX(){
 
 
 
-
-  
 async function verAsistencia(mes){
 
+    showLoading(true);
+
+    const listado = document.getElementById("listado");
+    listado.innerHTML = "";
+
+    try{
+
+        console.log("===== VER ASISTENCIA =====");
+        console.log("Usuario autenticado:", App.usuario?.id);
+        console.log("Perfil:", App.perfil?.id);
+        console.log("Iglesia perfil:", App.perfil?.iglesia_id);
+        console.log("Iglesia objeto:", App.iglesia?.id);
+        console.log("Iglesia visualizada:", App.iglesiaVisualizada?.id);
 
 
-showLoading(true);
+        // =========================================================
+        // OBTENER DATOS
+        // =========================================================
 
-const listado = document.getElementById("listado");
-listado.innerHTML = "";
-
-try{
-
-    console.log("===== VER ASISTENCIA =====");
-    console.log("Usuario autenticado:", App.usuario?.id);
-    console.log("Perfil:", App.perfil?.id);
-    console.log("Iglesia perfil:", App.perfil?.iglesia_id);
-    console.log("Iglesia objeto:", App.iglesia?.id);
-
-const { data, error } = await supabase
-    .from("asistencias")
-    .select(`
-        *,
-        perfiles!usuario_id (
-            nombre
-        )
-    `)
-    .order("fecha", { ascending:false });
-
-console.log(data);
+        let data;
+        let error;
 
 
+        // =========================================================
+        // SUPERADMIN → IGLESIA SELECCIONADA
+        // =========================================================
+
+        if(
+            App.esSuperAdmin &&
+            App.iglesiaVisualizada?.id
+        ){
+
+            console.log(
+                "🏛️ SUPERADMIN - consultando iglesia:",
+                App.iglesiaVisualizada.id
+            );
+
+            const resultado =
+                await supabase.rpc(
+                    "listar_asistencias_iglesia_superadmin",
+                    {
+                        p_iglesia_id:
+                            App.iglesiaVisualizada.id
+                    }
+                );
+
+            data = resultado.data;
+            error = resultado.error;
+
+
+            // =====================================================
+            // ADAPTAR SOLO LOS DATOS
+            //
+            // NO TOCAMOS EL HTML ORIGINAL.
+            //
+            // La RPC devuelve:
+            //     usuario_nombre
+            //
+            // La interfaz original espera:
+            //     r.perfiles.nombre
+            //
+            // También conservamos r.usuario para compartir.
+            // =====================================================
+
+            if(
+                !error &&
+                Array.isArray(data)
+            ){
+
+                data = data.map(r => {
+
+                    return {
+
+                        ...r,
+
+                        usuario:
+                            r.usuario_nombre ||
+                            "Sin nombre",
+
+                        perfiles: {
+
+                            nombre:
+                                r.usuario_nombre ||
+                                "Sin nombre"
+
+                        }
+
+                    };
+
+                });
+
+            }
+
+        }
+
+
+        // =========================================================
+        // USUARIO NORMAL
+        //
+        // CONSULTA ORIGINAL SIN CAMBIOS
+        // =========================================================
+
+        else{
+
+            const resultado =
+                await supabase
+                    .from("asistencias")
+                    .select(`
+                        *,
+                        perfiles!usuario_id (
+                            nombre
+                        )
+                    `)
+                    .order(
+                        "fecha",
+                        {
+                            ascending:false
+                        }
+                    );
+
+            data = resultado.data;
+            error = resultado.error;
+
+        }
+
+
+        console.log(data);
+
+
+        // =========================================================
+        // ERROR
+        // =========================================================
 
         if(error){
 
             console.error(error);
 
-            listado.innerHTML = `<div class="row">⚠️ Error obteniendo datos.</div>`;
+            listado.innerHTML =
+                `<div class="row">
+                    ⚠️ Error obteniendo datos.
+                </div>`;
 
             return;
 
         }
 
-        // Filtrar por mes
+
+        // =========================================================
+        // FILTRAR POR MES
+        // =========================================================
+
         const filas = data.filter(r=>{
 
             const fecha = new Date(r.fecha);
@@ -5313,24 +6031,41 @@ console.log(data);
 
         });
 
+
         if(filas.length===0){
 
-            listado.innerHTML = `<div class="row">⚠️ No hay registros en ${mes}.</div>`;
+            listado.innerHTML =
+                `<div class="row">
+                    ⚠️ No hay registros en ${mes}.
+                </div>`;
 
             return;
 
         }
 
+
+        // =========================================================
+        // 🔒 RENDER ORIGINAL — NO MODIFICAR
+        // =========================================================
+
         listado.innerHTML = filas.map(r=>{
 
-            const fecha = new Date(r.fecha).toLocaleString("es-CO");
+            const fecha =
+                new Date(r.fecha)
+                    .toLocaleString("es-CO");
 
-            const esPropio = App.perfil && App.perfil.id === r.usuario_id;
+            const esPropio =
+                App.perfil &&
+                App.perfil.id === r.usuario_id;
 
-           const usuarioEsc = escapeHTML(
-    r.perfiles?.nombre || "Sin nombre"
-);
-            const fechaEsc = escapeHTML(fecha);
+            const usuarioEsc =
+                escapeHTML(
+                    r.perfiles?.nombre ||
+                    "Sin nombre"
+                );
+
+            const fechaEsc =
+                escapeHTML(fecha);
 
             return `
 
@@ -5436,7 +6171,10 @@ onclick="eliminarAsistencia('${r.id}')">
 
         console.error(e);
 
-        listado.innerHTML = `<div class="row">⚠️ Error obteniendo datos.</div>`;
+        listado.innerHTML =
+            `<div class="row">
+                ⚠️ Error obteniendo datos.
+            </div>`;
 
     }
     finally{
@@ -5616,16 +6354,17 @@ async function initApp() {
 
     actualizarTotal();
 
-    const select = document.getElementById("selectMes");
+    const select =
+        document.getElementById("selectMes");
 
     select.innerHTML = "";
 
     meses.forEach(m => {
 
-        const o = document.createElement("option");
+        const o =
+            document.createElement("option");
 
         o.value = m;
-
         o.textContent = m;
 
         select.appendChild(o);
@@ -5634,29 +6373,74 @@ async function initApp() {
 
     select.value = mesActual;
 
-    // Tema
+    // =========================================================
+    // TEMA
+    // =========================================================
 
-    const savedTheme = localStorage.getItem("theme") || "claro";
+    const savedTheme =
+        localStorage.getItem("theme") || "claro";
 
-    document.documentElement.setAttribute("data-theme", savedTheme);
+    document
+        .documentElement
+        .setAttribute(
+            "data-theme",
+            savedTheme
+        );
 
-    document.getElementById("themeSelect").value = savedTheme;
+    document
+        .getElementById("themeSelect")
+        .value = savedTheme;
+
+    // =========================================================
+    // TÍTULO
+    // =========================================================
 
     aplicarTituloApp();
 
     actualizarBotonInstalar();
 
-    // -------- LOGIN --------
+    // =========================================================
+    // LOGIN
+    // =========================================================
 
-    if(App.session){
+    if(
+        App.session &&
+        App.usuario &&
+        App.perfil &&
+        App.sesionLista
+    ){
 
-        document.getElementById("loginScreen").style.display = "none";
+        console.log(
+            "✅ initApp: sesión completamente restaurada."
+        );
+
+        document
+            .getElementById("loginScreen")
+            .style.display = "none";
 
         actualizarUserCircle();
 
-    }else{
+    }
+    else{
 
-        document.getElementById("loginScreen").style.display = "flex";
+        console.warn(
+            "⚠️ initApp: sesión incompleta. Se mantiene login."
+        );
+
+        document
+            .getElementById("loginScreen")
+            .style.display = "flex";
+
+        // Por seguridad no mostramos un usuario
+        // que no terminó de restaurarse.
+        const circle =
+            document.getElementById("userCircle");
+
+        if(circle){
+
+            circle.style.display = "none";
+
+        }
 
     }
 
@@ -5742,43 +6526,117 @@ if(esRecuperacion){
 
 }else if(haySesion){
 
-    console.log("✅ Sesión encontrada.");
+    console.log(
+        "✅ Sesión de Supabase encontrada."
+    );
 
-    await cargarPerfil();
+    // =========================================================
+    // CARGAR PERFIL REAL
+    // =========================================================
 
-    console.log("===== PERFIL =====");
-    console.log(App.perfil);
+    const perfil =
+        await cargarPerfil();
 
-    console.log("===== IGLESIA =====");
-    console.log(App.iglesia);
+    if(!perfil){
 
-    aplicarTituloApp();
+        console.error(
+            "❌ Había sesión, pero no se pudo cargar el perfil."
+        );
 
-    actualizarMenuSuperAdmin();
+        App.sesionLista = false;
 
-    console.log("Super Admin:", App.esSuperAdmin);
+        App.session = null;
+        App.usuario = null;
+        App.perfil = null;
+        App.iglesia = null;
 
-    console.log("Usuario:", App.perfil?.nombre);
+        document
+            .getElementById("loginScreen")
+            .style.display = "flex";
 
-    console.log("Rol:", App.perfil?.rol);
+    }
+    else{
 
-    const ok = await verificarCodigoRegistroActual();
+        console.log(
+            "===== PERFIL ====="
+        );
 
-    if(ok){
+        console.log(
+            App.perfil
+        );
 
-        document.getElementById("loginScreen").style.display = "none";
+        console.log(
+            "===== IGLESIA ====="
+        );
 
-    }else{
+        console.log(
+            App.iglesia
+        );
 
-        document.getElementById("loginScreen").style.display = "flex";
+        aplicarTituloApp();
+
+        actualizarMenuSuperAdmin();
+
+        console.log(
+            "Super Admin:",
+            App.esSuperAdmin
+        );
+
+        console.log(
+            "Usuario:",
+            App.perfil?.nombre
+        );
+
+        console.log(
+            "Rol:",
+            App.perfil?.rol
+        );
+
+        // =====================================================
+        // VALIDAR CÓDIGO DE REGISTRO
+        // =====================================================
+
+        const ok =
+            await verificarCodigoRegistroActual();
+
+        if(ok){
+
+            App.sesionLista = true;
+
+            document
+                .getElementById("loginScreen")
+                .style.display = "none";
+
+            actualizarUserCircle();
+
+            console.log(
+                "✅ SESIÓN COMPLETAMENTE RESTAURADA."
+            );
+
+        }
+        else{
+
+            App.sesionLista = false;
+
+            document
+                .getElementById("loginScreen")
+                .style.display = "flex";
+
+        }
 
     }
 
 }else{
 
-    console.log("ℹ️ No existe sesión.");
+    console.log(
+        "ℹ️ No existe una sesión real."
+    );
 
-    document.getElementById("loginScreen").style.display = "flex";
+    App.sesionLista = false;
+
+    document
+        .getElementById("loginScreen")
+        .style.display = "flex";
 
 }
 
