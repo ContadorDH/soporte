@@ -1000,15 +1000,15 @@ body {
 
 }
 
-.modalCard .passwordField{
+.passwordField{
     position:relative;
 }
 
-.modalCard .passwordField input{
+.passwordField input{
     padding-right:44px;
 }
 
-.modalCard .passwordField .togglePassword{
+.passwordField .togglePassword{
     position:absolute;
     top:0;
     right:0;
@@ -1025,8 +1025,18 @@ body {
     padding:0;
 }
 
-.modalCard .passwordField .togglePassword:hover{
+.passwordField .togglePassword:hover{
     color:var(--text);
+}
+
+/* El input de contraseña del login tiene ancho fijo (220px),
+   así que el wrapper del ojito debe respetar ese mismo ancho. */
+#loginBox .passwordField{
+    display:inline-block;
+    width:220px;
+}
+#loginBox .passwordField input{
+    width:100%;
 }
 
 .modalCard input,
@@ -2123,12 +2133,21 @@ ADMINISTRAR USUARIOS
 
     <br><br>
 
+    <div class="passwordField">
     <input
       type="password"
       id="loginPassword"
       placeholder="Contraseña"
       autocomplete="current-password"
     >
+    <button
+      type="button"
+      class="togglePassword"
+      aria-label="Mostrar contraseña"
+      onclick="togglePasswordVisibility('loginPassword', this)">
+      <i class="fa-solid fa-eye"></i>
+    </button>
+    </div>
 
     <br><br>
 
@@ -2353,18 +2372,35 @@ Cancelar
 
         </p>
 
+        <div class="passwordField">
         <input
             id="nuevaPassword1"
             type="password"
             placeholder="Nueva contraseña"
             autocomplete="new-password">
+        <button
+            type="button"
+            class="togglePassword"
+            aria-label="Mostrar contraseña"
+            onclick="togglePasswordVisibility('nuevaPassword1', this)">
+            <i class="fa-solid fa-eye"></i>
+        </button>
+        </div>
 
+        <div class="passwordField" style="margin-top:12px;">
         <input
             id="nuevaPassword2"
             type="password"
             placeholder="Confirmar contraseña"
-            autocomplete="new-password"
-            style="margin-top:12px;">
+            autocomplete="new-password">
+        <button
+            type="button"
+            class="togglePassword"
+            aria-label="Mostrar contraseña"
+            onclick="togglePasswordVisibility('nuevaPassword2', this)">
+            <i class="fa-solid fa-eye"></i>
+        </button>
+        </div>
 
         <div style="
             display:flex;
@@ -2406,8 +2442,17 @@ Cancelar
 
     <div style="height:10px"></div>
 
+    <div class="passwordField">
     <input id="pinIglesia" type="password" placeholder="Código de invitación"
-      style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--muted);font-size:1rem;background:var(--card);color:var(--text);" />
+      style="width:100%;padding:10px;padding-right:44px;border-radius:8px;border:1px solid var(--muted);font-size:1rem;background:var(--card);color:var(--text);" />
+    <button
+      type="button"
+      class="togglePassword"
+      aria-label="Mostrar contraseña"
+      onclick="togglePasswordVisibility('pinIglesia', this)">
+      <i class="fa-solid fa-eye"></i>
+    </button>
+    </div>
 
  <button id="btnLoginIglesia" onclick="loginIglesia()"
   style="margin-top:12px;background:var(--primary);color:#fff;border:0;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600;width:100%;">
@@ -2860,10 +2905,19 @@ style="
             Por seguridad, verifica el nuevo código de registro para continuar.
         </p>
 
+        <div class="passwordField">
         <input
             id="codigoRegistroVerificar"
             type="password"
             placeholder="Código de registro">
+        <button
+            type="button"
+            class="togglePassword"
+            aria-label="Mostrar contraseña"
+            onclick="togglePasswordVisibility('codigoRegistroVerificar', this)">
+            <i class="fa-solid fa-eye"></i>
+        </button>
+        </div>
 
 
             
