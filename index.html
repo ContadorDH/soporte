@@ -954,11 +954,19 @@ body {
     justify-content:center;
     align-items:center;
     z-index:20000;
+    padding:20px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
 }
 
 .modalCard{
 
     width:min(92vw,460px);
+
+    max-height:90vh;
+    max-height:calc(var(--app-height, 100dvh) * 0.9);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
 
     background:var(--card);
 
@@ -990,6 +998,35 @@ body {
 
     margin-bottom:18px;
 
+}
+
+.modalCard .passwordField{
+    position:relative;
+}
+
+.modalCard .passwordField input{
+    padding-right:44px;
+}
+
+.modalCard .passwordField .togglePassword{
+    position:absolute;
+    top:0;
+    right:0;
+    bottom:0;
+    width:40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:none;
+    border:0;
+    cursor:pointer;
+    color:var(--muted);
+    font-size:18px;
+    padding:0;
+}
+
+.modalCard .passwordField .togglePassword:hover{
+    color:var(--text);
 }
 
 .modalCard input,
@@ -2184,15 +2221,33 @@ placeholder="Ejemplo: BOCHICA2026">
 Solicita esta clave al administrador de tu iglesia.
 </small>
 
+<div class="passwordField">
 <input
 id="regPassword"
 type="password"
 placeholder="Contraseña">
+<button
+type="button"
+class="togglePassword"
+aria-label="Mostrar contraseña"
+onclick="togglePasswordVisibility('regPassword', this)">
+<i class="fa-solid fa-eye"></i>
+</button>
+</div>
 
+<div class="passwordField">
 <input
 id="regPassword2"
 type="password"
 placeholder="Confirmar contraseña">
+<button
+type="button"
+class="togglePassword"
+aria-label="Mostrar contraseña"
+onclick="togglePasswordVisibility('regPassword2', this)">
+<i class="fa-solid fa-eye"></i>
+</button>
+</div>
 
 <div
 style="display:flex;gap:12px;margin-top:20px;">
@@ -5400,6 +5455,37 @@ function cerrarRegistro(){
     document
         .getElementById("registroScreen")
         .classList.add("oculto");
+
+}
+
+function togglePasswordVisibility(inputId, btn){
+
+    const input = document.getElementById(inputId);
+
+    if(!input) return;
+
+    const icon = btn.querySelector("i");
+
+    if(input.type === "password"){
+
+        input.type = "text";
+
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+
+        btn.setAttribute("aria-label", "Ocultar contraseña");
+
+    }
+    else{
+
+        input.type = "password";
+
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+
+        btn.setAttribute("aria-label", "Mostrar contraseña");
+
+    }
 
 }
 
