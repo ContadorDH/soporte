@@ -7074,7 +7074,7 @@ async function descargarMesXLSX(){
 
         const datosExcel = filas.map(r=>({
 
-           Usuario: r.perfiles?.nombre || "Sin nombre",
+           Usuario: nombreDeRegistro(r),
             Fecha: new Date(r.fecha).toLocaleString("es-CO"),
             Hermanos: r.hermanos,
             Hermanas: r.hermanas,
@@ -7085,7 +7085,7 @@ async function descargarMesXLSX(){
             Día: DIAS_SEMANA[new Date(r.fecha).getDay()],
             Culto: r.culto || "",
             "Visitantes nuevos": Number(r.visitantes) || 0,
-            Nota: r.nota || ""
+            Nota: esNotaMigrada(r.nota) ? "App anterior" : (r.nota || "")
 
         }));
 
@@ -7254,9 +7254,10 @@ async function verAsistencia(mes){
 
                         perfiles: {
 
+                            // null → se usa el nombre de la app anterior si es un registro migrado
                             nombre:
                                 r.usuario_nombre ||
-                                "Sin nombre"
+                                null
 
                         }
 
@@ -7364,8 +7365,7 @@ async function verAsistencia(mes){
 
             const usuarioEsc =
                 escapeHTML(
-                    r.perfiles?.nombre ||
-                    "Sin nombre"
+                    nombreDeRegistro(r)
                 );
 
             const fechaEsc =
@@ -10611,6 +10611,21 @@ function cultoAnteriorMismoDia(r, todos){
 
 }
 
+// Registros pasados desde la app anterior (Google Script)
+const PREFIJO_MIGRADO = "Migrado de la app anterior · ";
+
+function esNotaMigrada(nota){
+    return String(nota || "").startsWith(PREFIJO_MIGRADO);
+}
+
+// Nombre de quien subió el registro (o el de la app anterior si no tiene cuenta nueva)
+function nombreDeRegistro(r){
+    return r?.perfiles?.nombre ||
+        (esNotaMigrada(r?.nota) ? String(r.nota).slice(PREFIJO_MIGRADO.length) : "") ||
+        r?.usuario_nombre ||
+        "Sin nombre";
+}
+
 // Información extra de cada registro (culto, visitantes, nota y comparación)
 function htmlExtrasRegistro(r, todos){
 
@@ -10624,7 +10639,10 @@ function htmlExtrasRegistro(r, todos){
         partes.push(`<small>🌱 ${Number(r.visitantes)} visitante${Number(r.visitantes) === 1 ? "" : "s"} nuevo${Number(r.visitantes) === 1 ? "" : "s"}</small>`);
     }
 
-    if(r.nota){
+    if(r.nota && esNotaMigrada(r.nota)){
+        partes.push(`<small>🗂️ Registrado en la app anterior</small>`);
+    }
+    else if(r.nota){
         partes.push(`<small>📝 ${escapeHTML(r.nota)}</small>`);
     }
 
