@@ -1972,6 +1972,63 @@ ADMINISTRAR USUARIOS
 
 
 
+/* =========================================================
+   MULTI-CONTADOR
+========================================================= */
+#multiBanner{
+  width:98%;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:10px;
+  background:var(--primary);
+  color:#fff;
+  font-size:.9rem;
+  flex:0 0 auto;
+  box-shadow:0 3px 8px var(--shadow);
+}
+#multiBanner .txt{ flex:1; min-width:0; line-height:1.3; }
+#multiBanner .txt small{ opacity:.85; }
+#multiBanner .acciones{ display:flex; gap:6px; }
+#multiBanner button{
+  background:rgba(255,255,255,.2);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.35);
+  border-radius:8px;
+  padding:6px 10px;
+  font-weight:700;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.card.multiOculta{ display:none !important; }
+.card.multiBloqueada{ opacity:.8; }
+.card.multiBloqueada .counterBtn{ filter:grayscale(.7); cursor:not-allowed; }
+.multiLiberar{
+  margin-left:6px;
+  font-size:.75rem;
+  padding:2px 8px;
+  border-radius:6px;
+  border:1px solid var(--muted);
+  background:transparent;
+  color:var(--text);
+  cursor:pointer;
+}
+.modalCard .multiOpcion{
+  width:100%;
+  display:block;
+  text-align:left;
+  margin-bottom:10px;
+  padding:14px;
+  background:var(--bg);
+  color:var(--text);
+  border:1px solid var(--muted);
+  font-size:1rem;
+}
+.multiOpcion small{ display:block; color:var(--muted); font-weight:400; margin-top:4px; }
+.modalCard .multiOpcion:disabled{ opacity:.45; cursor:not-allowed; }
+.modalCard input.multiCodigoInput{ font-size:28px; text-align:center; letter-spacing:10px; }
+
   </style>
 </head>
 <body>
@@ -2483,6 +2540,7 @@ Cancelar
 
 <nav id="menu" aria-hidden="true">
   <button class="item" onclick="abrirVerPantalla()">👁️ Ver asistencia</button>
+  <button class="item" id="btnMultiMenu" onclick="abrirMultiContador()">👥 Multi-contador</button>
   <button class="item" onclick="descargarMesXLSX()">⬇️ Descargar (Excel)</button>
 <button class="item" onclick="refrescarPagina()">🔄 Refrescar</button>
 <button
@@ -2532,6 +2590,13 @@ gap:clamp(4px, 1.2vh, 8px);
 padding:clamp(4px, 1vh, 8px) 0;
 ">
 
+  <!-- Barra del multi-contador (solo visible con sesión activa) -->
+  <div id="multiBanner" class="oculto">
+    <div class="txt"></div>
+    <div class="acciones"></div>
+  </div>
+
+
   <div class="totalCard" style="
     font-size: clamp(18px, 3.2vh, 24px);
     font-weight: 700;
@@ -2543,7 +2608,7 @@ padding:clamp(4px, 1vh, 8px) 0;
     margin: 2px 0;
     flex: 0 0 auto;
   ">
-    Total asistencia: <span id="total" style="font-size: clamp(1.8rem, 4.6vh, 2.8rem);">0</span>
+    <span id="totalLabel">Total asistencia:</span> <span id="total" style="font-size: clamp(1.8rem, 4.6vh, 2.8rem);">0</span>
   </div>
 
   <!-- Tarjeta Hermanos -->
@@ -2864,6 +2929,12 @@ style="
 
 
 
+
+
+<!-- MULTI-CONTADOR -->
+<div id="modalMulti" class="modalOverlay oculto">
+    <div class="modalCard" id="multiContenido" style="max-width:440px;"></div>
+</div>
 
 
 <div id="modalCambiarPin" class="modalOverlay oculto">
@@ -4175,7 +4246,11 @@ async function verificarNuevoCodigoRegistro(){
 
         document.getElementById("loginScreen").style.display="none";
 
+        App.sesionLista = true;
+
         actualizarUserCircle();
+
+        multiRestaurar();
 
         mostrarAlerta(
 
@@ -5048,6 +5123,8 @@ async function loginSupabase(){
 
         actualizarUserCircle();
 
+        multiRestaurar();
+
         mostrarAlerta(
             "✅",
             "Bienvenido " +
@@ -5364,6 +5441,9 @@ async function cerrarSesion(){
                 }catch(e){
                     console.error("No se pudo limpiar localStorage:", e);
                 }
+
+                // Salir del multi-contador si había uno activo
+                multiDesconectar();
 
                 // Limpiar objeto global
                 App.session = null;
@@ -5708,12 +5788,23 @@ function closeMenuIfOpen(evt){
 
 /* === CONTADORES === */
 function changeCount(tipo, delta){ 
+  if(!multiPermiteCambiar(tipo)) return;
   datos[tipo]=Math.max(0,(datos[tipo]||0)+delta); 
   document.getElementById(tipo).textContent=datos[tipo]; 
   actualizarTotal(); 
+  if(Multi.rol){
+    multiGuardar();
+    if(Multi.rol === "participante") multiEnviarConteo();
+  }
 }
 function actualizarTotal(){ 
-  const total=Object.values(datos).reduce((a,b)=>a+b,0); 
+  // Solo se suman las categorías (no id, fecha, etc.)
+  let total;
+  if(Multi.rol === "participante"){
+    total = datos[Multi.categoria] || 0;
+  }else{
+    total = CATEGORIAS_MULTI.reduce((a,c)=>a+(datos[c.key]||0),0);
+  }
   document.getElementById('total').textContent=total; 
 }
 
@@ -5724,9 +5815,34 @@ function actualizarTotal(){
 /* === SUBIR ASISTENCIA MEJORADA === */
 async function subirAsistencia(){
 
+    // Multi-contador: el participante NO sube, envía al anfitrión
+    if(Multi.rol === "participante"){
+        return multiEnviarFinal();
+    }
 
+    // Multi-contador: avisar al anfitrión si alguien no ha entregado
+    if(Multi.rol === "anfitrion" && !Multi.confirmadoPendientes){
 
-    const total = Object.values(datos).reduce((a,b)=>a+b,0);
+        const pendientes = multiPendientes();
+
+        if(pendientes.length){
+
+            return mostrarPopupConfirm(
+                "Faltan contadores",
+                `Aún no han entregado: ${pendientes.join(", ")}. Se subirá lo que llevan hasta ahora. ¿Continuar?`,
+                () => {
+                    Multi.confirmadoPendientes = true;
+                    subirAsistencia();
+                }
+            );
+
+        }
+
+    }
+
+    Multi.confirmadoPendientes = false;
+
+    const total = CATEGORIAS_MULTI.reduce((a,c)=>a+(datos[c.key]||0),0);
 
     if(total===0){
 
@@ -5797,8 +5913,13 @@ async function subirAsistencia(){
                             null
                         );
 
+                        // Multi-contador: avisar a los contadores y cerrar la sesión
+                        if(Multi.rol === "anfitrion"){
+                            multiFinalizarSesion(true);
+                        }
+
                         // Reiniciar datos
-                        for(const k in datos){
+                        for(const { key: k } of CATEGORIAS_MULTI){
 
                             datos[k] = 0;
 
@@ -6474,6 +6595,1354 @@ function contactarSoporte(){
     }
   }
 }
+/* ===========================================================
+   MULTI-CONTADOR
+   Varias personas cuentan al mismo tiempo (cada una una
+   categoría) y UNA sola persona (el anfitrión) sube la
+   asistencia con el botón de siempre.
+
+   Usa Supabase Realtime (Broadcast + Presence), que ya viene
+   en supabase-js. NO necesita tablas, columnas ni funciones
+   nuevas en la base de datos: los conteos viajan en vivo de
+   teléfono a teléfono y solo el anfitrión llama a
+   registrar_asistencia, igual que hoy.
+=========================================================== */
+
+const CATEGORIAS_MULTI = [
+    { key: "hermanos",     nombre: "Hermanos" },
+    { key: "hermanas",     nombre: "Hermanas" },
+    { key: "amigos",       nombre: "Amigos" },
+    { key: "adolescentes", nombre: "Adolescentes" },
+    { key: "niños",        nombre: "Niños" }
+];
+
+const MULTI_STORAGE_KEY = "multiContador";
+
+const Multi = {
+    rol: null,              // "anfitrion" | "participante" | null
+    codigo: null,
+    canal: null,
+    canalPendiente: null,   // canal mientras se conecta / elige categoría
+    categoria: null,        // participante: categoría que cuenta
+    aportes: {},            // anfitrión: categoria -> { userId, nombre, valor, final }
+    liberadas: {},          // anfitrión: categorías que retomó él mismo
+    presentes: {},          // estado de Presence
+    miPresencia: null,
+    firmaPublicada: null,
+    timerEnvio: null,
+    onRecibido: null,
+    confirmadoPendientes: false
+};
+
+function multiEsCategoria(cat){
+    return CATEGORIAS_MULTI.some(c => c.key === cat);
+}
+
+function multiNombreCategoria(cat){
+    return CATEGORIAS_MULTI.find(c => c.key === cat)?.nombre || cat;
+}
+
+function multiMiNombre(){
+    return App.perfil?.nombre || App.usuario?.email || "Contador";
+}
+
+function multiPuedeUsar(){
+
+    if(!App.session || !App.usuario?.id || !App.perfil){
+
+        mostrarAlerta("⚠️", "Inicia sesión para usar el multi-contador.");
+
+        return false;
+
+    }
+
+    if(!App.iglesia?.id){
+
+        mostrarAlerta("⚠️", "Tu cuenta no tiene una iglesia asignada.");
+
+        return false;
+
+    }
+
+    return true;
+
+}
+
+function multiEsperar(ms){
+    return new Promise(r => setTimeout(r, ms));
+}
+
+function multiPintarValor(cat){
+    const el = document.getElementById(cat);
+    if(el) el.textContent = datos[cat] || 0;
+}
+
+
+/* ---------- Canal Realtime ---------- */
+
+function multiNombreCanal(codigo){
+    return `multi-${App.iglesia.id}-${codigo}`;
+}
+
+function multiCrearCanal(codigo){
+
+    const canal = supabase.channel(
+        multiNombreCanal(codigo),
+        {
+            config: {
+                broadcast: { self: false },
+                presence: { key: App.usuario.id }
+            }
+        }
+    );
+
+    canal.on("broadcast", { event: "conteo" },
+        ({ payload }) => multiRecibirConteo(payload));
+
+    canal.on("broadcast", { event: "recibido" },
+        ({ payload }) => multiRecibido(payload));
+
+    canal.on("broadcast", { event: "pedir_conteos" },
+        () => multiEnviarConteo(true));
+
+    canal.on("broadcast", { event: "cerrada" },
+        ({ payload }) => multiSesionCerrada(payload));
+
+    canal.on("presence", { event: "sync" }, () => {
+
+        if(canal !== Multi.canal && canal !== Multi.canalPendiente) return;
+
+        Multi.presentes = canal.presenceState();
+
+        multiActualizarUI();
+
+    });
+
+    return canal;
+
+}
+
+// Se resuelve con la primera conexión. Si el teléfono pierde la
+// red y Realtime se reconecta solo, se vuelve a anunciar la
+// presencia y se re-sincronizan los conteos.
+function multiSuscribir(canal){
+
+    return new Promise((resolve, reject) => {
+
+        let primera = true;
+
+        const t = setTimeout(() => {
+
+            if(!primera) return;
+
+            primera = false;
+
+            reject(new Error("No fue posible conectar (tiempo agotado)."));
+
+        }, 10000);
+
+        canal.subscribe(status => {
+
+            if(status === "SUBSCRIBED"){
+
+                if(primera){
+
+                    primera = false;
+
+                    clearTimeout(t);
+
+                    resolve();
+
+                    return;
+
+                }
+
+                // Reconexión
+                if(canal === Multi.canal && Multi.miPresencia){
+
+                    canal.track(Multi.miPresencia).catch(() => {});
+
+                    if(Multi.rol === "participante") multiEnviarConteo(true);
+
+                    if(Multi.rol === "anfitrion"){
+                        canal.send({ type: "broadcast", event: "pedir_conteos", payload: {} });
+                    }
+
+                }
+
+                return;
+
+            }
+
+            if(
+                primera &&
+                (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED")
+            ){
+
+                primera = false;
+
+                clearTimeout(t);
+
+                reject(new Error("No fue posible conectar (" + status + ")."));
+
+            }
+
+        });
+
+    });
+
+}
+
+function multiListaPresentes(){
+
+    const arr = [];
+
+    for(const [key, metas] of Object.entries(Multi.presentes || {})){
+
+        if(!metas?.length) continue;
+
+        arr.push({ id: key, ...metas[metas.length - 1] });
+
+    }
+
+    return arr;
+
+}
+
+function multiHayAnfitrion(){
+    return multiListaPresentes().find(p => p.rol === "anfitrion") || null;
+}
+
+
+/* ---------- Guardar / restaurar (por si recargan la app) ---------- */
+
+function multiGuardar(){
+
+    try{
+
+        if(!Multi.rol){
+
+            localStorage.removeItem(MULTI_STORAGE_KEY);
+
+            return;
+
+        }
+
+        const valores = {};
+
+        CATEGORIAS_MULTI.forEach(c => valores[c.key] = datos[c.key] || 0);
+
+        localStorage.setItem(MULTI_STORAGE_KEY, JSON.stringify({
+
+            rol: Multi.rol,
+            codigo: Multi.codigo,
+            categoria: Multi.categoria,
+            aportes: Multi.aportes,
+            liberadas: Multi.liberadas,
+            valores,
+            userId: App.usuario?.id,
+            iglesiaId: App.iglesia?.id,
+            ts: Date.now()
+
+        }));
+
+    }catch(e){}
+
+}
+
+async function multiRestaurar(){
+
+    if(Multi.rol || Multi.canalPendiente) return;
+
+    let s = null;
+
+    try{ s = JSON.parse(localStorage.getItem(MULTI_STORAGE_KEY)); }catch(e){}
+
+    if(!s) return;
+
+    const vigente =
+        s.userId === App.usuario?.id &&
+        s.iglesiaId === App.iglesia?.id &&
+        Date.now() - (s.ts || 0) < 12 * 60 * 60 * 1000;
+
+    if(!vigente){
+
+        try{ localStorage.removeItem(MULTI_STORAGE_KEY); }catch(e){}
+
+        return;
+
+    }
+
+    // Recuperar los números que había en pantalla
+    CATEGORIAS_MULTI.forEach(c => {
+
+        datos[c.key] = Math.max(0, parseInt(s.valores?.[c.key], 10) || 0);
+
+        multiPintarValor(c.key);
+
+    });
+
+    actualizarTotal();
+
+    if(s.rol === "anfitrion"){
+
+        await multiCrearSesion(s.codigo, s.aportes || {}, s.liberadas || {});
+
+    }
+    else if(s.rol === "participante" && multiEsCategoria(s.categoria)){
+
+        try{
+
+            await multiActivarParticipante(null, s.codigo, s.categoria);
+
+        }catch(e){
+
+            console.error("No se pudo reconectar al multi-contador:", e);
+
+            try{ localStorage.removeItem(MULTI_STORAGE_KEY); }catch(_){}
+
+        }
+
+    }
+
+}
+
+
+/* ---------- Modal ---------- */
+
+function abrirMultiContador(){
+
+    const menu = document.getElementById("menu");
+
+    if(menu?.classList.contains("active")) toggleMenu();
+
+    if(Multi.rol === "anfitrion"){
+
+        return mostrarAlerta(
+            "👥 Multi-contador activo",
+            `Código de la sesión: ${Multi.codigo}. Compártelo con los contadores. Cuando todos entreguen, toca "Subir asistencia".`
+        );
+
+    }
+
+    if(Multi.rol === "participante"){
+
+        return mostrarAlerta(
+            "📲 Multi-contador activo",
+            `Estás contando ${multiNombreCategoria(Multi.categoria)} (código ${Multi.codigo}). Al terminar toca "Enviar al anfitrión".`
+        );
+
+    }
+
+    if(!multiPuedeUsar()) return;
+
+    multiRender("inicio");
+
+    document.getElementById("modalMulti").classList.remove("oculto");
+
+}
+
+function cerrarModalMulti(){
+    document.getElementById("modalMulti").classList.add("oculto");
+}
+
+async function multiCancelarModal(){
+
+    cerrarModalMulti();
+
+    const canal = Multi.canalPendiente;
+
+    Multi.canalPendiente = null;
+
+    if(canal && canal !== Multi.canal){
+
+        Multi.presentes = {};
+
+        try{ await supabase.removeChannel(canal); }catch(e){}
+
+    }
+
+}
+
+function multiRender(paso, extra = {}){
+
+    const c = document.getElementById("multiContenido");
+
+    if(paso === "inicio"){
+
+        c.innerHTML = `
+
+            <h2>👥 Multi-contador</h2>
+
+            <p>Varias personas cuentan al mismo tiempo, cada una una categoría, y solo una persona sube la asistencia.</p>
+
+            <button class="multiOpcion" onclick="multiCrearSesion()">
+                🎙️ Crear sesión
+                <small>Tú eres el anfitrión: recibes los conteos en vivo y subes la asistencia.</small>
+            </button>
+
+            <button class="multiOpcion" onclick="multiRender('unirse')">
+                📲 Unirme a una sesión
+                <small>Cuentas una categoría y se la envías al anfitrión.</small>
+            </button>
+
+            <button style="width:100%;background:#888;color:#fff;" onclick="multiCancelarModal()">
+                Cancelar
+            </button>
+        `;
+
+        return;
+
+    }
+
+    if(paso === "unirse"){
+
+        c.innerHTML = `
+
+            <h2>📲 Unirme</h2>
+
+            <p>Escribe el código de 4 dígitos que te dio el anfitrión.</p>
+
+            <input
+                id="multiCodigo"
+                class="multiCodigoInput"
+                inputmode="numeric"
+                maxlength="4"
+                placeholder="0000"
+                autocomplete="off"
+                value="${escapeHTML(extra.codigo || "")}">
+
+            <div style="display:flex;gap:10px;">
+
+                <button style="flex:1;background:#888;color:#fff;" onclick="multiRender('inicio')">
+                    Volver
+                </button>
+
+                <button style="flex:1;background:var(--primary);color:#fff;" onclick="multiUnirse()">
+                    Conectar
+                </button>
+
+            </div>
+        `;
+
+        setTimeout(() => document.getElementById("multiCodigo")?.focus(), 100);
+
+        return;
+
+    }
+
+    if(paso === "categoria"){
+
+        const ocupadas = extra.ocupadas || {};
+
+        const botones = CATEGORIAS_MULTI.map(cat => {
+
+            const o = ocupadas[cat.key];
+
+            const detalle = o
+                ? (o.final ? `Ya entregada por ${escapeHTML(o.nombre)}` : `La está contando ${escapeHTML(o.nombre)}`)
+                : "Disponible";
+
+            return `
+                <button class="multiOpcion" ${o ? "disabled" : ""}
+                    onclick="multiElegirCategoria('${cat.key}')">
+                    ${escapeHTML(cat.nombre)}
+                    <small>${detalle}</small>
+                </button>`;
+
+        }).join("");
+
+        c.innerHTML = `
+
+            <h2>¿Qué vas a contar?</h2>
+
+            <p>Sesión de <strong>${escapeHTML(extra.hostNombre || "anfitrión")}</strong> · código ${escapeHTML(extra.codigo || "")}</p>
+
+            ${botones}
+
+            <button style="width:100%;background:#888;color:#fff;" onclick="multiCancelarModal()">
+                Cancelar
+            </button>
+        `;
+
+    }
+
+}
+
+
+/* ---------- ANFITRIÓN ---------- */
+
+async function multiCrearSesion(codigoExistente = null, aportesPrevios = null, liberadasPrevias = null){
+
+    if(!multiPuedeUsar()) return;
+
+    cerrarModalMulti();
+
+    showBusy(
+        codigoExistente ? "Reanudando sesión..." : "Creando sesión...",
+        "Multi-contador"
+    );
+
+    let canal = null;
+
+    try{
+
+        let codigo = codigoExistente;
+
+        // Buscar un código libre (máx. 5 intentos)
+        for(let intento = 0; intento < 5; intento++){
+
+            if(!codigoExistente){
+                codigo = String(Math.floor(1000 + Math.random() * 9000));
+            }
+
+            Multi.presentes = {};
+
+            canal = multiCrearCanal(codigo);
+
+            Multi.canalPendiente = canal;
+
+            await multiSuscribir(canal);
+
+            await multiEsperar(900);
+
+            const otro = multiListaPresentes()
+                .find(p => p.rol === "anfitrion" && p.id !== App.usuario.id);
+
+            if(!otro || codigoExistente) break;
+
+            // Código en uso por otro anfitrión: probar otro
+            await supabase.removeChannel(canal);
+
+            canal = null;
+
+        }
+
+        if(!canal) throw new Error("No se encontró un código libre. Intenta de nuevo.");
+
+        Multi.rol = "anfitrion";
+        Multi.codigo = codigo;
+        Multi.canal = canal;
+        Multi.canalPendiente = null;
+        Multi.categoria = null;
+        Multi.aportes = aportesPrevios || {};
+        Multi.liberadas = liberadasPrevias || {};
+        Multi.firmaPublicada = null;
+
+        multiPublicarEstadoHost(true);
+
+        // Si hay contadores ya conectados (p. ej. tras recargar), que reenvíen
+        canal.send({ type: "broadcast", event: "pedir_conteos", payload: {} });
+
+        multiGuardar();
+
+        multiActualizarUI();
+
+        hideBusy();
+
+        mostrarAlerta(
+            codigoExistente ? "👥 Sesión reanudada" : "👥 Sesión creada",
+            `Código: ${codigo}. Compártelo con quienes van a contar.`
+        );
+
+    }
+    catch(err){
+
+        console.error("Multi-contador:", err);
+
+        if(canal){ try{ await supabase.removeChannel(canal); }catch(e){} }
+
+        Multi.canalPendiente = null;
+        Multi.presentes = {};
+
+        hideBusy();
+
+        mostrarAlerta(
+            "❌",
+            (err?.message || "No fue posible crear la sesión.") +
+            " Revisa tu conexión a internet."
+        );
+
+    }
+
+}
+
+function multiOcupadasHost(){
+
+    const o = {};
+
+    Object.entries(Multi.aportes).forEach(([cat, a]) => {
+        o[cat] = { userId: a.userId, nombre: a.nombre, final: !!a.final };
+    });
+
+    Object.keys(Multi.liberadas || {}).forEach(cat => {
+        o[cat] = { userId: App.usuario.id, nombre: multiMiNombre() + " (anfitrión)", final: false };
+    });
+
+    return o;
+
+}
+
+// El anfitrión publica en su "presencia" qué categorías ya tienen
+// dueño, para que los nuevos contadores no elijan una ocupada.
+function multiPublicarEstadoHost(forzar = false){
+
+    if(Multi.rol !== "anfitrion" || !Multi.canal) return;
+
+    const meta = {
+        rol: "anfitrion",
+        nombre: multiMiNombre(),
+        ocupadas: multiOcupadasHost()
+    };
+
+    const firma = JSON.stringify(meta.ocupadas);
+
+    if(!forzar && firma === Multi.firmaPublicada) return;
+
+    Multi.firmaPublicada = firma;
+
+    Multi.miPresencia = meta;
+
+    Multi.canal.track(meta).catch(() => {});
+
+}
+
+function multiRecibirConteo(p){
+
+    if(Multi.rol !== "anfitrion" || !p?.userId || !multiEsCategoria(p.categoria)) return;
+
+    const cat = p.categoria;
+
+    // El anfitrión retomó esta categoría
+    if(Multi.liberadas?.[cat]) return;
+
+    const prev = Multi.aportes[cat];
+
+    if(prev && prev.userId !== p.userId){
+
+        const prevConectado = multiListaPresentes()
+            .some(x => x.id === prev.userId && x.categoria === cat);
+
+        // No dejar que otra persona pise un conteo activo o ya entregado
+        if(prevConectado || prev.final) return;
+
+    }
+
+    const valor = Math.max(0, parseInt(p.valor, 10) || 0);
+
+    Multi.aportes[cat] = {
+        userId: p.userId,
+        nombre: String(p.nombre || "Contador").slice(0, 40),
+        valor,
+        final: !!p.final || (!!prev?.final && prev.userId === p.userId)
+    };
+
+    datos[cat] = valor;
+
+    multiPintarValor(cat);
+
+    actualizarTotal();
+
+    multiGuardar();
+
+    multiPublicarEstadoHost();
+
+    multiActualizarUI();
+
+    if(p.final){
+
+        Multi.canal.send({
+            type: "broadcast",
+            event: "recibido",
+            payload: { userId: p.userId, categoria: cat, valor }
+        });
+
+    }
+
+}
+
+function multiLiberar(cat){
+
+    const a = Multi.aportes[cat];
+
+    mostrarPopupConfirm(
+
+        "Retomar categoría",
+
+        `¿Quieres seguir contando (o corregir) ${multiNombreCategoria(cat)} tú? Se conserva el valor actual (${datos[cat] || 0}) y ${a?.nombre || "el contador"} ya no podrá modificarlo.`,
+
+        () => {
+
+            delete Multi.aportes[cat];
+
+            Multi.liberadas[cat] = true;
+
+            multiGuardar();
+
+            multiPublicarEstadoHost();
+
+            multiActualizarUI();
+
+        }
+
+    );
+
+}
+
+function multiPendientes(){
+
+    const pend = [];
+
+    const presentes = multiListaPresentes().filter(p => p.rol === "participante");
+
+    presentes.forEach(p => {
+
+        if(!multiEsCategoria(p.categoria)) return;
+
+        const a = Multi.aportes[p.categoria];
+
+        if(!a?.final) pend.push(`${p.nombre} (${multiNombreCategoria(p.categoria)})`);
+
+    });
+
+    Object.entries(Multi.aportes).forEach(([cat, a]) => {
+
+        if(a.final) return;
+
+        if(presentes.some(p => p.id === a.userId)) return;
+
+        pend.push(`${a.nombre} (${multiNombreCategoria(cat)}, desconectado)`);
+
+    });
+
+    return pend;
+
+}
+
+async function multiFinalizarSesion(subida){
+
+    if(Multi.rol !== "anfitrion") return;
+
+    try{
+
+        await Multi.canal.send({
+            type: "broadcast",
+            event: "cerrada",
+            payload: { subida: !!subida, nombre: multiMiNombre() }
+        });
+
+    }catch(e){}
+
+    await multiDesconectar();
+
+}
+
+function multiTerminarDesdeBanner(){
+
+    if(Multi.rol === "anfitrion"){
+
+        return mostrarPopupConfirm(
+            "Terminar sesión",
+            "¿Terminar el multi-contador sin subir? Los números recibidos se quedan en tu pantalla.",
+            () => multiFinalizarSesion(false)
+        );
+
+    }
+
+    if(Multi.rol === "participante"){
+
+        const v = datos[Multi.categoria] || 0;
+
+        return mostrarPopupConfirm(
+            "Salir",
+            `¿Salir del multi-contador? El anfitrión conserva el último valor que le llegó (${v}).`,
+            async () => {
+                multiEnviarConteo(true);
+                await multiEsperar(300);
+                await multiDesconectar();
+            }
+        );
+
+    }
+
+}
+
+async function multiCompartirCodigo(){
+
+    if(!Multi.codigo) return;
+
+    const texto = `Únete a mi multi-contador de asistencia. Código: ${Multi.codigo}`;
+
+    try{
+
+        if(navigator.share){
+
+            await navigator.share({ title: "Multi-contador", text: texto });
+
+        }else{
+
+            await navigator.clipboard.writeText(Multi.codigo);
+
+            mostrarAlerta("✅", "Código copiado: " + Multi.codigo);
+
+        }
+
+    }catch(e){
+
+        if(e?.name !== "AbortError") mostrarAlerta("👥", "Código: " + Multi.codigo);
+
+    }
+
+}
+
+
+/* ---------- PARTICIPANTE ---------- */
+
+async function multiUnirse(){
+
+    if(!multiPuedeUsar()) return;
+
+    const codigo = (document.getElementById("multiCodigo")?.value || "")
+        .replace(/\D/g, "");
+
+    if(!/^\d{4}$/.test(codigo)){
+
+        return mostrarAlerta("⚠️", "El código debe tener 4 dígitos.");
+
+    }
+
+    cerrarModalMulti();
+
+    showBusy("Conectando...", "Buscando la sesión");
+
+    Multi.presentes = {};
+
+    const canal = multiCrearCanal(codigo);
+
+    Multi.canalPendiente = canal;
+
+    try{
+
+        await multiSuscribir(canal);
+
+        // Esperar a que llegue la lista de conectados
+        let host = null;
+
+        for(let i = 0; i < 25 && !host; i++){
+
+            await multiEsperar(200);
+
+            host = multiHayAnfitrion();
+
+        }
+
+        if(!host){
+
+            throw new Error("No se encontró una sesión activa con ese código.");
+
+        }
+
+        if(host.id === App.usuario.id){
+
+            throw new Error("Esta sesión es tuya. Cada contador debe entrar con su propia cuenta.");
+
+        }
+
+        // Categorías ocupadas (según el anfitrión + contadores conectados)
+        const ocupadas = {};
+
+        Object.entries(host.ocupadas || {}).forEach(([cat, o]) => {
+            if(o.userId !== App.usuario.id) ocupadas[cat] = o;
+        });
+
+        multiListaPresentes().forEach(p => {
+            if(p.rol === "participante" && p.id !== App.usuario.id && multiEsCategoria(p.categoria)){
+                ocupadas[p.categoria] = { nombre: p.nombre, final: false };
+            }
+        });
+
+        hideBusy();
+
+        multiRender("categoria", { codigo, hostNombre: host.nombre, ocupadas });
+
+        document.getElementById("modalMulti").classList.remove("oculto");
+
+    }
+    catch(err){
+
+        console.error("Multi-contador:", err);
+
+        Multi.canalPendiente = null;
+        Multi.presentes = {};
+
+        try{ await supabase.removeChannel(canal); }catch(e){}
+
+        hideBusy();
+
+        mostrarAlerta("❌", err?.message || "No fue posible conectar.");
+
+    }
+
+}
+
+async function multiElegirCategoria(cat){
+
+    const canal = Multi.canalPendiente;
+
+    if(!canal || !multiEsCategoria(cat)) return;
+
+    const codigo = (document.getElementById("multiCodigo")?.value || "").replace(/\D/g, "")
+        || canal.topic.split("-").pop();
+
+    cerrarModalMulti();
+
+    showBusy("Uniéndote...", multiNombreCategoria(cat));
+
+    try{
+
+        await multiActivarParticipante(canal, codigo, cat);
+
+        hideBusy();
+
+        const host = multiHayAnfitrion();
+
+        mostrarAlerta(
+            "📲 Listo",
+            `Cuentas ${multiNombreCategoria(cat)} para ${host?.nombre || "el anfitrión"}. Va en vivo; al terminar toca "Enviar al anfitrión".`
+        );
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        hideBusy();
+
+        await multiDesconectar();
+
+        mostrarAlerta("❌", "No fue posible unirte. Intenta de nuevo.");
+
+    }
+
+}
+
+// canal = null → crea uno nuevo (reconexión tras recargar la app)
+async function multiActivarParticipante(canal, codigo, cat){
+
+    if(!canal){
+
+        canal = multiCrearCanal(codigo);
+
+        Multi.canalPendiente = canal;
+
+        await multiSuscribir(canal);
+
+    }
+
+    Multi.rol = "participante";
+    Multi.codigo = codigo;
+    Multi.canal = canal;
+    Multi.canalPendiente = null;
+    Multi.categoria = cat;
+    Multi.aportes = {};
+    Multi.liberadas = {};
+
+    Multi.miPresencia = {
+        rol: "participante",
+        nombre: multiMiNombre(),
+        categoria: cat
+    };
+
+    await canal.track(Multi.miPresencia);
+
+    multiGuardar();
+
+    multiActualizarUI();
+
+    actualizarTotal();
+
+    multiEnviarConteo(true);
+
+}
+
+function multiEnviarConteo(inmediato = false, final = false){
+
+    if(Multi.rol !== "participante" || !Multi.canal || !Multi.categoria) return;
+
+    const enviar = () => Multi.canal.send({
+        type: "broadcast",
+        event: "conteo",
+        payload: {
+            userId: App.usuario.id,
+            nombre: multiMiNombre(),
+            categoria: Multi.categoria,
+            valor: datos[Multi.categoria] || 0,
+            final
+        }
+    });
+
+    clearTimeout(Multi.timerEnvio);
+
+    if(inmediato) enviar();
+    else Multi.timerEnvio = setTimeout(enviar, 250);
+
+}
+
+function multiEsperarRecibido(ms){
+
+    return new Promise(resolve => {
+
+        const t = setTimeout(() => {
+            Multi.onRecibido = null;
+            resolve(false);
+        }, ms);
+
+        Multi.onRecibido = () => {
+            clearTimeout(t);
+            Multi.onRecibido = null;
+            resolve(true);
+        };
+
+    });
+
+}
+
+function multiRecibido(p){
+
+    if(
+        Multi.rol === "participante" &&
+        p?.userId === App.usuario?.id &&
+        p?.categoria === Multi.categoria &&
+        Multi.onRecibido
+    ){
+        Multi.onRecibido(p);
+    }
+
+}
+
+// Reemplaza "Subir asistencia" cuando eres participante
+function multiEnviarFinal(){
+
+    const cat = Multi.categoria;
+
+    const nombreCat = multiNombreCategoria(cat);
+
+    const host = multiHayAnfitrion();
+
+    if(!host){
+
+        return mostrarAlerta(
+            "⏳",
+            "El anfitrión no está conectado en este momento. Tu conteo se conserva; intenta en un momento."
+        );
+
+    }
+
+    const valor = datos[cat] || 0;
+
+    mostrarPopupConfirm(
+
+        "Enviar al anfitrión",
+
+        `¿Enviar ${valor} ${nombreCat} a ${host.nombre}?`,
+
+        async () => {
+
+            showBusy("Enviando...", "Esperando confirmación del anfitrión");
+
+            const espera = multiEsperarRecibido(8000);
+
+            multiEnviarConteo(true, true);
+
+            const ok = await espera;
+
+            hideBusy();
+
+            if(!ok){
+
+                return mostrarAlerta(
+                    "⚠️",
+                    "El anfitrión no confirmó la recepción. Tu conteo se conserva; inténtalo de nuevo."
+                );
+
+            }
+
+            datos[cat] = 0;
+
+            multiPintarValor(cat);
+
+            await multiDesconectar();
+
+            mostrarAlerta(
+                "✅ Entregado",
+                `${host.nombre} recibió tus ${valor} ${nombreCat}. Él subirá la asistencia.`
+            );
+
+        }
+
+    );
+
+}
+
+async function multiSesionCerrada(p){
+
+    if(Multi.rol !== "participante") return;
+
+    const cat = Multi.categoria;
+
+    const valor = datos[cat] || 0;
+
+    const quien = p?.nombre || "El anfitrión";
+
+    if(p?.subida){
+
+        datos[cat] = 0;
+
+        multiPintarValor(cat);
+
+    }
+
+    await multiDesconectar();
+
+    if(p?.subida){
+
+        mostrarAlerta(
+            "✅ Asistencia subida",
+            `${quien} subió la asistencia, incluyendo tus ${valor} ${multiNombreCategoria(cat)}.`
+        );
+
+    }else{
+
+        mostrarAlerta(
+            "ℹ️ Sesión terminada",
+            `${quien} cerró el multi-contador. Tu conteo (${valor}) se conserva en tu pantalla.`
+        );
+
+    }
+
+}
+
+
+/* ---------- Común ---------- */
+
+async function multiDesconectar(){
+
+    const canales = [Multi.canal, Multi.canalPendiente].filter(Boolean);
+
+    clearTimeout(Multi.timerEnvio);
+
+    Object.assign(Multi, {
+        rol: null,
+        codigo: null,
+        canal: null,
+        canalPendiente: null,
+        categoria: null,
+        aportes: {},
+        liberadas: {},
+        presentes: {},
+        miPresencia: null,
+        firmaPublicada: null,
+        onRecibido: null,
+        confirmadoPendientes: false
+    });
+
+    try{ localStorage.removeItem(MULTI_STORAGE_KEY); }catch(e){}
+
+    for(const canal of canales){
+
+        try{ await canal.untrack(); }catch(e){}
+
+        try{ await supabase.removeChannel(canal); }catch(e){}
+
+    }
+
+    multiActualizarUI();
+
+    actualizarTotal();
+
+}
+
+// ¿Se puede tocar +/− en esta categoría?
+function multiPermiteCambiar(cat){
+
+    if(Multi.rol === "participante") return cat === Multi.categoria;
+
+    if(Multi.rol === "anfitrion") return !multiCategoriaBloqueada(cat);
+
+    return true;
+
+}
+
+function multiCategoriaBloqueada(cat){
+
+    if(Multi.rol !== "anfitrion") return false;
+
+    if(Multi.liberadas?.[cat]) return false;
+
+    if(Multi.aportes[cat]) return true;
+
+    return multiListaPresentes()
+        .some(p => p.rol === "participante" && p.categoria === cat);
+
+}
+
+function multiActualizarUI(){
+
+    const banner = document.getElementById("multiBanner");
+
+    const btnSubir = document.getElementById("btn-subir");
+
+    const itemMenu = document.getElementById("btnMultiMenu");
+
+    const totalLabel = document.getElementById("totalLabel");
+
+    if(!banner || !btnSubir) return;
+
+    // Volver todas las tarjetas a su estado normal
+    CATEGORIAS_MULTI.forEach(c => {
+
+        const card = document.getElementById(c.key)?.closest(".card");
+
+        if(!card) return;
+
+        const label = card.querySelector(".label");
+
+        if(label){
+
+            if(!label.dataset.original) label.dataset.original = label.textContent.trim();
+
+            label.textContent = label.dataset.original;
+
+        }
+
+        card.classList.remove("multiOculta", "multiBloqueada");
+
+        card.querySelectorAll(".counterBtn").forEach(b => b.disabled = false);
+
+    });
+
+    if(!Multi.rol){
+
+        banner.classList.add("oculto");
+
+        btnSubir.textContent = "📤 Subir asistencia";
+
+        if(itemMenu) itemMenu.textContent = "👥 Multi-contador";
+
+        if(totalLabel) totalLabel.textContent = "Total asistencia:";
+
+        return;
+
+    }
+
+    banner.classList.remove("oculto");
+
+    if(itemMenu) itemMenu.textContent = "👥 Multi-contador (activo)";
+
+    const txt = banner.querySelector(".txt");
+
+    const acciones = banner.querySelector(".acciones");
+
+    // ----- PARTICIPANTE -----
+    if(Multi.rol === "participante"){
+
+        CATEGORIAS_MULTI.forEach(c => {
+
+            if(c.key === Multi.categoria) return;
+
+            document.getElementById(c.key)?.closest(".card")?.classList.add("multiOculta");
+
+        });
+
+        const host = multiHayAnfitrion();
+
+        txt.innerHTML = host
+            ? `📲 Cuentas <b>${escapeHTML(multiNombreCategoria(Multi.categoria))}</b> para ${escapeHTML(host.nombre)}<br><small>Código ${escapeHTML(Multi.codigo)} · en vivo</small>`
+            : `⏳ Esperando al anfitrión…<br><small>Código ${escapeHTML(Multi.codigo)} · tu conteo se guarda</small>`;
+
+        acciones.innerHTML = `<button onclick="multiTerminarDesdeBanner()">Salir</button>`;
+
+        btnSubir.textContent = "📨 Enviar al anfitrión";
+
+        if(totalLabel) totalLabel.textContent = "Tu conteo:";
+
+        return;
+
+    }
+
+    // ----- ANFITRIÓN -----
+    const participantes = multiListaPresentes().filter(p => p.rol === "participante");
+
+    CATEGORIAS_MULTI.forEach(c => {
+
+        if(Multi.liberadas?.[c.key]) return;
+
+        const a = Multi.aportes[c.key];
+
+        const vivo = participantes.find(p => p.categoria === c.key);
+
+        if(!a && !vivo) return;
+
+        const card = document.getElementById(c.key)?.closest(".card");
+
+        if(!card) return;
+
+        const label = card.querySelector(".label");
+
+        const nombre = vivo?.nombre || a?.nombre || "Contador";
+
+        let estado;
+
+        if(a?.final) estado = "✅ entregado";
+        else if(vivo) estado = "📱 en vivo";
+        else estado = "⚠️ desconectado";
+
+        card.classList.add("multiBloqueada");
+
+        card.querySelectorAll(".counterBtn").forEach(b => b.disabled = true);
+
+        if(label){
+
+            label.innerHTML =
+                `${escapeHTML(label.dataset.original)} · ${escapeHTML(nombre)} ${estado}` +
+                (!vivo
+                    ? ` <button class="multiLiberar" onclick="multiLiberar('${c.key}')">Retomar</button>`
+                    : "");
+
+        }
+
+    });
+
+    const n = participantes.length;
+
+    txt.innerHTML =
+        `👥 Código <b style="letter-spacing:2px;">${escapeHTML(Multi.codigo)}</b><br>` +
+        `<small>${n} contador${n === 1 ? "" : "es"} conectado${n === 1 ? "" : "s"}</small>`;
+
+    acciones.innerHTML =
+        `<button onclick="multiCompartirCodigo()">Compartir</button>` +
+        `<button onclick="multiTerminarDesdeBanner()">Terminar</button>`;
+
+    btnSubir.textContent = "📤 Subir asistencia";
+
+    if(totalLabel) totalLabel.textContent = "Total asistencia:";
+
+}
+
+// Al volver a la app (pantalla bloqueada, cambio de app), re-sincronizar
+document.addEventListener("visibilitychange", () => {
+
+    if(document.visibilityState !== "visible") return;
+
+    if(Multi.rol === "participante") multiEnviarConteo(true);
+
+    if(Multi.rol === "anfitrion" && Multi.canal){
+        Multi.canal.send({ type: "broadcast", event: "pedir_conteos", payload: {} });
+    }
+
+});
+
+
 /* === HELPERS === */
 function escapeHTML(s){
   return (s+'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -6559,6 +8028,9 @@ async function initApp() {
             .style.display = "none";
 
         actualizarUserCircle();
+
+        // Si se recargó la app en medio de un multi-contador, reconectar
+        multiRestaurar();
 
     }
     else{
