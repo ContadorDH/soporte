@@ -801,7 +801,7 @@ main {
   background: rgba(0,0,0,.35);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  z-index: 300; /* encima de popups (210) */
+  z-index: 9999990; /* encima de las pantallas de administración, debajo de los popups */
 }
 
 #busyOverlay.active{ display:flex; }
@@ -2216,6 +2216,65 @@ ADMINISTRAR USUARIOS
 .btnReiniciar.visible{ display:flex; }
 .btnReiniciar:active{ transform:translateY(-50%) rotate(-90deg) scale(.92); color:#dc2626; border-color:#dc2626; }
 
+/* Aviso de nueva versión */
+#updateBar{
+  display:none;
+  width:95%;
+  max-width:440px;
+  flex:0 0 auto;
+  margin:6px 0 2px;
+  padding:7px 14px;
+  border-radius:999px;
+  text-align:center;
+  font-size:.85rem;
+  color:#1e3a8a;
+  background:#dbeafe;
+  border:1px solid #bfdbfe;
+  box-shadow:0 2px 6px var(--shadow);
+  cursor:pointer;
+}
+#updateBar.visible{ display:block; animation:offlineIn .25s ease; }
+
+/* Administración de usuarios */
+.adminVacio{
+  text-align:center;
+  color:var(--muted);
+  padding:30px 10px;
+  background:var(--card);
+  border-radius:14px;
+}
+.accionesUsuario{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.accionesUsuario .btnEliminarUsuario{ background:#fee2e2; color:#b91c1c; }
+.badgeTu{ font-size:.85rem; color:var(--muted); font-weight:700; }
+
+/* Superadmin viendo otra iglesia */
+.chipIglesiaVista{
+  width:100%;
+  max-width:820px;
+  margin-top:8px;
+  padding:8px 8px 8px 14px;
+  border-radius:12px;
+  background:#fef3c7;
+  color:#92400e;
+  border:1px solid #fde68a;
+  font-size:.86rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.chipIglesiaVista button{
+  border:0;
+  border-radius:999px;
+  padding:6px 10px;
+  background:#92400e;
+  color:#fff;
+  font-weight:700;
+  font-size:.78rem;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
 /* 12. Rebote del total */
 @keyframes totalBump{
   0%{ transform:scale(1); }
@@ -2657,7 +2716,7 @@ ADMINISTRAR USUARIOS
         <div class="splashChips">
 
             <div class="splashChip">
-              <i class="fas fa-landmark"></i>
+                <i class="fas fa-church"></i>
                 <div>
                     <small>Desarrollado para</small>
                     IPUC Bochica Sur · Bogotá D.C.
@@ -3104,6 +3163,9 @@ gap:clamp(4px, 1.2vh, 8px);
 padding:clamp(4px, 1vh, 8px) 0;
 ">
 
+  <!-- Aviso de nueva versión -->
+  <div id="updateBar" onclick="aplicarActualizacion()">🔄 Nueva versión · <b>Toca para actualizar</b></div>
+
   <!-- Aviso de conexión (solo visible sin internet / al volver) -->
   <div id="offlineBar">📡 Sin conexión · tu conteo se conserva</div>
 
@@ -3229,6 +3291,9 @@ style="
     <button title="Refrescar" onclick="refrescarMes()">⟳</button>
     <div id="loadingIndicator" style="display:none"><div class="spinner"></div></div>
   </div>
+  <!-- Superadmin viendo otra iglesia -->
+  <div id="chipIglesiaVista" class="chipIglesiaVista oculto"></div>
+
   <nav id="verTabs" class="verTabs" aria-label="Secciones">
     <button type="button" data-tab="registros" onclick="mostrarPanelVer('registros')"><span class="tabIcono">📋<span class="tabCuenta"></span></span><span class="tabTexto">Registros</span></button>
     <button type="button" data-tab="resumen" onclick="mostrarPanelVer('resumen')"><span class="tabIcono">📊</span><span class="tabTexto">Resumen</span></button>
@@ -3467,15 +3532,15 @@ style="
         <div id="subirAviso" class="subirAviso oculto"></div>
         <div id="subirResumen" class="subirResumen"></div>
 
-        <label class="subirLabel" for="subirCulto"> Culto <small>(opcional)</small></label>
+        <label class="subirLabel" for="subirCulto">⛪ Culto <small>(opcional)</small></label>
         <input id="subirCulto" list="listaCultos" maxlength="60" autocomplete="off" placeholder="Ej: Culto dominical">
         <datalist id="listaCultos"></datalist>
         <div id="subirChips" class="subirChips"></div>
 
-        <label class="subirLabel" for="subirVisitantes">Visitantes nuevos <small>(opcional · primera vez)</small></label>
+        <label class="subirLabel" for="subirVisitantes">🌱 Visitantes nuevos <small>(opcional · primera vez)</small></label>
         <input id="subirVisitantes" type="number" min="0" inputmode="numeric" placeholder="0">
 
-        <label class="subirLabel" for="subirNota">Nota <small>(opcional)</small></label>
+        <label class="subirLabel" for="subirNota">📝 Nota <small>(opcional)</small></label>
         <input id="subirNota" maxlength="140" autocomplete="off" placeholder="Ej: Santa Cena, llovió mucho…">
 
         <div style="display:flex;gap:10px;margin-top:6px;">
@@ -3812,7 +3877,15 @@ function ocultarSplash(){
     splashCerrando = true;
 
     // Tiempo mínimo que se muestra el splash (para alcanzar a leerlo y ver la animación)
-    const tiempoMinimo = 5000;
+    let tiempoMinimo = 5000;
+
+    // Si la app se recargó sola para actualizarse, no repetir el splash completo
+    try{
+        if(sessionStorage.getItem("actualizandoApp")){
+            sessionStorage.removeItem("actualizandoApp");
+            tiempoMinimo = 1200;
+        }
+    }catch(e){}
 
     const transcurrido = Date.now() - splashInicio;
 
@@ -3943,6 +4016,8 @@ function pintarIglesiasAdmin(iglesias){
 
     cont.innerHTML = "";
 
+    App.adminIglesias = iglesias;
+
     iglesias.forEach(iglesia=>{
 
         cont.appendChild(
@@ -4027,7 +4102,7 @@ function crearTarjetaIglesia(iglesia){
             <button
                 onclick="entrarComoIglesia('${iglesia.id}')">
 
-                ➡️ Asitencia
+                ➡️ Asistencia
 
             </button>
 
@@ -4065,6 +4140,17 @@ async function abrirUsuariosIglesia(id){
         App.adminIglesia =
             id;
 
+        // Título con el nombre de la iglesia y buscador limpio
+        const igl = (App.adminIglesias || []).find(x => x.id === id);
+
+        const tit = document.getElementById("tituloUsuariosAdmin");
+
+        if(tit) tit.textContent = "Usuarios" + (igl?.nombre ? " · " + igl.nombre : "");
+
+        const buscador = document.getElementById("buscarUsuarioAdmin");
+
+        if(buscador) buscador.value = "";
+
         document
             .getElementById(
                 "usuariosAdminScreen"
@@ -4075,6 +4161,16 @@ async function abrirUsuariosIglesia(id){
 
         pintarUsuariosAdmin(
             usuarios
+        );
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        mostrarAlerta(
+            "❌",
+            "No fue posible cargar los usuarios. " + (err?.message || "")
         );
 
     }
@@ -4140,6 +4236,26 @@ function pintarUsuariosAdmin(usuarios){
 
     cont.innerHTML = "";
 
+    const todos = App.adminUsuarios || usuarios;
+
+    const sub = document.getElementById("subtituloUsuariosAdmin");
+
+    if(sub){
+        sub.textContent = usuarios.length === todos.length
+            ? `${todos.length} usuario${todos.length === 1 ? "" : "s"}`
+            : `${usuarios.length} de ${todos.length} usuarios`;
+    }
+
+    if(!usuarios.length){
+
+        cont.innerHTML = `<div class="adminVacio">${
+            todos.length ? "🔍 Ningún usuario coincide con la búsqueda." : "Esta iglesia no tiene usuarios."
+        }</div>`;
+
+        return;
+
+    }
+
     usuarios.forEach(u=>{
 
         cont.appendChild(
@@ -4147,6 +4263,145 @@ function pintarUsuariosAdmin(usuarios){
         );
 
     });
+
+}
+
+// Buscador de usuarios (nombre, correo, teléfono, cargo, rol o estado)
+function normalizarBusqueda(t){
+    return String(t || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+}
+
+function filtrarUsuariosAdmin(){
+
+    const q = normalizarBusqueda(document.getElementById("buscarUsuarioAdmin")?.value);
+
+    const todos = App.adminUsuarios || [];
+
+    if(!q){
+        pintarUsuariosAdmin(todos);
+        return;
+    }
+
+    const palabras = q.split(/\s+/);
+
+    const filtrados = todos.filter(u => {
+
+        const texto = normalizarBusqueda(
+            [u.nombre, u.correo, u.telefono, u.cargo, u.rol, u.estado].join(" ")
+        );
+
+        return palabras.every(p => texto.includes(p));
+
+    });
+
+    pintarUsuariosAdmin(filtrados);
+
+}
+
+// Eliminar usuario (dos confirmaciones)
+function eliminarUsuarioAdmin(id){
+
+    const u = (App.adminUsuarios || []).find(x => x.id === id);
+
+    if(!u) return;
+
+    if(id === App.usuario?.id){
+        return mostrarAlerta("⚠️", "No puedes eliminar tu propia cuenta.");
+    }
+
+    const nombre = u.nombre || u.correo || "este usuario";
+
+    mostrarPopupConfirm(
+
+        "🗑️ Eliminar usuario",
+
+        `¿Eliminar a ${nombre}?\n\nYa no podrá iniciar sesión. Las asistencias que subió se conservan.`,
+
+        () => {
+
+            mostrarPopupConfirm(
+
+                "⚠️ Confirmar",
+
+                `Esta acción no se puede deshacer.\n¿Seguro que quieres eliminar a ${nombre}?`,
+
+                () => confirmarEliminarUsuario(u)
+
+            );
+
+        }
+
+    );
+
+}
+
+async function confirmarEliminarUsuario(u){
+
+    showBusy("Eliminando...", u.nombre || "Usuario");
+
+    try{
+
+        const { data, error } = await supabase.rpc(
+            "eliminar_usuario_admin",
+            { p_usuario_id: u.id }
+        );
+
+        if(error){
+
+            if(esFuncionInexistente(error)){
+                throw new Error("Falta ejecutar el archivo supabase_eliminar_usuario.sql en Supabase.");
+            }
+
+            throw error;
+
+        }
+
+        const mensajes = {
+            SIN_PERMISO: "Solo un Super Administrador puede eliminar usuarios.",
+            NO_PROPIO: "No puedes eliminar tu propia cuenta.",
+            NO_EXISTE: "El usuario ya no existe.",
+            NO_AUTH: "Tu sesión expiró. Vuelve a iniciar sesión."
+        };
+
+        if(data !== "OK"){
+
+            if(data === "NO_EXISTE"){
+                App.adminUsuarios = (App.adminUsuarios || []).filter(x => x.id !== u.id);
+                filtrarUsuariosAdmin();
+            }
+
+            throw new Error(mensajes[data] || String(data));
+
+        }
+
+        App.adminUsuarios = (App.adminUsuarios || []).filter(x => x.id !== u.id);
+
+        filtrarUsuariosAdmin();
+
+        // Actualizar el número de usuarios en la tarjeta de la iglesia
+        try{
+            pintarIglesiasAdmin(await cargarDashboardIglesias());
+        }catch(e){}
+
+        mostrarAlerta("✅", `${u.nombre || "El usuario"} fue eliminado.`);
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        mostrarAlerta("❌", err?.message || "No fue posible eliminar el usuario.");
+
+    }
+    finally{
+
+        hideBusy();
+
+    }
 
 }
 
@@ -4188,7 +4443,7 @@ function crearTarjetaUsuario(u){
             <div class="avatarUsuario">
 
                 ${u.foto
-                    ? `<img src="${u.foto}">`
+                    ? `<img src="${escapeHTML(u.foto)}" alt="">`
                     : iniciales
                 }
 
@@ -4251,6 +4506,15 @@ function crearTarjetaUsuario(u){
 
             </button>
 
+            ${u.id !== App.usuario?.id ? `
+            <button
+                class="btnEliminarUsuario"
+                onclick="eliminarUsuarioAdmin('${u.id}')">
+
+                🗑️ Eliminar
+
+            </button>` : `<span class="badgeTu">👤 Tú</span>`}
+
         </div>
 
     `;
@@ -4294,6 +4558,23 @@ async function guardarUsuarioAdmin(){
 
     if(!u) return;
 
+    if(!editNombre.value.trim()){
+        return mostrarAlerta("⚠️", "El nombre no puede quedar vacío.");
+    }
+
+    // Evitar que el superadmin se quite su propio acceso por error
+    if(u.id === App.usuario?.id){
+
+        if(editRol.value !== "superadmin"){
+            return mostrarAlerta("⚠️", "No puedes quitarte tu propio rol de Super Administrador.");
+        }
+
+        if(String(editEstado.value).toLowerCase() !== "activo"){
+            return mostrarAlerta("⚠️", "No puedes desactivar tu propia cuenta.");
+        }
+
+    }
+
     showBusy(
         "Guardando...",
         "Usuario"
@@ -4335,9 +4616,7 @@ async function guardarUsuarioAdmin(){
 
         u.estado = editEstado.value;
 
-        pintarUsuariosAdmin(
-            App.adminUsuarios
-        );
+        filtrarUsuariosAdmin();
 
         cerrarEditarUsuario();
 
@@ -4493,11 +4772,8 @@ async function entrarComoIglesia(id){
         // AVISO
         // =====================================================
 
-        mostrarAlerta(
-            "🏛️",
-            "Iglesia seleccionada: " +
-            (iglesia.nombre || "Iglesia")
-        );
+        // Abrir directamente la asistencia de esa iglesia
+        abrirVerPantalla();
 
     }
     catch(err){
@@ -6654,7 +6930,39 @@ async function subirAsistencia(){
 }
 
 /* === VER === */
+function actualizarChipIglesia(){
+
+  const chip = document.getElementById('chipIglesiaVista');
+
+  if(!chip) return;
+
+  const otra = App.esSuperAdmin && App.iglesiaVisualizada?.id &&
+    App.iglesiaVisualizada.id !== App.iglesia?.id;
+
+  if(!otra){
+    chip.classList.add('oculto');
+    return;
+  }
+
+  chip.innerHTML = `🏛️ Viendo: <b>${escapeHTML(App.iglesiaVisualizada.nombre || 'otra iglesia')}</b>
+    <button type="button" onclick="volverAMiIglesia()">Volver a la mía</button>`;
+
+  chip.classList.remove('oculto');
+
+}
+
+function volverAMiIglesia(){
+
+  App.iglesiaVisualizada = null;
+
+  actualizarChipIglesia();
+
+  verAsistencia(document.getElementById('selectMes').value);
+
+}
+
 function abrirVerPantalla(){ 
+  actualizarChipIglesia();
   const menu=document.getElementById('menu');
   if(menu.classList.contains('active'))toggleMenu();
   const select=document.getElementById('selectMes');
@@ -10903,6 +11211,140 @@ function reiniciarConteoManual(){
     );
 
 }
+
+/* ===========================================================
+   ACTUALIZACIÓN AUTOMÁTICA
+   Cada vez que subes un index.html nuevo a GitHub, la app lo
+   detecta sola (compara el archivo publicado con el último
+   conocido) y se recarga con la versión nueva. No hay que
+   cambiar ningún número de versión.
+=========================================================== */
+
+function urlBaseApp(){
+    return location.origin + location.pathname;
+}
+
+function hashTexto(t){
+    let h = 5381;
+    for(let i = 0; i < t.length; i++){
+        h = ((h << 5) + h + t.charCodeAt(i)) | 0;
+    }
+    return (h >>> 0).toString(36) + "-" + t.length;
+}
+
+let ultimaRevisionVersion = 0;
+
+let actualizacionPendiente = false;
+
+async function verificarActualizacion(enInicio = false){
+
+    if(!/^https?:/.test(location.protocol)) return;
+
+    if(navigator.onLine === false) return;
+
+    const ahora = Date.now();
+
+    // Al volver a la app, revisar como máximo cada 2 minutos
+    if(!enInicio && ahora - ultimaRevisionVersion < 2 * 60 * 1000) return;
+
+    ultimaRevisionVersion = ahora;
+
+    try{
+
+        // Pedir el archivo publicado, saltándose todas las cachés
+        const r = await fetch(urlBaseApp() + "?v=" + ahora, { cache: "no-store" });
+
+        if(!r.ok) return;
+
+        const texto = await r.text();
+
+        // Evitar falsos avisos si GitHub devolvió una página de error
+        if(texto.length < 5000 || !texto.includes("subirAsistencia")) return;
+
+        const nuevo = hashTexto(texto);
+
+        let conocido = null;
+
+        try{ conocido = localStorage.getItem("versionAppHash"); }catch(e){}
+
+        if(conocido === nuevo) return;
+
+        try{ localStorage.setItem("versionAppHash", nuevo); }catch(e){}
+
+        // Primera vez que se usa este sistema: solo se registra la versión
+        if(!conocido) return;
+
+        // Hay versión nueva
+        if(enInicio && typeof splashVisible !== "undefined" && splashVisible){
+
+            // Todavía en el splash: actualizar de una vez (casi no se nota)
+            aplicarActualizacion();
+
+        }else{
+
+            actualizacionPendiente = true;
+
+            document.getElementById("updateBar")?.classList.add("visible");
+
+        }
+
+    }catch(e){
+        // Sin red o GitHub no responde: se intenta en la próxima revisión
+    }
+
+}
+
+async function aplicarActualizacion(){
+
+    try{ sessionStorage.setItem("actualizandoApp", "1"); }catch(e){}
+
+    // El conteo y la sesión quedan guardados; solo se recarga la app
+    try{ conteoGuardar(); }catch(e){}
+
+    try{ if(Multi.rol) multiGuardar(); }catch(e){}
+
+    try{
+        // Renovar la copia guardada del archivo para la próxima vez que se abra
+        await fetch(urlBaseApp(), { cache: "reload" });
+    }catch(e){}
+
+    try{
+        if("caches" in window){
+            const nombres = await caches.keys();
+            await Promise.all(nombres.map(n => caches.delete(n)));
+        }
+    }catch(e){}
+
+    const url = new URL(urlBaseApp());
+
+    url.searchParams.set("_update", Date.now());
+
+    location.replace(url.toString());
+
+}
+
+// Quitar el "?_update=..." de la barra de direcciones después de actualizar
+try{
+    const u = new URL(location.href);
+    if(u.searchParams.has("_update")){
+        u.searchParams.delete("_update");
+        history.replaceState(null, "", u.pathname + (u.search || "") + u.hash);
+    }
+}catch(e){}
+
+// Si quedó algún service worker viejo de otra versión, quitarlo (la app no usa uno)
+try{
+    navigator.serviceWorker?.getRegistrations?.().then(rs => rs.forEach(r => r.unregister())).catch(() => {});
+}catch(e){}
+
+// Revisar al abrir y cada vez que se vuelve a la app
+verificarActualizacion(true);
+
+document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible") verificarActualizacion(false);
+});
+
+window.addEventListener("online", () => verificarActualizacion(false));
 
 /* === HELPERS === */
 function escapeHTML(s){
