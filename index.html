@@ -4,6 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <script>
+  // ✅ MODO DEPURACIÓN
+  // En false, los console.log no se muestran (no se exponen datos del
+  // perfil/iglesia en la consola). Los errores y avisos sí se ven.
+  // Cámbialo a true cuando necesites depurar.
+  const DEBUG = false;
+  if(!DEBUG){ console.log = function(){}; console.info = function(){}; }
+
   // Fix del bug de 100vh/100dvh en navegadores móviles:
   // mide el alto REAL y visible de la ventana y lo guarda en --app-height
   function setAppHeight() {
@@ -41,7 +48,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.56.0"></script>
 
 <!-- SheetJS (Excel) -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     /* 🎨 Definición de temas en tonos pastel */
@@ -275,8 +282,8 @@ header > button {
 
 
     @keyframes fadeInTitle {
-      from { opacity: 0; transform: translateX(-50%) translateY(-5px); }
-      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     #menuOverlay {
@@ -1615,6 +1622,8 @@ CENTRO ADMINISTRADOR
 
     background:var(--card);
 
+    color:var(--text);
+
     border-radius:18px;
 
     padding:20px;
@@ -1713,7 +1722,7 @@ CENTRO ADMINISTRADOR
 
 .datoAdmin{
 
-    background:#f8f9fb;
+    background:var(--bg);
 
     border-radius:14px;
 
@@ -1727,7 +1736,7 @@ CENTRO ADMINISTRADOR
 
     display:block;
 
-    color:#666;
+    color:var(--muted);
 
     font-size:.86rem;
 
@@ -1753,7 +1762,9 @@ ADMINISTRAR USUARIOS
 
     inset:0;
 
-    background:#f6f8fc;
+    background:var(--bg);
+
+    color:var(--text);
 
     display:none;
 
@@ -1887,9 +1898,9 @@ ADMINISTRAR USUARIOS
 
     padding:18px;
 
-    background:#fff;
+    background:var(--card);
 
-    border-bottom:1px solid #e5e5e5;
+    border-bottom:1px solid var(--shadow);
 
 }
 
@@ -1901,7 +1912,11 @@ ADMINISTRAR USUARIOS
 
     border-radius:12px;
 
-    border:1px solid #ddd;
+    border:1px solid var(--muted);
+
+    background:var(--card);
+
+    color:var(--text);
 
     font-size:15px;
 
@@ -1925,7 +1940,9 @@ ADMINISTRAR USUARIOS
 
 .tarjetaUsuarioAdmin{
 
-    background:#fff;
+    background:var(--card);
+
+    color:var(--text);
 
     border-radius:18px;
 
@@ -1991,7 +2008,7 @@ ADMINISTRAR USUARIOS
 
 .usuarioInfo div{
 
-    color:#666;
+    color:var(--muted);
 
 }
 
@@ -2060,7 +2077,9 @@ ADMINISTRAR USUARIOS
 
     inset:0;
 
-    background:#f6f8fc;
+    background:var(--bg);
+
+    color:var(--text);
 
     display:none;
 
@@ -2119,7 +2138,11 @@ ADMINISTRAR USUARIOS
 
     border-radius:10px;
 
-    border:1px solid #ddd;
+    border:1px solid var(--muted);
+
+    background:var(--card);
+
+    color:var(--text);
 
 }
 
@@ -2135,6 +2158,99 @@ ADMINISTRAR USUARIOS
 
 
 
+
+/* =========================================================
+   MEJORAS UX
+========================================================= */
+
+/* Mensaje de confirmación con saltos de línea (resumen) */
+#popupConfirmMsg{ white-space:pre-line; }
+
+/* 9. Aviso sin conexión */
+#offlineBar{
+  position:fixed;
+  top:64px;
+  left:0;
+  right:0;
+  z-index:85;
+  background:#b91c1c;
+  color:#fff;
+  text-align:center;
+  font-weight:700;
+  font-size:.88rem;
+  padding:6px 10px;
+  transform:translateY(-120%);
+  transition:transform .3s ease;
+  pointer-events:none;
+}
+#offlineBar.visible{ transform:translateY(0); }
+#offlineBar.ok{ background:#15803d; }
+
+/* 8. Deshacer */
+#undoToast{
+  position:fixed;
+  left:50%;
+  bottom:calc(84px + env(safe-area-inset-bottom, 0px));
+  transform:translate(-50%, 30px);
+  opacity:0;
+  pointer-events:none;
+  z-index:95;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:8px 8px 8px 14px;
+  border-radius:24px;
+  background:rgba(20,24,35,.92);
+  color:#fff;
+  font-size:.9rem;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+  transition:opacity .2s ease, transform .2s ease;
+  white-space:nowrap;
+}
+#undoToast.visible{ opacity:1; transform:translate(-50%,0); pointer-events:auto; }
+#undoToast button{
+  border:0;
+  border-radius:16px;
+  padding:6px 12px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
+
+/* 12. Rebote del total */
+@keyframes totalBump{
+  0%{ transform:scale(1); }
+  40%{ transform:scale(1.18); }
+  100%{ transform:scale(1); }
+}
+#total{ display:inline-block; }
+#total.bump{ animation:totalBump .28s ease; }
+
+/* 11. Resumen del mes en Ver asistencia */
+.resumenMes{
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+  color:#fff;
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 6px 18px var(--shadow);
+}
+.resumenMes h4{ margin:0 0 10px; font-size:1rem; }
+.resumenGrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+}
+.resumenGrid div{
+  background:rgba(255,255,255,.15);
+  border-radius:10px;
+  padding:8px 10px;
+}
+.resumenGrid span{ display:block; font-size:.75rem; opacity:.85; }
+.resumenGrid strong{ font-size:1.25rem; }
+.resumenTendencia{ margin-top:10px; font-size:.88rem; line-height:1.4; }
+.resumenTendencia b.sube{ color:#bbf7d0; }
+.resumenTendencia b.baja{ color:#fecaca; }
 
 /* =========================================================
    MULTI-CONTADOR
@@ -2368,7 +2484,7 @@ ADMINISTRAR USUARIOS
         <div class="splashChips">
 
             <div class="splashChip">
-                <i class="fas fa-landmark"></i>
+                <i class="fas fa-church"></i>
                 <div>
                     <small>Desarrollado para</small>
                     IPUC Bochica Sur · Bogotá D.C.
@@ -2760,6 +2876,15 @@ Cancelar
 </header>
 
 <div id="menuOverlay" onclick="closeMenuIfOpen(event)"></div>
+
+<!-- Aviso de conexión -->
+<div id="offlineBar">📡 Sin conexión a internet · tu conteo se conserva</div>
+
+<!-- Deshacer último toque -->
+<div id="undoToast">
+  <span id="undoTexto"></span>
+  <button type="button" onclick="deshacerUltimo()">Deshacer</button>
+</div>
 
 <nav id="menu" aria-hidden="true">
   <button class="item" onclick="abrirVerPantalla()">👁️ Ver asistencia</button>
@@ -4513,6 +4638,8 @@ async function verificarNuevoCodigoRegistro(){
 
         actualizarUserCircle();
 
+        conteoRestaurar();
+
         multiRestaurar();
 
         mostrarAlerta(
@@ -5386,6 +5513,8 @@ async function loginSupabase(){
 
         actualizarUserCircle();
 
+        conteoRestaurar();
+
         multiRestaurar();
 
         mostrarAlerta(
@@ -5704,6 +5833,11 @@ async function cerrarSesion(){
                 }catch(e){
                     console.error("No se pudo limpiar localStorage:", e);
                 }
+
+                // Dejar de guardar el conteo de este usuario
+                conteoListo = false;
+
+                ocultarDeshacer();
 
                 // Salir del multi-contador si había uno activo
                 multiDesconectar();
@@ -6052,8 +6186,11 @@ function closeMenuIfOpen(evt){
 }
 
 /* === CONTADORES === */
-function changeCount(tipo, delta){ 
+function changeCount(tipo, delta, sinDeshacer = false){ 
   if(!multiPermiteCambiar(tipo)) return;
+  const antes = multiValorTotal(tipo);
+  // Se registra para "Deshacer" y vibración después del cambio
+  setTimeout(() => despuesDeCambio(tipo, delta, antes, sinDeshacer), 0);
   if(Multi.rol === "anfitrion" && multiCategoriaDeParticipante(tipo)){
     // Categoría de otro contador habilitada: lo del anfitrión va aparte y se suma
     Multi.extraHost[tipo] = Math.max(0, (Multi.extraHost[tipo]||0) + delta);
@@ -6081,7 +6218,16 @@ function actualizarTotal(){
     // Anfitrión: incluye lo que suman los participantes
     total = CATEGORIAS_MULTI.reduce((a,c)=>a+multiValorTotal(c.key),0);
   }
-  document.getElementById('total').textContent=total; 
+  const elTotal = document.getElementById('total');
+  if(elTotal.textContent !== String(total)){
+    elTotal.textContent = total;
+    // 12. Pequeño rebote al cambiar
+    elTotal.classList.remove('bump');
+    void elTotal.offsetWidth;
+    elTotal.classList.add('bump');
+  }
+  // 1. Guardar el conteo en el teléfono
+  conteoGuardar();
 }
 
 
@@ -6130,6 +6276,17 @@ async function subirAsistencia(){
 
     }
 
+    // Sin internet: avisar en lugar de intentar
+    if(navigator.onLine === false){
+
+        return mostrarPopupConfirm(
+            "📡 Sin conexión",
+            "No hay internet en este momento. Tu conteo se conserva; intenta subir cuando vuelva la conexión.",
+            null
+        );
+
+    }
+
     // Cerrar menú lateral
     const menu = document.getElementById("menu");
     const overlay = document.getElementById("menuOverlay");
@@ -6139,11 +6296,16 @@ async function subirAsistencia(){
         overlay?.classList.remove("active");
     }
 
+    // Resumen de lo que se va a subir
+    const resumenSubida = CATEGORIAS_MULTI
+        .map(c => `${c.nombre}: ${multiValorTotal(c.key)}`)
+        .join("\n");
+
     mostrarPopupConfirm(
 
         "Confirmar envío",
 
-        "¿Deseas subir esta asistencia?",
+        `${resumenSubida}\n\nTotal: ${total}\n\n¿Deseas subir esta asistencia?`,
 
         async()=>{
 
@@ -6704,6 +6866,13 @@ onclick="eliminarAsistencia('${r.id}')">
 `;
 
         }).join("");
+
+        // 11. Resumen y comparativo del mes (solo se agrega arriba)
+        try{
+            listado.insertAdjacentHTML("afterbegin", htmlResumenMes(filas, data, mes));
+        }catch(e){
+            console.error("Resumen del mes:", e);
+        }
 
     }
     catch(e){
@@ -8822,6 +8991,302 @@ document.addEventListener("visibilitychange", () => {
 });
 
 
+/* ===========================================================
+   MEJORAS: conteo guardado, pantalla encendida, deshacer,
+   vibración, aviso sin conexión y resumen del mes
+=========================================================== */
+
+const CONTEO_STORAGE_KEY = "conteoActual";
+
+// No guardar hasta haber restaurado (evita pisar lo guardado con ceros)
+let conteoListo = false;
+
+function hoyLocal(){
+    return new Date().toLocaleDateString("en-CA"); // AAAA-MM-DD en hora local
+}
+
+// 1. Guarda el conteo normal en el teléfono a cada cambio
+function conteoGuardar(){
+
+    if(!conteoListo || !App.usuario?.id) return;
+
+    try{
+
+        const valores = {};
+
+        CATEGORIAS_MULTI.forEach(c => valores[c.key] = datos[c.key] || 0);
+
+        localStorage.setItem(CONTEO_STORAGE_KEY, JSON.stringify({
+            userId: App.usuario.id,
+            fecha: hoyLocal(),
+            valores
+        }));
+
+    }catch(e){}
+
+}
+
+// 1. Recupera el conteo de hoy (mismo usuario) al abrir la app
+function conteoRestaurar(){
+
+    try{
+
+        const s = JSON.parse(localStorage.getItem(CONTEO_STORAGE_KEY) || "null");
+
+        if(
+            s &&
+            s.userId === App.usuario?.id &&
+            s.fecha === hoyLocal() &&
+            !Multi.rol
+        ){
+
+            CATEGORIAS_MULTI.forEach(c => {
+
+                datos[c.key] = Math.max(0, parseInt(s.valores?.[c.key], 10) || 0);
+
+                const el = document.getElementById(c.key);
+
+                if(el) el.textContent = datos[c.key];
+
+            });
+
+        }
+
+    }catch(e){}
+
+    conteoListo = true;
+
+    actualizarTotal();
+
+    pedirPantallaEncendida();
+
+}
+
+
+// 2. Mantener la pantalla encendida mientras la app está abierta
+let wakeLockActivo = null;
+
+async function pedirPantallaEncendida(){
+
+    try{
+
+        if(!("wakeLock" in navigator)) return;
+
+        if(document.visibilityState !== "visible") return;
+
+        if(!App.usuario?.id) return;
+
+        if(wakeLockActivo && !wakeLockActivo.released) return;
+
+        wakeLockActivo = await navigator.wakeLock.request("screen");
+
+    }catch(e){
+        // El navegador puede negarlo (batería baja, etc.): no pasa nada
+    }
+
+}
+
+document.addEventListener("visibilitychange", () => {
+
+    if(document.visibilityState === "visible") pedirPantallaEncendida();
+
+});
+
+
+// 7 y 8. Vibración y "Deshacer"
+let ultimoCambio = null;
+
+let timerDeshacer = null;
+
+function despuesDeCambio(tipo, delta, antes, sinDeshacer){
+
+    const despues = multiValorTotal(tipo);
+
+    // Si no cambió nada (ej. "−" en 0 o categoría bloqueada) no hacer nada
+    if(despues === antes) return;
+
+    // Si se está contando, lo de pantalla es lo válido: empezar a guardar
+    // (por si se entró por un camino que no restauró el conteo)
+    if(!conteoListo && App.usuario?.id){
+        conteoListo = true;
+        conteoGuardar();
+        pedirPantallaEncendida();
+    }
+
+    try{ navigator.vibrate?.(delta > 0 ? 12 : [8, 40, 8]); }catch(e){}
+
+    if(sinDeshacer){
+        ocultarDeshacer();
+        return;
+    }
+
+    ultimoCambio = { tipo, delta };
+
+    const nombre = multiNombreCategoria(tipo);
+
+    document.getElementById("undoTexto").textContent =
+        `${nombre} ${delta > 0 ? "+1" : "−1"} → ${despues}`;
+
+    document.getElementById("undoToast").classList.add("visible");
+
+    clearTimeout(timerDeshacer);
+
+    timerDeshacer = setTimeout(ocultarDeshacer, 3500);
+
+}
+
+function deshacerUltimo(){
+
+    if(!ultimoCambio) return;
+
+    const { tipo, delta } = ultimoCambio;
+
+    ultimoCambio = null;
+
+    changeCount(tipo, -delta, true);
+
+}
+
+function ocultarDeshacer(){
+
+    clearTimeout(timerDeshacer);
+
+    ultimoCambio = null;
+
+    document.getElementById("undoToast")?.classList.remove("visible");
+
+}
+
+
+// 9. Aviso de conexión
+function actualizarAvisoConexion(volvio = false){
+
+    const bar = document.getElementById("offlineBar");
+
+    if(!bar) return;
+
+    if(navigator.onLine === false){
+
+        bar.classList.remove("ok");
+
+        bar.textContent = "📡 Sin conexión a internet · tu conteo se conserva";
+
+        bar.classList.add("visible");
+
+        return;
+
+    }
+
+    if(volvio){
+
+        bar.classList.add("ok");
+
+        bar.textContent = "✅ Conexión restablecida";
+
+        bar.classList.add("visible");
+
+        setTimeout(() => bar.classList.remove("visible"), 2500);
+
+        return;
+
+    }
+
+    bar.classList.remove("visible");
+
+}
+
+window.addEventListener("offline", () => actualizarAvisoConexion());
+
+window.addEventListener("online", () => actualizarAvisoConexion(true));
+
+actualizarAvisoConexion();
+
+
+// 11. Resumen y comparativo del mes en "Ver asistencia"
+function htmlResumenMes(filas, todos, mes){
+
+    const totalDe = r => Number(r.total) || 0;
+
+    const n = filas.length;
+
+    const suma = filas.reduce((a, r) => a + totalDe(r), 0);
+
+    const promedio = n ? Math.round(suma / n) : 0;
+
+    const maximo = filas.reduce((m, r) => totalDe(r) > totalDe(m) ? r : m, filas[0]);
+
+    const fechaCorta = r => new Date(r.fecha)
+        .toLocaleDateString("es-CO", { day: "numeric", month: "short" });
+
+    const lineas = [];
+
+    // Último registro del mes frente al anterior (de cualquier mes)
+    const ordenados = [...todos].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    const ultimo = ordenados.find(r => filas.includes(r));
+
+    const idx = ordenados.indexOf(ultimo);
+
+    const anterior = idx >= 0 ? ordenados[idx + 1] : null;
+
+    if(ultimo && anterior && totalDe(anterior) > 0){
+
+        const dif = totalDe(ultimo) - totalDe(anterior);
+
+        const pct = Math.round((dif / totalDe(anterior)) * 100);
+
+        const clase = dif >= 0 ? "sube" : "baja";
+
+        lineas.push(
+            `Último registro (${escapeHTML(fechaCorta(ultimo))}): <b class="${clase}">${dif >= 0 ? "▲ +" : "▼ "}${pct}%</b> frente al anterior (${totalDe(anterior)} → ${totalDe(ultimo)}).`
+        );
+
+    }
+
+    // Promedio frente al mes anterior
+    const iMes = meses.indexOf(mes);
+
+    if(iMes >= 0){
+
+        const mesAnt = meses[(iMes + 11) % 12];
+
+        const filasAnt = todos.filter(r => meses[new Date(r.fecha).getMonth()] === mesAnt);
+
+        if(filasAnt.length){
+
+            const promAnt = Math.round(filasAnt.reduce((a, r) => a + totalDe(r), 0) / filasAnt.length);
+
+            if(promAnt > 0){
+
+                const pct = Math.round(((promedio - promAnt) / promAnt) * 100);
+
+                const clase = pct >= 0 ? "sube" : "baja";
+
+                lineas.push(
+                    `Promedio frente a ${escapeHTML(mesAnt)}: <b class="${clase}">${pct >= 0 ? "▲ +" : "▼ "}${pct}%</b> (${promAnt} → ${promedio}).`
+                );
+
+            }
+
+        }
+
+    }
+
+    return `
+<div class="resumenMes">
+    <h4>📊 Resumen de ${escapeHTML(mes)}</h4>
+    <div class="resumenGrid">
+        <div><span>Registros</span><strong>${n}</strong></div>
+        <div><span>Asistencia total</span><strong>${suma}</strong></div>
+        <div><span>Promedio por registro</span><strong>${promedio}</strong></div>
+        <div><span>Mayor asistencia</span><strong>${totalDe(maximo)}</strong> <span>${escapeHTML(fechaCorta(maximo))}</span></div>
+    </div>
+    ${lineas.length ? `<div class="resumenTendencia">${lineas.join("<br>")}</div>` : ""}
+</div>`;
+
+}
+
+
 /* === HELPERS === */
 function escapeHTML(s){
   return (s+'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -8909,6 +9374,8 @@ async function initApp() {
         actualizarUserCircle();
 
         // Si se recargó la app en medio de un multi-contador, reconectar
+        conteoRestaurar();
+
         multiRestaurar();
 
     }
