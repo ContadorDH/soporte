@@ -2845,6 +2845,12 @@ placeholder="Teléfono">
 
 <option>Líder</option>
 
+<option>Diácono</option>
+
+<option>BIS</option>
+
+<option>Asegurabilidad</option>
+
 <option>Otro</option>
 
 </select>
@@ -3476,7 +3482,21 @@ style="
             <label>Cargo</label>
 
             <input
-                id="editCargo">
+                id="editCargo"
+                list="listaCargosEditar"
+                autocomplete="off">
+
+            <!-- Sugerencias (se puede escribir otro cargo) -->
+            <datalist id="listaCargosEditar">
+                <option value="Pastor"></option>
+                <option value="Secretario"></option>
+                <option value="DECOM"></option>
+                <option value="Líder"></option>
+                <option value="Diácono"></option>
+                <option value="BIS"></option>
+                <option value="Asegurabilidad"></option>
+                <option value="Otro"></option>
+            </datalist>
 
         </div>
 
