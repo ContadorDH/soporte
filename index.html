@@ -1089,7 +1089,7 @@ body {
 #splashScreen{
     position:fixed;
     inset:0;
-    z-index:2147483000; /* por encima de cualquier popup o modal de la app */
+    z-index:999999;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -3441,46 +3441,17 @@ const vigilanteSplash = setTimeout(()=>{
 
 }, VIGILANTE_SPLASH_MS);
 
-// Mientras el splash está visible, Supabase sigue trabajando por
-// detrás, pero cualquier alerta/confirmación que la app quiera
-// mostrar se guarda en esta cola y se muestra cuando el splash
-// termine. Así nada lo tapa ni lo interrumpe.
-let splashVisible = true;
-
-let splashCerrando = false;
-
-const colaSplash = [];
-
-function alTerminarSplash(fn){
-
-    if(!splashVisible){
-        fn();
-        return;
-    }
-
-    colaSplash.push(fn);
-
-}
-
 function ocultarSplash(){
 
     clearTimeout(vigilanteSplash);
 
     const splash = document.getElementById("splashScreen");
 
-    if(!splash){
-        splashVisible = false;
+    if(!splash)
         return;
-    }
-
-    // Puede llamarse dos veces (vigilante + fin normal): solo una cuenta
-    if(splashCerrando)
-        return;
-
-    splashCerrando = true;
 
     // Tiempo mínimo que se muestra el splash (para alcanzar a leerlo y ver la animación)
-    const tiempoMinimo = 7000;
+    const tiempoMinimo = 5000;
 
     const transcurrido = Date.now() - splashInicio;
 
@@ -3493,16 +3464,6 @@ function ocultarSplash(){
         setTimeout(()=>{
 
             splash.remove();
-
-            splashVisible = false;
-
-            // Mostrar lo que quedó pendiente durante el splash
-            while(colaSplash.length){
-
-                try{ colaSplash.shift()(); }
-                catch(e){ console.error("Error mostrando aviso pendiente:", e); }
-
-            }
 
         },450);
 
@@ -4881,7 +4842,7 @@ async function probarConexionSupabase(){
 
             console.error(error);
 
-            mostrarAlerta("⚠️", error.message);
+            alert(error.message);
 
             return;
 
@@ -6012,7 +5973,6 @@ function hideBusy(){
   
 /* === ALERTA MODERNA === */
 function mostrarAlerta(titulo, mensaje){
-  if(splashVisible){ alTerminarSplash(() => mostrarAlerta(titulo, mensaje)); return; }
   const popup = document.getElementById('popupAlert');
   document.getElementById('popupAlertTitle').textContent = titulo || "Información";
   document.getElementById('popupAlertMsg').textContent = mensaje || "";
@@ -6024,7 +5984,6 @@ function mostrarAlerta(titulo, mensaje){
 
 /* === POPUP MODERNO === */
 function mostrarPopupConfirm(titulo, mensaje, callback){
-  if(splashVisible){ alTerminarSplash(() => mostrarPopupConfirm(titulo, mensaje, callback)); return; }
   const popup = document.getElementById('popupConfirm');
   document.getElementById('popupConfirmTitle').textContent = titulo || "Confirmar";
   document.getElementById('popupConfirmMsg').textContent = mensaje || "";
