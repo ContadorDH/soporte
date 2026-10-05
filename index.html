@@ -2215,12 +2215,71 @@ ADMINISTRAR USUARIOS
   flex-shrink:0;
   box-shadow:0 8px 12px -10px rgba(0,0,0,.25);
 }
-#resumenMesBox{
-  width:92%;
+/* Pestañas debajo del encabezado del mes */
+.verTabs{
+  width:100%;
   max-width:820px;
   margin-top:10px;
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:4px;
+  padding:4px;
+  border-radius:14px;
+  background:var(--card);
+  box-shadow:0 2px 8px var(--shadow);
 }
-#resumenMesBox:empty{ display:none; }
+.verTabs button{
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  font-weight:700;
+  font-size:.76rem;
+  padding:7px 2px 6px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  min-width:0;
+  border-radius:10px;
+  cursor:pointer;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  transition:background .2s ease, color .2s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.verTabs button.activo{
+  background:var(--primary);
+  color:#fff;
+  box-shadow:0 3px 8px var(--shadow);
+}
+.verTabs .tabCuenta:empty{ display:none; }
+.verTabs .tabIcono{ position:relative; font-size:1.15rem; line-height:1.2; }
+.verTabs .tabTexto{ max-width:100%; overflow:hidden; text-overflow:ellipsis; }
+.verTabs .tabCuenta{
+  position:absolute;
+  top:-4px;
+  left:100%;
+  margin-left:-4px;
+  min-width:17px;
+  padding:0 4px;
+  border-radius:9px;
+  background:#ef4444;
+  color:#fff;
+  font-size:.62rem;
+  line-height:16px;
+  text-align:center;
+}
+.verTabs button.activo .tabCuenta{ background:#fff; color:var(--primary); }
+.tablaStats td:last-child{ white-space:nowrap; }
+@media (max-width:360px){
+  .verTabs button{ font-size:.7rem; }
+}
+
+/* Paneles (solo se ve el de la pestaña activa) */
+.verPanel{ display:none; flex-direction:column; gap:8px; }
+.verPanel.activo{ display:flex; animation:panelIn .2s ease; }
+@keyframes panelIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
 
 /* Modal subir */
 .subirAviso{
@@ -3142,7 +3201,12 @@ style="
     <button title="Refrescar" onclick="refrescarMes()">⟳</button>
     <div id="loadingIndicator" style="display:none"><div class="spinner"></div></div>
   </div>
-  <div id="resumenMesBox"></div>
+  <nav id="verTabs" class="verTabs" aria-label="Secciones">
+    <button type="button" data-tab="registros" onclick="mostrarPanelVer('registros')"><span class="tabIcono">📋<span class="tabCuenta"></span></span><span class="tabTexto">Registros</span></button>
+    <button type="button" data-tab="resumen" onclick="mostrarPanelVer('resumen')"><span class="tabIcono">📊</span><span class="tabTexto">Resumen</span></button>
+    <button type="button" data-tab="graficas" onclick="mostrarPanelVer('graficas')"><span class="tabIcono">📈</span><span class="tabTexto">Gráficas</span></button>
+    <button type="button" data-tab="categorias" onclick="mostrarPanelVer('categorias')"><span class="tabIcono">🏆</span><span class="tabTexto">Categorías</span></button>
+  </nav>
 </div>
   <div id="listado"></div>
 </section>
@@ -6749,8 +6813,9 @@ async function verAsistencia(mes){
     const listado = document.getElementById("listado");
     listado.innerHTML = "";
 
-    const resumenBox = document.getElementById("resumenMesBox");
-    if(resumenBox) resumenBox.innerHTML = "";
+    const tabCuenta = document.querySelector('#verTabs .tabCuenta');
+    if(tabCuenta) tabCuenta.textContent = "";
+    document.querySelectorAll("#verTabs button").forEach(b => b.classList.toggle("activo", b.dataset.tab === "registros"));
 
     try{
 
@@ -7047,16 +7112,28 @@ onclick="eliminarAsistencia('${r.id}')">
         }).join("");
 
         // 11. Resumen y comparativo del mes (solo se agrega arriba)
+        // Organizar en pestañas: Registros · Resumen · Gráficas · Categorías
         try{
-            const box = document.getElementById("resumenMesBox");
-            if(box) box.innerHTML = htmlResumenMes(filas, data, mes);
-            else listado.insertAdjacentHTML("afterbegin", htmlResumenMes(filas, data, mes));
 
-            // Estadísticas: por día de culto, gráficas y categorías
-            listado.insertAdjacentHTML("afterbegin", htmlEstadisticas(filas, data, mes, anioVer()));
+            const registrosHTML = listado.innerHTML;
+
+            const est = htmlEstadisticas(filas, data, mes, anioVer());
+
+            listado.innerHTML = `
+                <div class="verPanel" data-panel="registros">${registrosHTML}</div>
+                <div class="verPanel" data-panel="resumen">${htmlResumenMes(filas, data, mes)}${est.dias}</div>
+                <div class="verPanel" data-panel="graficas">${est.graficas}</div>
+                <div class="verPanel" data-panel="categorias">${est.categorias}</div>`;
+
+            const tabReg = document.querySelector('#verTabs button[data-tab="registros"] .tabCuenta');
+
+            if(tabReg) tabReg.textContent = filas.length;
+
         }catch(e){
             console.error("Resumen del mes:", e);
         }
+
+        mostrarPanelVer(panelVerActual);
 
     }
     catch(e){
@@ -10383,30 +10460,70 @@ function htmlEstadisticas(filas, todos, mes, anio){
 
     const visitantes = filas.reduce((a, r) => a + (Number(r.visitantes) || 0), 0);
 
-    return `
-<div class="estadisticasMes">
+    return {
 
+        dias: `
+<div class="estadisticasMes">
     <h4>📅 Por día de culto <small>(promedio vs mismo día de ${escapeHTML(prev.mes)})</small></h4>
     <table class="tablaStats">
         <thead><tr><th>Culto</th><th>Cultos</th><th>Prom.</th><th>Cambio</th></tr></thead>
         <tbody>${filasDias}</tbody>
     </table>
+</div>`,
 
+        graficas: `
+<div class="estadisticasMes">
     <h4>📈 Asistencia de ${escapeHTML(mes)}</h4>
     ${graficaMes}
-
+</div>
+<div class="estadisticasMes">
     <h4>📆 Promedio por mes · ${anio}</h4>
     ${graficaAnio}
+</div>`,
 
+        categorias: `
+<div class="estadisticasMes">
     <h4>🏆 Categorías <small>(promedio por culto vs ${escapeHTML(prev.mes)})</small></h4>
     <table class="tablaStats">
         <thead><tr><th>Categoría</th><th>Prom.</th><th>Cambio</th></tr></thead>
         <tbody>${filasRanking}</tbody>
     </table>
-
     ${visitantes ? `<div class="statsVisitantes">🌱 <b>${visitantes}</b> visitante${visitantes === 1 ? "" : "s"} nuevo${visitantes === 1 ? "" : "s"} este mes</div>` : ""}
+</div>`
 
-</div>`;
+    };
+
+}
+
+// Pestañas de "Ver asistencia"
+let panelVerActual = "registros";
+
+try{ panelVerActual = localStorage.getItem("panelVer") || "registros"; }catch(e){}
+
+function mostrarPanelVer(panel){
+
+    const paneles = document.querySelectorAll("#listado .verPanel");
+
+    if(!paneles.length){
+        // Sin datos: solo se ven los mensajes del listado
+        document.querySelectorAll("#verTabs button").forEach(b => b.classList.toggle("activo", b.dataset.tab === "registros"));
+        return;
+    }
+
+    if(!document.querySelector(`#listado .verPanel[data-panel="${panel}"]`)) panel = "registros";
+
+    panelVerActual = panel;
+
+    try{ localStorage.setItem("panelVer", panel); }catch(e){}
+
+    paneles.forEach(p => p.classList.toggle("activo", p.dataset.panel === panel));
+
+    document.querySelectorAll("#verTabs button").forEach(b => b.classList.toggle("activo", b.dataset.tab === panel));
+
+    // Volver arriba al cambiar de pestaña
+    const pantalla = document.getElementById("verPantalla");
+
+    if(pantalla) pantalla.scrollTop = 0;
 
 }
 
