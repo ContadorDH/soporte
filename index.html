@@ -2027,6 +2027,8 @@ ADMINISTRAR USUARIOS
 }
 .multiOpcion small{ display:block; color:var(--muted); font-weight:400; margin-top:4px; }
 .modalCard .multiOpcion:disabled{ opacity:.45; cursor:not-allowed; }
+.multiSuma{ font-size:.75rem; font-weight:700; color:var(--primary); margin-left:4px; }
+.modalCard .multiOpcion.multiOpcionSuma{ border:2px solid var(--primary); }
 .modalCard input.multiCodigoInput{ font-size:28px; text-align:center; letter-spacing:10px; }
 
   </style>
@@ -5790,20 +5792,22 @@ function closeMenuIfOpen(evt){
 function changeCount(tipo, delta){ 
   if(!multiPermiteCambiar(tipo)) return;
   datos[tipo]=Math.max(0,(datos[tipo]||0)+delta); 
-  document.getElementById(tipo).textContent=datos[tipo]; 
+  multiPintarValor(tipo); 
   actualizarTotal(); 
   if(Multi.rol){
     multiGuardar();
     if(Multi.rol === "participante") multiEnviarConteo();
+    if(Multi.rol === "anfitrion") multiActualizarUI();
   }
 }
 function actualizarTotal(){ 
   // Solo se suman las categorías (no id, fecha, etc.)
   let total;
-  if(Multi.rol === "participante"){
+  if(Multi.rol === "participante" && Multi.modo !== "suma"){
     total = datos[Multi.categoria] || 0;
   }else{
-    total = CATEGORIAS_MULTI.reduce((a,c)=>a+(datos[c.key]||0),0);
+    // Anfitrión: incluye lo que suman los participantes
+    total = CATEGORIAS_MULTI.reduce((a,c)=>a+multiValorTotal(c.key),0);
   }
   document.getElementById('total').textContent=total; 
 }
@@ -5842,7 +5846,7 @@ async function subirAsistencia(){
 
     Multi.confirmadoPendientes = false;
 
-    const total = CATEGORIAS_MULTI.reduce((a,c)=>a+(datos[c.key]||0),0);
+    const total = CATEGORIAS_MULTI.reduce((a,c)=>a+multiValorTotal(c.key),0);
 
     if(total===0){
 
@@ -5881,11 +5885,13 @@ async function subirAsistencia(){
                 const { data, error } = await supabase.rpc(
                     "registrar_asistencia",
                     {
-                        p_hermanos: datos.hermanos,
-                        p_hermanas: datos.hermanas,
-                        p_amigos: datos.amigos,
-                        p_adolescentes: datos.adolescentes,
-                        p_ninos: datos.niños
+                        // multiValorTotal = lo contado aquí + lo sumado por el
+                        // multi-contador (sin multi-contador es igual a datos.x)
+                        p_hermanos: multiValorTotal("hermanos"),
+                        p_hermanas: multiValorTotal("hermanas"),
+                        p_amigos: multiValorTotal("amigos"),
+                        p_adolescentes: multiValorTotal("adolescentes"),
+                        p_ninos: multiValorTotal("niños")
                     }
                 );
 
@@ -6624,6 +6630,9 @@ const Multi = {
     canal: null,
     canalPendiente: null,   // canal mientras se conecta / elige categoría
     categoria: null,        // participante: categoría que cuenta
+    modo: null,             // participante: "categoria" | "suma"
+    idAporte: null,         // participante modo suma: id de este aporte
+    sumas: {},              // anfitrión: idAporte -> { userId, nombre, valores, final }
     aportes: {},            // anfitrión: categoria -> { userId, nombre, valor, final }
     liberadas: {},          // anfitrión: categorías que retomó él mismo
     presentes: {},          // estado de Presence
@@ -6672,9 +6681,35 @@ function multiEsperar(ms){
     return new Promise(r => setTimeout(r, ms));
 }
 
+// Lo que suman los participantes en modo "todas las categorías"
+function multiSumaExtra(cat){
+
+    if(Multi.rol !== "anfitrion") return 0;
+
+    return Object.values(Multi.sumas || {})
+        .reduce((a, s) => a + (s.valores?.[cat] || 0), 0);
+
+}
+
+// Valor real de la categoría (anfitrión: lo suyo + lo sumado)
+function multiValorTotal(cat){
+    return (datos[cat] || 0) + multiSumaExtra(cat);
+}
+
 function multiPintarValor(cat){
     const el = document.getElementById(cat);
-    if(el) el.textContent = datos[cat] || 0;
+    if(el) el.textContent = multiValorTotal(cat);
+}
+
+function multiTotalParticipanteSuma(){
+    return CATEGORIAS_MULTI.reduce((a, c) => a + (datos[c.key] || 0), 0);
+}
+
+function multiResumenValores(valores){
+    return CATEGORIAS_MULTI
+        .filter(c => (valores[c.key] || 0) > 0)
+        .map(c => `${valores[c.key]} ${c.nombre}`)
+        .join(", ") || "0 personas";
 }
 
 
@@ -6837,6 +6872,9 @@ function multiGuardar(){
             rol: Multi.rol,
             codigo: Multi.codigo,
             categoria: Multi.categoria,
+            modo: Multi.modo,
+            idAporte: Multi.idAporte,
+            sumas: Multi.sumas,
             aportes: Multi.aportes,
             liberadas: Multi.liberadas,
             valores,
@@ -6886,14 +6924,21 @@ async function multiRestaurar(){
 
     if(s.rol === "anfitrion"){
 
-        await multiCrearSesion(s.codigo, s.aportes || {}, s.liberadas || {});
+        await multiCrearSesion(s.codigo, s.aportes || {}, s.liberadas || {}, s.sumas || {});
 
     }
-    else if(s.rol === "participante" && multiEsCategoria(s.categoria)){
+    else if(
+        s.rol === "participante" &&
+        (s.modo === "suma" || multiEsCategoria(s.categoria))
+    ){
 
         try{
 
-            await multiActivarParticipante(null, s.codigo, s.categoria);
+            if(s.modo === "suma"){
+                await multiActivarParticipante(null, s.codigo, null, "suma", s.idAporte);
+            }else{
+                await multiActivarParticipante(null, s.codigo, s.categoria);
+            }
 
         }catch(e){
 
@@ -6921,6 +6966,15 @@ function abrirMultiContador(){
         return mostrarAlerta(
             "👥 Multi-contador activo",
             `Código de la sesión: ${Multi.codigo}. Compártelo con los contadores. Cuando todos entreguen, toca "Subir asistencia".`
+        );
+
+    }
+
+    if(Multi.rol === "participante" && Multi.modo === "suma"){
+
+        return mostrarAlerta(
+            "➕ Multi-contador activo",
+            `Estás contando todas las categorías (código ${Multi.codigo}); se sumarán a las del anfitrión. Al terminar toca "Enviar al anfitrión".`
         );
 
     }
@@ -7058,6 +7112,13 @@ function multiRender(paso, extra = {}){
 
             <p>Sesión de <strong>${escapeHTML(extra.hostNombre || "anfitrión")}</strong> · código ${escapeHTML(extra.codigo || "")}</p>
 
+            <button class="multiOpcion multiOpcionSuma" onclick="multiElegirSuma()">
+                ➕ Todas las categorías
+                <small>Cuentas hermanos, hermanas, amigos, etc. y al enviar se SUMA a lo del anfitrión y de los demás.</small>
+            </button>
+
+            <p style="margin:14px 0 8px;">O una sola categoría (exclusiva):</p>
+
             ${botones}
 
             <button style="width:100%;background:#888;color:#fff;" onclick="multiCancelarModal()">
@@ -7072,7 +7133,7 @@ function multiRender(paso, extra = {}){
 
 /* ---------- ANFITRIÓN ---------- */
 
-async function multiCrearSesion(codigoExistente = null, aportesPrevios = null, liberadasPrevias = null){
+async function multiCrearSesion(codigoExistente = null, aportesPrevios = null, liberadasPrevias = null, sumasPrevias = null){
 
     if(!multiPuedeUsar()) return;
 
@@ -7127,6 +7188,7 @@ async function multiCrearSesion(codigoExistente = null, aportesPrevios = null, l
         Multi.categoria = null;
         Multi.aportes = aportesPrevios || {};
         Multi.liberadas = liberadasPrevias || {};
+        Multi.sumas = sumasPrevias || {};
         Multi.firmaPublicada = null;
 
         multiPublicarEstadoHost(true);
@@ -7209,7 +7271,55 @@ function multiPublicarEstadoHost(forzar = false){
 
 function multiRecibirConteo(p){
 
-    if(Multi.rol !== "anfitrion" || !p?.userId || !multiEsCategoria(p.categoria)) return;
+    if(Multi.rol !== "anfitrion" || !p?.userId) return;
+
+    // ----- Modo "todas las categorías": se suma -----
+    if(p.modo === "suma"){
+
+        const id = String(p.idAporte || "");
+
+        if(!id) return;
+
+        const prev = Multi.sumas[id];
+
+        if(prev && prev.userId !== p.userId) return;
+
+        const valores = {};
+
+        CATEGORIAS_MULTI.forEach(c => {
+            valores[c.key] = Math.max(0, parseInt(p.valores?.[c.key], 10) || 0);
+        });
+
+        Multi.sumas[id] = {
+            userId: p.userId,
+            nombre: String(p.nombre || "Contador").slice(0, 40),
+            valores,
+            final: !!p.final || !!prev?.final
+        };
+
+        CATEGORIAS_MULTI.forEach(c => multiPintarValor(c.key));
+
+        actualizarTotal();
+
+        multiGuardar();
+
+        multiActualizarUI();
+
+        if(p.final){
+
+            Multi.canal.send({
+                type: "broadcast",
+                event: "recibido",
+                payload: { userId: p.userId, idAporte: id }
+            });
+
+        }
+
+        return;
+
+    }
+
+    if(!multiEsCategoria(p.categoria)) return;
 
     const cat = p.categoria;
 
@@ -7297,6 +7407,16 @@ function multiPendientes(){
 
     presentes.forEach(p => {
 
+        if(p.modo === "suma"){
+
+            if(!Multi.sumas[p.idAporte]?.final){
+                pend.push(`${p.nombre} (todas las categorías)`);
+            }
+
+            return;
+
+        }
+
         if(!multiEsCategoria(p.categoria)) return;
 
         const a = Multi.aportes[p.categoria];
@@ -7312,6 +7432,16 @@ function multiPendientes(){
         if(presentes.some(p => p.id === a.userId)) return;
 
         pend.push(`${a.nombre} (${multiNombreCategoria(cat)}, desconectado)`);
+
+    });
+
+    Object.entries(Multi.sumas || {}).forEach(([id, sm]) => {
+
+        if(sm.final) return;
+
+        if(presentes.some(p => p.idAporte === id)) return;
+
+        pend.push(`${sm.nombre} (todas las categorías, desconectado)`);
 
     });
 
@@ -7351,7 +7481,9 @@ function multiTerminarDesdeBanner(){
 
     if(Multi.rol === "participante"){
 
-        const v = datos[Multi.categoria] || 0;
+        const v = Multi.modo === "suma"
+            ? multiTotalParticipanteSuma()
+            : (datos[Multi.categoria] || 0);
 
         return mostrarPopupConfirm(
             "Salir",
@@ -7526,8 +7658,48 @@ async function multiElegirCategoria(cat){
 
 }
 
+async function multiElegirSuma(){
+
+    const canal = Multi.canalPendiente;
+
+    if(!canal) return;
+
+    const codigo = canal.topic.split("-").pop();
+
+    cerrarModalMulti();
+
+    showBusy("Uniéndote...", "Todas las categorías");
+
+    try{
+
+        await multiActivarParticipante(canal, codigo, null, "suma");
+
+        hideBusy();
+
+        const host = multiHayAnfitrion();
+
+        mostrarAlerta(
+            "➕ Listo",
+            `Cuentas todas las categorías; se sumarán a las de ${host?.nombre || "el anfitrión"}. Al terminar toca "Enviar al anfitrión".`
+        );
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        hideBusy();
+
+        await multiDesconectar();
+
+        mostrarAlerta("❌", "No fue posible unirte. Intenta de nuevo.");
+
+    }
+
+}
+
 // canal = null → crea uno nuevo (reconexión tras recargar la app)
-async function multiActivarParticipante(canal, codigo, cat){
+async function multiActivarParticipante(canal, codigo, cat, modo = "categoria", idAporte = null){
 
     if(!canal){
 
@@ -7543,15 +7715,18 @@ async function multiActivarParticipante(canal, codigo, cat){
     Multi.codigo = codigo;
     Multi.canal = canal;
     Multi.canalPendiente = null;
-    Multi.categoria = cat;
+    Multi.modo = modo;
+    Multi.categoria = modo === "suma" ? null : cat;
+    Multi.idAporte = modo === "suma"
+        ? (idAporte || (App.usuario.id.slice(0, 8) + "-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)))
+        : null;
     Multi.aportes = {};
     Multi.liberadas = {};
+    Multi.sumas = {};
 
-    Multi.miPresencia = {
-        rol: "participante",
-        nombre: multiMiNombre(),
-        categoria: cat
-    };
+    Multi.miPresencia = modo === "suma"
+        ? { rol: "participante", modo: "suma", nombre: multiMiNombre(), idAporte: Multi.idAporte }
+        : { rol: "participante", nombre: multiMiNombre(), categoria: cat };
 
     await canal.track(Multi.miPresencia);
 
@@ -7567,7 +7742,41 @@ async function multiActivarParticipante(canal, codigo, cat){
 
 function multiEnviarConteo(inmediato = false, final = false){
 
-    if(Multi.rol !== "participante" || !Multi.canal || !Multi.categoria) return;
+    if(Multi.rol !== "participante" || !Multi.canal) return;
+
+    if(Multi.modo === "suma"){
+
+        const enviarSuma = () => {
+
+            const valores = {};
+
+            CATEGORIAS_MULTI.forEach(c => valores[c.key] = datos[c.key] || 0);
+
+            return Multi.canal.send({
+                type: "broadcast",
+                event: "conteo",
+                payload: {
+                    modo: "suma",
+                    idAporte: Multi.idAporte,
+                    userId: App.usuario.id,
+                    nombre: multiMiNombre(),
+                    valores,
+                    final
+                }
+            });
+
+        };
+
+        clearTimeout(Multi.timerEnvio);
+
+        if(inmediato) enviarSuma();
+        else Multi.timerEnvio = setTimeout(enviarSuma, 250);
+
+        return;
+
+    }
+
+    if(!Multi.categoria) return;
 
     const enviar = () => Multi.canal.send({
         type: "broadcast",
@@ -7612,7 +7821,9 @@ function multiRecibido(p){
     if(
         Multi.rol === "participante" &&
         p?.userId === App.usuario?.id &&
-        p?.categoria === Multi.categoria &&
+        (Multi.modo === "suma"
+            ? p?.idAporte === Multi.idAporte
+            : p?.categoria === Multi.categoria) &&
         Multi.onRecibido
     ){
         Multi.onRecibido(p);
@@ -7620,8 +7831,77 @@ function multiRecibido(p){
 
 }
 
+// Participante en modo "todas las categorías"
+function multiEnviarFinalSuma(){
+
+    const host = multiHayAnfitrion();
+
+    if(!host){
+
+        return mostrarAlerta(
+            "⏳",
+            "El anfitrión no está conectado en este momento. Tu conteo se conserva; intenta en un momento."
+        );
+
+    }
+
+    const valores = {};
+
+    CATEGORIAS_MULTI.forEach(c => valores[c.key] = datos[c.key] || 0);
+
+    const total = multiTotalParticipanteSuma();
+
+    const resumen = multiResumenValores(valores);
+
+    mostrarPopupConfirm(
+
+        "Enviar al anfitrión",
+
+        `¿Enviar ${resumen} (total ${total}) a ${host.nombre} para que se sume?`,
+
+        async () => {
+
+            showBusy("Enviando...", "Esperando confirmación del anfitrión");
+
+            const espera = multiEsperarRecibido(8000);
+
+            multiEnviarConteo(true, true);
+
+            const ok = await espera;
+
+            hideBusy();
+
+            if(!ok){
+
+                return mostrarAlerta(
+                    "⚠️",
+                    "El anfitrión no confirmó la recepción. Tu conteo se conserva; inténtalo de nuevo."
+                );
+
+            }
+
+            CATEGORIAS_MULTI.forEach(c => {
+                datos[c.key] = 0;
+                multiPintarValor(c.key);
+            });
+
+            await multiDesconectar();
+
+            mostrarAlerta(
+                "✅ Entregado",
+                `${host.nombre} recibió ${resumen}. Se sumó a su conteo y él subirá la asistencia.`
+            );
+
+        }
+
+    );
+
+}
+
 // Reemplaza "Subir asistencia" cuando eres participante
 function multiEnviarFinal(){
+
+    if(Multi.modo === "suma") return multiEnviarFinalSuma();
 
     const cat = Multi.categoria;
 
@@ -7688,6 +7968,47 @@ async function multiSesionCerrada(p){
 
     if(Multi.rol !== "participante") return;
 
+    if(Multi.modo === "suma"){
+
+        const quien = p?.nombre || "El anfitrión";
+
+        const valores = {};
+
+        CATEGORIAS_MULTI.forEach(c => valores[c.key] = datos[c.key] || 0);
+
+        const resumen = multiResumenValores(valores);
+
+        if(p?.subida){
+
+            CATEGORIAS_MULTI.forEach(c => {
+                datos[c.key] = 0;
+                multiPintarValor(c.key);
+            });
+
+        }
+
+        await multiDesconectar();
+
+        if(p?.subida){
+
+            mostrarAlerta(
+                "✅ Asistencia subida",
+                `${quien} subió la asistencia, sumando tus ${resumen}.`
+            );
+
+        }else{
+
+            mostrarAlerta(
+                "ℹ️ Sesión terminada",
+                `${quien} cerró el multi-contador. Tu conteo (${resumen}) se conserva en tu pantalla.`
+            );
+
+        }
+
+        return;
+
+    }
+
     const cat = Multi.categoria;
 
     const valor = datos[cat] || 0;
@@ -7737,6 +8058,9 @@ async function multiDesconectar(){
         canal: null,
         canalPendiente: null,
         categoria: null,
+        modo: null,
+        idAporte: null,
+        sumas: {},
         aportes: {},
         liberadas: {},
         presentes: {},
@@ -7765,7 +8089,9 @@ async function multiDesconectar(){
 // ¿Se puede tocar +/− en esta categoría?
 function multiPermiteCambiar(cat){
 
-    if(Multi.rol === "participante") return cat === Multi.categoria;
+    if(Multi.rol === "participante"){
+        return Multi.modo === "suma" ? true : cat === Multi.categoria;
+    }
 
     if(Multi.rol === "anfitrion") return !multiCategoriaBloqueada(cat);
 
@@ -7821,6 +8147,9 @@ function multiActualizarUI(){
 
     });
 
+    // Repintar valores (el anfitrión ve lo suyo + lo sumado)
+    CATEGORIAS_MULTI.forEach(c => multiPintarValor(c.key));
+
     if(!Multi.rol){
 
         banner.classList.add("oculto");
@@ -7842,6 +8171,25 @@ function multiActualizarUI(){
     const txt = banner.querySelector(".txt");
 
     const acciones = banner.querySelector(".acciones");
+
+    // ----- PARTICIPANTE (todas las categorías) -----
+    if(Multi.rol === "participante" && Multi.modo === "suma"){
+
+        const host = multiHayAnfitrion();
+
+        txt.innerHTML = host
+            ? `➕ Cuentas <b>todas las categorías</b> para ${escapeHTML(host.nombre)}<br><small>Código ${escapeHTML(Multi.codigo)} · se suma en vivo</small>`
+            : `⏳ Esperando al anfitrión…<br><small>Código ${escapeHTML(Multi.codigo)} · tu conteo se guarda</small>`;
+
+        acciones.innerHTML = `<button onclick="multiTerminarDesdeBanner()">Salir</button>`;
+
+        btnSubir.textContent = "📨 Enviar al anfitrión";
+
+        if(totalLabel) totalLabel.textContent = "Tu conteo:";
+
+        return;
+
+    }
 
     // ----- PARTICIPANTE -----
     if(Multi.rol === "participante"){
@@ -7910,6 +8258,24 @@ function multiActualizarUI(){
                     : "");
 
         }
+
+    });
+
+    // Mostrar cuánto se está sumando de otros en cada tarjeta
+    CATEGORIAS_MULTI.forEach(c => {
+
+        const extra = multiSumaExtra(c.key);
+
+        if(!extra) return;
+
+        const label = document.getElementById(c.key)?.closest(".card")?.querySelector(".label");
+
+        if(!label) return;
+
+        label.insertAdjacentHTML(
+            "beforeend",
+            ` <span class="multiSuma">(tú ${datos[c.key] || 0} + ${extra} sumados)</span>`
+        );
 
     });
 
