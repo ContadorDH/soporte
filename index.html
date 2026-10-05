@@ -2191,6 +2191,31 @@ ADMINISTRAR USUARIOS
   to{ opacity:1; transform:none; }
 }
 
+/* Botón reiniciar conteo (solo visible cuando hay algo contado) */
+.btnReiniciar{
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  border:1px solid var(--muted);
+  background:var(--bg);
+  color:var(--muted);
+  font-size:1.3rem;
+  font-weight:700;
+  line-height:1;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .2s ease, color .2s ease, border-color .2s ease;
+}
+.btnReiniciar.visible{ display:flex; }
+.btnReiniciar:active{ transform:translateY(-50%) rotate(-90deg) scale(.92); color:#dc2626; border-color:#dc2626; }
+
 /* 12. Rebote del total */
 @keyframes totalBump{
   0%{ transform:scale(1); }
@@ -3099,8 +3124,11 @@ padding:clamp(4px, 1vh, 8px) 0;
     text-align: center;
     margin: 2px 0;
     flex: 0 0 auto;
+    position: relative;
   ">
     <span id="totalLabel">Total asistencia:</span> <span id="total" style="font-size: clamp(1.8rem, 4.6vh, 2.8rem);">0</span>
+    <!-- Reiniciar conteo (pide confirmación) -->
+    <button type="button" id="btnReiniciar" class="btnReiniciar" onclick="reiniciarConteoManual()" title="Reiniciar conteo a cero" aria-label="Reiniciar conteo a cero">↺</button>
   </div>
 
   <!-- Tarjeta Hermanos -->
@@ -6403,6 +6431,11 @@ function actualizarTotal(){
     void elTotal.offsetWidth;
     elTotal.classList.add('bump');
   }
+  // Botón reiniciar: visible solo si hay algo propio contado
+  try{
+    const btnR = document.getElementById('btnReiniciar');
+    if(btnR) btnR.classList.toggle('visible', conteoPropioTotal() > 0);
+  }catch(e){}
   // 1. Guardar el conteo en el teléfono
   conteoGuardar();
 }
@@ -10790,6 +10823,86 @@ async function compartirResumenImagen(){
 
 }
 
+
+/* ---------- Reiniciar conteo a cero (con confirmación) ---------- */
+
+// Categorías que este teléfono puede poner en cero (no toca lo de otros contadores)
+function categoriasPropias(){
+
+    if(Multi.rol === "participante"){
+        return Multi.modo === "suma"
+            ? CATEGORIAS_MULTI.map(c => c.key)
+            : [Multi.categoria];
+    }
+
+    if(Multi.rol === "anfitrion"){
+        // En categorías de un contador, datos[] es el valor de él: no se toca
+        return CATEGORIAS_MULTI.map(c => c.key).filter(k => !multiCategoriaDeParticipante(k));
+    }
+
+    return CATEGORIAS_MULTI.map(c => c.key);
+
+}
+
+function conteoPropioTotal(){
+
+    let total = categoriasPropias().reduce((a, k) => a + (datos[k] || 0), 0);
+
+    if(Multi.rol === "anfitrion"){
+        total += Object.values(Multi.extraHost || {}).reduce((a, v) => a + (v || 0), 0);
+    }
+
+    return total;
+
+}
+
+function reiniciarConteoManual(){
+
+    const total = conteoPropioTotal();
+
+    if(!total) return;
+
+    const enMulti = Multi.rol
+        ? "\n\nSolo se borra lo que contaste en este teléfono; lo de los demás contadores no se toca."
+        : "";
+
+    mostrarPopupConfirm(
+        "↺ Reiniciar conteo",
+        `¿Poner el conteo en cero? Se borrarán ${total} persona${total === 1 ? "" : "s"} contada${total === 1 ? "" : "s"} sin subirlas.${enMulti}`,
+        () => {
+
+            categoriasPropias().forEach(k => {
+                datos[k] = 0;
+            });
+
+            if(Multi.rol === "anfitrion"){
+                Multi.extraHost = {};
+            }
+
+            fechaConteoPendiente = null;
+
+            CATEGORIAS_MULTI.forEach(c => {
+                if(Multi.rol) multiPintarValor(c.key);
+                else{
+                    const el = document.getElementById(c.key);
+                    if(el) el.textContent = datos[c.key] || 0;
+                }
+            });
+
+            actualizarTotal();
+
+            if(Multi.rol){
+                multiGuardar();
+                if(Multi.rol === "participante") multiEnviarConteo(true);
+                multiActualizarUI();
+            }
+
+            try{ navigator.vibrate?.([10, 50, 10]); }catch(e){}
+
+        }
+    );
+
+}
 
 /* === HELPERS === */
 function escapeHTML(s){
