@@ -2166,56 +2166,29 @@ ADMINISTRAR USUARIOS
 /* Mensaje de confirmación con saltos de línea (resumen) */
 #popupConfirmMsg{ white-space:pre-line; }
 
-/* 9. Aviso sin conexión */
+/* 9. Aviso de conexión: va dentro del contenido, arriba del total,
+      así no tapa el encabezado ni los contadores */
 #offlineBar{
-  position:fixed;
-  top:64px;
-  left:0;
-  right:0;
-  z-index:85;
-  background:#b91c1c;
-  color:#fff;
+  display:none;
+  width:95%;
+  max-width:440px;
+  flex:0 0 auto;
+  margin:6px 0 2px;
+  padding:7px 14px;
+  border-radius:999px;
   text-align:center;
   font-weight:700;
-  font-size:.88rem;
-  padding:6px 10px;
-  transform:translateY(-120%);
-  transition:transform .3s ease;
-  pointer-events:none;
+  font-size:.85rem;
+  color:#991b1b;
+  background:#fee2e2;
+  border:1px solid #fecaca;
+  box-shadow:0 2px 6px var(--shadow);
 }
-#offlineBar.visible{ transform:translateY(0); }
-#offlineBar.ok{ background:#15803d; }
-
-/* 8. Deshacer */
-#undoToast{
-  position:fixed;
-  left:50%;
-  bottom:calc(84px + env(safe-area-inset-bottom, 0px));
-  transform:translate(-50%, 30px);
-  opacity:0;
-  pointer-events:none;
-  z-index:95;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:8px 8px 8px 14px;
-  border-radius:24px;
-  background:rgba(20,24,35,.92);
-  color:#fff;
-  font-size:.9rem;
-  box-shadow:0 8px 24px rgba(0,0,0,.3);
-  transition:opacity .2s ease, transform .2s ease;
-  white-space:nowrap;
-}
-#undoToast.visible{ opacity:1; transform:translate(-50%,0); pointer-events:auto; }
-#undoToast button{
-  border:0;
-  border-radius:16px;
-  padding:6px 12px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
-  cursor:pointer;
+#offlineBar.visible{ display:block; animation:offlineIn .25s ease; }
+#offlineBar.ok{ color:#166534; background:#dcfce7; border-color:#bbf7d0; }
+@keyframes offlineIn{
+  from{ opacity:0; transform:translateY(-6px); }
+  to{ opacity:1; transform:none; }
 }
 
 /* 12. Rebote del total */
@@ -2877,14 +2850,7 @@ Cancelar
 
 <div id="menuOverlay" onclick="closeMenuIfOpen(event)"></div>
 
-<!-- Aviso de conexión -->
-<div id="offlineBar">📡 Sin conexión a internet · tu conteo se conserva</div>
 
-<!-- Deshacer último toque -->
-<div id="undoToast">
-  <span id="undoTexto"></span>
-  <button type="button" onclick="deshacerUltimo()">Deshacer</button>
-</div>
 
 <nav id="menu" aria-hidden="true">
   <button class="item" onclick="abrirVerPantalla()">👁️ Ver asistencia</button>
@@ -2937,6 +2903,9 @@ align-items:center;
 gap:clamp(4px, 1.2vh, 8px);
 padding:clamp(4px, 1vh, 8px) 0;
 ">
+
+  <!-- Aviso de conexión (solo visible sin internet / al volver) -->
+  <div id="offlineBar">📡 Sin conexión · tu conteo se conserva</div>
 
   <!-- Barra del multi-contador (solo visible con sesión activa) -->
   <div id="multiBanner" class="oculto">
@@ -5837,8 +5806,6 @@ async function cerrarSesion(){
                 // Dejar de guardar el conteo de este usuario
                 conteoListo = false;
 
-                ocultarDeshacer();
-
                 // Salir del multi-contador si había uno activo
                 multiDesconectar();
 
@@ -6189,7 +6156,7 @@ function closeMenuIfOpen(evt){
 function changeCount(tipo, delta, sinDeshacer = false){ 
   if(!multiPermiteCambiar(tipo)) return;
   const antes = multiValorTotal(tipo);
-  // Se registra para "Deshacer" y vibración después del cambio
+  // Vibración (y guardado) después del cambio
   setTimeout(() => despuesDeCambio(tipo, delta, antes, sinDeshacer), 0);
   if(Multi.rol === "anfitrion" && multiCategoriaDeParticipante(tipo)){
     // Categoría de otro contador habilitada: lo del anfitrión va aparte y se suma
@@ -8992,7 +8959,7 @@ document.addEventListener("visibilitychange", () => {
 
 
 /* ===========================================================
-   MEJORAS: conteo guardado, pantalla encendida, deshacer,
+   MEJORAS: conteo guardado, pantalla encendida,
    vibración, aviso sin conexión y resumen del mes
 =========================================================== */
 
@@ -9093,11 +9060,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 
-// 7 y 8. Vibración y "Deshacer"
-let ultimoCambio = null;
-
-let timerDeshacer = null;
-
+// 7. Vibración al tocar + / −
 function despuesDeCambio(tipo, delta, antes, sinDeshacer){
 
     const despues = multiValorTotal(tipo);
@@ -9115,48 +9078,7 @@ function despuesDeCambio(tipo, delta, antes, sinDeshacer){
 
     try{ navigator.vibrate?.(delta > 0 ? 12 : [8, 40, 8]); }catch(e){}
 
-    if(sinDeshacer){
-        ocultarDeshacer();
-        return;
-    }
-
-    ultimoCambio = { tipo, delta };
-
-    const nombre = multiNombreCategoria(tipo);
-
-    document.getElementById("undoTexto").textContent =
-        `${nombre} ${delta > 0 ? "+1" : "−1"} → ${despues}`;
-
-    document.getElementById("undoToast").classList.add("visible");
-
-    clearTimeout(timerDeshacer);
-
-    timerDeshacer = setTimeout(ocultarDeshacer, 3500);
-
 }
-
-function deshacerUltimo(){
-
-    if(!ultimoCambio) return;
-
-    const { tipo, delta } = ultimoCambio;
-
-    ultimoCambio = null;
-
-    changeCount(tipo, -delta, true);
-
-}
-
-function ocultarDeshacer(){
-
-    clearTimeout(timerDeshacer);
-
-    ultimoCambio = null;
-
-    document.getElementById("undoToast")?.classList.remove("visible");
-
-}
-
 
 // 9. Aviso de conexión
 function actualizarAvisoConexion(volvio = false){
@@ -9169,7 +9091,7 @@ function actualizarAvisoConexion(volvio = false){
 
         bar.classList.remove("ok");
 
-        bar.textContent = "📡 Sin conexión a internet · tu conteo se conserva";
+        bar.textContent = "📡 Sin conexión · tu conteo se conserva";
 
         bar.classList.add("visible");
 
