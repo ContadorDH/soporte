@@ -2200,6 +2200,28 @@ ADMINISTRAR USUARIOS
 #total{ display:inline-block; }
 #total.bump{ animation:totalBump .28s ease; }
 
+/* Ver asistencia: encabezado + resumen fijos, la lista pasa por detrás */
+#verFijo{
+  position:sticky;
+  top:-12px;               /* compensa el padding superior de #verPantalla */
+  z-index:5;
+  width:calc(100% + 24px); /* cubre también el padding lateral */
+  margin:-12px -12px 0;
+  padding:12px 12px 10px;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  flex-shrink:0;
+  box-shadow:0 8px 12px -10px rgba(0,0,0,.25);
+}
+#resumenMesBox{
+  width:92%;
+  max-width:820px;
+  margin-top:10px;
+}
+#resumenMesBox:empty{ display:none; }
+
 /* 11. Resumen del mes en Ver asistencia */
 .resumenMes{
   background:linear-gradient(135deg,var(--primary-dark),var(--primary));
@@ -3012,6 +3034,8 @@ style="
 
 
 <section id="verPantalla" aria-hidden="true">
+<!-- Parte fija: encabezado del mes + resumen. La lista pasa por detrás -->
+<div id="verFijo">
 <div id="verHeader">
   <div class="left">
     <button onclick="cerrarVerPantalla()">←</button>
@@ -3023,6 +3047,7 @@ style="
     <button title="Refrescar" onclick="refrescarMes()">⟳</button>
     <div id="loadingIndicator" style="display:none"><div class="spinner"></div></div>
   </div>
+  <div id="resumenMesBox"></div>
 </div>
   <div id="listado"></div>
 </section>
@@ -6545,6 +6570,9 @@ async function verAsistencia(mes){
     const listado = document.getElementById("listado");
     listado.innerHTML = "";
 
+    const resumenBox = document.getElementById("resumenMesBox");
+    if(resumenBox) resumenBox.innerHTML = "";
+
     try{
 
         console.log("===== VER ASISTENCIA =====");
@@ -6836,7 +6864,9 @@ onclick="eliminarAsistencia('${r.id}')">
 
         // 11. Resumen y comparativo del mes (solo se agrega arriba)
         try{
-            listado.insertAdjacentHTML("afterbegin", htmlResumenMes(filas, data, mes));
+            const box = document.getElementById("resumenMesBox");
+            if(box) box.innerHTML = htmlResumenMes(filas, data, mes);
+            else listado.insertAdjacentHTML("afterbegin", htmlResumenMes(filas, data, mes));
         }catch(e){
             console.error("Resumen del mes:", e);
         }
