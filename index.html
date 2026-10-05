@@ -2027,6 +2027,35 @@ ADMINISTRAR USUARIOS
 }
 .multiOpcion small{ display:block; color:var(--muted); font-weight:400; margin-top:4px; }
 .modalCard .multiOpcion:disabled{ opacity:.45; cursor:not-allowed; }
+#multiBanner .verPersonas{
+  display:inline-block;
+  margin-top:2px;
+  padding:1px 8px;
+  border-radius:10px;
+  background:rgba(255,255,255,.2);
+  cursor:pointer;
+  text-decoration:underline;
+}
+.multiPersona{
+  text-align:left;
+  padding:10px 12px;
+  border-radius:12px;
+  background:var(--bg);
+  margin-bottom:8px;
+  line-height:1.4;
+}
+.multiPersona small{ display:block; color:var(--muted); }
+.multiHabilitar{
+  margin-left:6px;
+  font-size:.75rem;
+  padding:2px 8px;
+  border-radius:6px;
+  border:1px solid var(--primary);
+  background:transparent;
+  color:var(--primary);
+  font-weight:700;
+  cursor:pointer;
+}
 .multiSuma{ font-size:.75rem; font-weight:700; color:var(--primary); margin-left:4px; }
 .modalCard .multiOpcion.multiOpcionSuma{ border:2px solid var(--primary); }
 .modalCard input.multiCodigoInput{ font-size:28px; text-align:center; letter-spacing:10px; }
@@ -5791,6 +5820,15 @@ function closeMenuIfOpen(evt){
 /* === CONTADORES === */
 function changeCount(tipo, delta){ 
   if(!multiPermiteCambiar(tipo)) return;
+  if(Multi.rol === "anfitrion" && multiCategoriaDeParticipante(tipo)){
+    // Categoría de otro contador habilitada: lo del anfitrión va aparte y se suma
+    Multi.extraHost[tipo] = Math.max(0, (Multi.extraHost[tipo]||0) + delta);
+    multiPintarValor(tipo);
+    actualizarTotal();
+    multiGuardar();
+    multiActualizarUI();
+    return;
+  }
   datos[tipo]=Math.max(0,(datos[tipo]||0)+delta); 
   multiPintarValor(tipo); 
   actualizarTotal(); 
@@ -6633,6 +6671,9 @@ const Multi = {
     modo: null,             // participante: "categoria" | "suma"
     idAporte: null,         // participante modo suma: id de este aporte
     sumas: {},              // anfitrión: idAporte -> { userId, nombre, valores, final }
+    habilitadas: {},        // anfitrión: categorías de otro que también cuenta él
+    extraHost: {},          // anfitrión: lo que él suma en esas categorías
+    pasoModal: null,
     aportes: {},            // anfitrión: categoria -> { userId, nombre, valor, final }
     liberadas: {},          // anfitrión: categorías que retomó él mismo
     presentes: {},          // estado de Presence
@@ -6693,7 +6734,74 @@ function multiSumaExtra(cat){
 
 // Valor real de la categoría (anfitrión: lo suyo + lo sumado)
 function multiValorTotal(cat){
-    return (datos[cat] || 0) + multiSumaExtra(cat);
+
+    const extraHost = Multi.rol === "anfitrion" ? (Multi.extraHost?.[cat] || 0) : 0;
+
+    return (datos[cat] || 0) + extraHost + multiSumaExtra(cat);
+
+}
+
+// ¿La categoría la tiene un participante (modo una sola categoría)?
+function multiCategoriaDeParticipante(cat){
+
+    if(Multi.rol !== "anfitrion") return false;
+
+    if(Multi.liberadas?.[cat]) return false;
+
+    if(Multi.aportes[cat]) return true;
+
+    return multiListaPresentes()
+        .some(p => p.rol === "participante" && p.categoria === cat);
+
+}
+
+// Lo que contó el anfitrión mismo en la categoría
+function multiPropioHost(cat){
+
+    return multiCategoriaDeParticipante(cat)
+        ? (Multi.extraHost?.[cat] || 0)
+        : (datos[cat] || 0);
+
+}
+
+// El anfitrión también cuenta una categoría que tiene otro contador
+function multiHabilitarCategoria(cat){
+
+    const a = Multi.aportes[cat];
+
+    const vivo = multiListaPresentes()
+        .find(p => p.rol === "participante" && p.categoria === cat);
+
+    const quien = vivo?.nombre || a?.nombre || "el contador";
+
+    mostrarPopupConfirm(
+
+        "Contar también",
+
+        `¿Quieres contar también ${multiNombreCategoria(cat)}? Lo que cuentes tú se SUMA a lo de ${quien} (por ejemplo, si están en pisos distintos).`,
+
+        () => {
+
+            Multi.habilitadas[cat] = true;
+
+            multiGuardar();
+
+            multiActualizarUI();
+
+        }
+
+    );
+
+}
+
+function multiBloquearCategoria(cat){
+
+    delete Multi.habilitadas[cat];
+
+    multiGuardar();
+
+    multiActualizarUI();
+
 }
 
 function multiPintarValor(cat){
@@ -6875,6 +6983,8 @@ function multiGuardar(){
             modo: Multi.modo,
             idAporte: Multi.idAporte,
             sumas: Multi.sumas,
+            habilitadas: Multi.habilitadas,
+            extraHost: Multi.extraHost,
             aportes: Multi.aportes,
             liberadas: Multi.liberadas,
             valores,
@@ -6923,6 +7033,10 @@ async function multiRestaurar(){
     actualizarTotal();
 
     if(s.rol === "anfitrion"){
+
+        Multi.habilitadas = s.habilitadas || {};
+
+        Multi.extraHost = s.extraHost || {};
 
         await multiCrearSesion(s.codigo, s.aportes || {}, s.liberadas || {}, s.sumas || {});
 
@@ -6997,7 +7111,114 @@ function abrirMultiContador(){
 }
 
 function cerrarModalMulti(){
+    Multi.pasoModal = null;
     document.getElementById("modalMulti").classList.add("oculto");
+}
+
+function multiVerPersonas(){
+
+    if(Multi.rol !== "anfitrion") return;
+
+    multiRender("personas");
+
+    document.getElementById("modalMulti").classList.remove("oculto");
+
+}
+
+function multiHtmlPersonas(){
+
+    const presentes = multiListaPresentes().filter(p => p.rol === "participante");
+
+    const filas = [];
+
+    const detalleValores = (valores) => {
+
+        const partes = CATEGORIAS_MULTI
+            .filter(c => (valores?.[c.key] || 0) > 0)
+            .map(c => `${escapeHTML(c.nombre)} ${valores[c.key]}`);
+
+        const total = CATEGORIAS_MULTI.reduce((a, c) => a + (valores?.[c.key] || 0), 0);
+
+        return (partes.join(" · ") || "Sin conteos aún") + ` — <b>total ${total}</b>`;
+
+    };
+
+    // Anfitrión
+    const propios = {};
+
+    CATEGORIAS_MULTI.forEach(c => propios[c.key] = multiPropioHost(c.key));
+
+    filas.push(`
+        <div class="multiPersona">
+            👑 <b>${escapeHTML(multiMiNombre())}</b> (tú, anfitrión)
+            <small>${detalleValores(propios)}</small>
+        </div>`);
+
+    // Conectados
+    presentes.forEach(p => {
+
+        let modo, estado, valores = {};
+
+        if(p.modo === "suma"){
+
+            const sm = Multi.sumas[p.idAporte];
+
+            modo = "➕ Todas las categorías";
+
+            estado = sm?.final ? "✅ entregado" : "📱 en vivo";
+
+            valores = sm?.valores || {};
+
+        }else{
+
+            const a = Multi.aportes[p.categoria];
+
+            modo = `🎯 Solo ${escapeHTML(multiNombreCategoria(p.categoria))}`;
+
+            estado = a?.final ? "✅ entregado" : "📱 en vivo";
+
+            valores = { [p.categoria]: a?.valor || 0 };
+
+        }
+
+        filas.push(`
+            <div class="multiPersona">
+                👤 <b>${escapeHTML(p.nombre || "Contador")}</b> · ${estado}
+                <small>${modo}</small>
+                <small>${detalleValores(valores)}</small>
+            </div>`);
+
+    });
+
+    // Ya no conectados (entregaron o se desconectaron), pero su conteo cuenta
+    Object.entries(Multi.aportes).forEach(([cat, a]) => {
+
+        if(presentes.some(p => p.id === a.userId && p.categoria === cat)) return;
+
+        filas.push(`
+            <div class="multiPersona">
+                👤 <b>${escapeHTML(a.nombre)}</b> · ${a.final ? "✅ entregado" : "⚠️ desconectado"}
+                <small>🎯 Solo ${escapeHTML(multiNombreCategoria(cat))}</small>
+                <small>${detalleValores({ [cat]: a.valor || 0 })}</small>
+            </div>`);
+
+    });
+
+    Object.entries(Multi.sumas || {}).forEach(([id, sm]) => {
+
+        if(presentes.some(p => p.idAporte === id)) return;
+
+        filas.push(`
+            <div class="multiPersona">
+                👤 <b>${escapeHTML(sm.nombre)}</b> · ${sm.final ? "✅ entregado" : "⚠️ desconectado"}
+                <small>➕ Todas las categorías</small>
+                <small>${detalleValores(sm.valores)}</small>
+            </div>`);
+
+    });
+
+    return filas.join("");
+
 }
 
 async function multiCancelarModal(){
@@ -7021,6 +7242,29 @@ async function multiCancelarModal(){
 function multiRender(paso, extra = {}){
 
     const c = document.getElementById("multiContenido");
+
+    Multi.pasoModal = paso;
+
+    if(paso === "personas"){
+
+        const n = multiListaPresentes().filter(p => p.rol === "participante").length;
+
+        c.innerHTML = `
+
+            <h2>👥 Personas en el multi-contador</h2>
+
+            <p>Código ${escapeHTML(Multi.codigo || "")} · ${n} conectado${n === 1 ? "" : "s"}</p>
+
+            ${multiHtmlPersonas()}
+
+            <button style="width:100%;background:var(--primary);color:#fff;margin-top:6px;" onclick="cerrarModalMulti()">
+                Cerrar
+            </button>
+        `;
+
+        return;
+
+    }
 
     if(paso === "inicio"){
 
@@ -7190,6 +7434,11 @@ async function multiCrearSesion(codigoExistente = null, aportesPrevios = null, l
         Multi.liberadas = liberadasPrevias || {};
         Multi.sumas = sumasPrevias || {};
         Multi.firmaPublicada = null;
+
+        if(!codigoExistente){
+            Multi.habilitadas = {};
+            Multi.extraHost = {};
+        }
 
         multiPublicarEstadoHost(true);
 
@@ -7386,6 +7635,13 @@ function multiLiberar(cat){
             delete Multi.aportes[cat];
 
             Multi.liberadas[cat] = true;
+
+            // Lo que el anfitrión ya había sumado pasa a ser suyo normal
+            datos[cat] = (datos[cat] || 0) + (Multi.extraHost[cat] || 0);
+
+            delete Multi.extraHost[cat];
+
+            delete Multi.habilitadas[cat];
 
             multiGuardar();
 
@@ -8061,6 +8317,8 @@ async function multiDesconectar(){
         modo: null,
         idAporte: null,
         sumas: {},
+        habilitadas: {},
+        extraHost: {},
         aportes: {},
         liberadas: {},
         presentes: {},
@@ -8071,6 +8329,10 @@ async function multiDesconectar(){
     });
 
     try{ localStorage.removeItem(MULTI_STORAGE_KEY); }catch(e){}
+
+    if(document.getElementById("multiContenido")?.querySelector(".multiPersona")){
+        cerrarModalMulti();
+    }
 
     for(const canal of canales){
 
@@ -8104,6 +8366,8 @@ function multiCategoriaBloqueada(cat){
     if(Multi.rol !== "anfitrion") return false;
 
     if(Multi.liberadas?.[cat]) return false;
+
+    if(Multi.habilitadas?.[cat]) return false;
 
     if(Multi.aportes[cat]) return true;
 
@@ -8245,14 +8509,26 @@ function multiActualizarUI(){
         else if(vivo) estado = "📱 en vivo";
         else estado = "⚠️ desconectado";
 
-        card.classList.add("multiBloqueada");
+        const habilitada = !!Multi.habilitadas?.[c.key];
 
-        card.querySelectorAll(".counterBtn").forEach(b => b.disabled = true);
+        if(!habilitada){
+
+            card.classList.add("multiBloqueada");
+
+            card.querySelectorAll(".counterBtn").forEach(b => b.disabled = true);
+
+        }
 
         if(label){
 
+            const deOtro = a?.valor || 0;
+
             label.innerHTML =
                 `${escapeHTML(label.dataset.original)} · ${escapeHTML(nombre)} ${estado}` +
+                (habilitada
+                    ? ` <span class="multiSuma">(${escapeHTML(nombre)} ${deOtro} + tú ${Multi.extraHost?.[c.key] || 0})</span>` +
+                      ` <button class="multiLiberar" onclick="multiBloquearCategoria('${c.key}')">🔒 Bloquear</button>`
+                    : ` <button class="multiHabilitar" onclick="multiHabilitarCategoria('${c.key}')">➕ Contar también</button>`) +
                 (!vivo
                     ? ` <button class="multiLiberar" onclick="multiLiberar('${c.key}')">Retomar</button>`
                     : "");
@@ -8274,7 +8550,7 @@ function multiActualizarUI(){
 
         label.insertAdjacentHTML(
             "beforeend",
-            ` <span class="multiSuma">(tú ${datos[c.key] || 0} + ${extra} sumados)</span>`
+            ` <span class="multiSuma">(tú ${multiPropioHost(c.key)} + ${extra} sumados)</span>`
         );
 
     });
@@ -8283,7 +8559,7 @@ function multiActualizarUI(){
 
     txt.innerHTML =
         `👥 Código <b style="letter-spacing:2px;">${escapeHTML(Multi.codigo)}</b><br>` +
-        `<small>${n} contador${n === 1 ? "" : "es"} conectado${n === 1 ? "" : "s"}</small>`;
+        `<small class="verPersonas" onclick="multiVerPersonas()">👁️ ${n} contador${n === 1 ? "" : "es"} conectado${n === 1 ? "" : "s"}</small>`;
 
     acciones.innerHTML =
         `<button onclick="multiCompartirCodigo()">Compartir</button>` +
@@ -8292,6 +8568,9 @@ function multiActualizarUI(){
     btnSubir.textContent = "📤 Subir asistencia";
 
     if(totalLabel) totalLabel.textContent = "Total asistencia:";
+
+    // Si la lista de personas está abierta, mantenerla al día
+    if(Multi.pasoModal === "personas") multiRender("personas");
 
 }
 
