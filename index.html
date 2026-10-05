@@ -2222,6 +2222,100 @@ ADMINISTRAR USUARIOS
 }
 #resumenMesBox:empty{ display:none; }
 
+/* Modal subir */
+.subirAviso{
+  background:#fff7ed;
+  color:#9a3412;
+  border:1px solid #fed7aa;
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:.9rem;
+  line-height:1.4;
+  margin-bottom:12px;
+  text-align:left;
+}
+.subirResumen{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:4px 12px;
+  background:var(--bg);
+  border-radius:12px;
+  padding:10px 14px;
+  margin-bottom:14px;
+  font-size:.92rem;
+}
+.subirResumen .subirTotal{ grid-column:1 / -1; font-size:1.05rem; margin-top:4px; }
+.subirResumen .subirFecha{ grid-column:1 / -1; color:var(--primary); font-weight:700; margin-top:4px; }
+.subirLabel{ display:block; font-weight:700; margin:2px 0 6px; font-size:.92rem; text-align:left; }
+.subirLabel small{ font-weight:400; color:var(--muted); }
+.subirChips{ display:flex; flex-wrap:wrap; gap:6px; margin:-4px 0 12px; }
+.modalCard .subirChips button{
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--primary);
+  background:transparent;
+  color:var(--primary);
+  font-size:.8rem;
+}
+#offlineBar.pendiente{ color:#92400e; background:#fef3c7; border-color:#fde68a; }
+
+/* Encabezado de "Ver asistencia" compacto (mes + año + refrescar) */
+#verHeader{ gap:6px; }
+#verHeader .left{ min-width:0; flex:1 1 auto; gap:8px; }
+#verHeader #tituloMes{ font-size:.92rem !important; line-height:1.15; min-width:0; }
+#verHeader select{ padding:8px 6px; font-size:.9rem; min-width:0; }
+#verHeader #selectMes{ max-width:112px; }
+#verHeader #selectAnio{ max-width:72px; }
+#verHeader > button{ padding:6px !important; flex-shrink:0; }
+#verHeader #selectMes{ max-width:none; }
+#verHeader #selectAnio{ max-width:none; }
+/* En celulares el título se oculta: el mes y el año ya se ven en los selectores */
+@media (max-width:480px){
+  #verHeader #tituloMes{ display:none; }
+  #verHeader .left{ flex:0 0 auto; }
+  #verHeader select{ flex:1 1 auto; }
+  #verHeader #selectMes{ min-width:118px; }
+  #verHeader #selectAnio{ min-width:80px; flex:0 0 auto; }
+}
+
+/* Extras de cada registro */
+.row small.extraComparacion b.sube{ color:#16a34a; }
+.row small.extraComparacion b.baja{ color:#dc2626; }
+
+/* Estadísticas (se desplazan con la lista) */
+.estadisticasMes{
+  background:var(--card);
+  color:var(--text);
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 6px 18px var(--shadow);
+}
+.estadisticasMes h4{ margin:16px 0 8px; font-size:.98rem; }
+.estadisticasMes h4:first-child{ margin-top:0; }
+.estadisticasMes h4 small{ font-weight:400; color:var(--muted); font-size:.78rem; }
+.tablaStats{ width:100%; border-collapse:collapse; font-size:.88rem; }
+.tablaStats th{ text-align:left; color:var(--muted); font-weight:600; font-size:.78rem; padding:4px 6px; }
+.tablaStats td{ padding:7px 6px; border-top:1px solid var(--shadow); }
+.tablaStats b.sube{ color:#16a34a; }
+.tablaStats b.baja{ color:#dc2626; }
+.puntoDia{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+.graficaScroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; color:var(--text); }
+.graficaScroll svg{ display:block; }
+.statsVisitantes{ margin-top:12px; padding:10px 12px; border-radius:10px; background:var(--bg); }
+.resumenMes .resumenTop{ display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
+.resumenMes .resumenTop h4{ margin:0; }
+.resumenMes .btnCompartirResumen{
+  border:1px solid rgba(255,255,255,.45);
+  background:rgba(255,255,255,.18);
+  color:#fff;
+  border-radius:999px;
+  padding:5px 10px;
+  font-weight:700;
+  font-size:.8rem;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
 /* 11. Resumen del mes en Ver asistencia */
 .resumenMes{
   background:linear-gradient(135deg,var(--primary-dark),var(--primary));
@@ -3044,6 +3138,7 @@ style="
  
     </button>
     <select id="selectMes" aria-label="Seleccionar mes" onchange="mesSeleccionado()"></select>
+    <select id="selectAnio" aria-label="Seleccionar año" onchange="anioSeleccionado()"></select>
     <button title="Refrescar" onclick="refrescarMes()">⟳</button>
     <div id="loadingIndicator" style="display:none"><div class="spinner"></div></div>
   </div>
@@ -3271,6 +3366,32 @@ style="
 
 
 
+
+
+<!-- SUBIR ASISTENCIA (culto, visitantes, nota) -->
+<div id="modalSubir" class="modalOverlay oculto">
+    <div class="modalCard" style="max-width:440px;">
+        <h2>📤 Subir asistencia</h2>
+        <div id="subirAviso" class="subirAviso oculto"></div>
+        <div id="subirResumen" class="subirResumen"></div>
+
+        <label class="subirLabel" for="subirCulto">⛪ Culto <small>(opcional)</small></label>
+        <input id="subirCulto" list="listaCultos" maxlength="60" autocomplete="off" placeholder="Ej: Culto dominical">
+        <datalist id="listaCultos"></datalist>
+        <div id="subirChips" class="subirChips"></div>
+
+        <label class="subirLabel" for="subirVisitantes">🌱 Visitantes nuevos <small>(opcional · primera vez)</small></label>
+        <input id="subirVisitantes" type="number" min="0" inputmode="numeric" placeholder="0">
+
+        <label class="subirLabel" for="subirNota">📝 Nota <small>(opcional)</small></label>
+        <input id="subirNota" maxlength="140" autocomplete="off" placeholder="Ej: Santa Cena, llovió mucho…">
+
+        <div style="display:flex;gap:10px;margin-top:6px;">
+            <button type="button" style="flex:1;background:#888;color:#fff;" onclick="cerrarModalSubir()">Cancelar</button>
+            <button type="button" style="flex:1;background:var(--primary);color:#fff;" onclick="confirmarModalSubir()">Subir</button>
+        </div>
+    </div>
+</div>
 
 
 <!-- MULTI-CONTADOR -->
@@ -6268,17 +6389,6 @@ async function subirAsistencia(){
 
     }
 
-    // Sin internet: avisar en lugar de intentar
-    if(navigator.onLine === false){
-
-        return mostrarPopupConfirm(
-            "📡 Sin conexión",
-            "No hay internet en este momento. Tu conteo se conserva; intenta subir cuando vuelva la conexión.",
-            null
-        );
-
-    }
-
     // Cerrar menú lateral
     const menu = document.getElementById("menu");
     const overlay = document.getElementById("menuOverlay");
@@ -6293,13 +6403,19 @@ async function subirAsistencia(){
         .map(c => `${c.nombre}: ${multiValorTotal(c.key)}`)
         .join("\n");
 
-    mostrarPopupConfirm(
+    abrirModalSubir(
 
-        "Confirmar envío",
+        resumenSubida,
 
-        `${resumenSubida}\n\nTotal: ${total}\n\n¿Deseas subir esta asistencia?`,
+        total,
 
-        async()=>{
+        async function enviarSubida(opciones = {}){
+
+            // Sin internet: se guarda en el teléfono y se sube sola al volver
+            if(navigator.onLine === false){
+                encolarAsistencia(opciones);
+                return;
+            }
 
             showBusy(
                 "Subiendo asistencia...",
@@ -6308,8 +6424,7 @@ async function subirAsistencia(){
 
             try{
 
-                const { data, error } = await supabase.rpc(
-                    "registrar_asistencia",
+                const { data, error } = await rpcRegistrarAsistencia(
                     {
                         // multiValorTotal = lo contado aquí + lo sumado por el
                         // multi-contador (sin multi-contador es igual a datos.x)
@@ -6318,10 +6433,22 @@ async function subirAsistencia(){
                         p_amigos: multiValorTotal("amigos"),
                         p_adolescentes: multiValorTotal("adolescentes"),
                         p_ninos: multiValorTotal("niños")
-                    }
+                    },
+                    opciones
                 );
 
                 hideBusy();
+
+                // Se cayó el internet en el momento de subir: guardar en cola
+                if(error && esErrorDeRed(error)){
+                    encolarAsistencia(opciones);
+                    return;
+                }
+
+                // Respuestas nuevas: otro culto el mismo día, culto repetido, etc.
+                if(!error && manejarRespuestaCulto(String(data || ""), resumenSubida, total, enviarSubida, opciones)){
+                    return;
+                }
 
                 if(error){
 
@@ -6341,9 +6468,14 @@ async function subirAsistencia(){
 
                         mostrarPopupConfirm(
                             "✅ Enviado",
-                            "Asistencia registrada correctamente.",
+                            "Asistencia registrada correctamente." +
+                            (opciones.culto ? `\n⛪ ${opciones.culto}` : ""),
                             null
                         );
+
+                        registrarCultoUsado(opciones.culto);
+
+                        fechaConteoPendiente = null;
 
                         // Multi-contador: avisar a los contadores y cerrar la sesión
                         if(Multi.rol === "anfitrion"){
@@ -6372,7 +6504,8 @@ async function subirAsistencia(){
 
                         mostrarPopupConfirm(
                             "⚠️ Duplicado",
-                            "Ya registraste asistencia el día de hoy.",
+                            "Ya registraste asistencia el día de hoy." +
+                            (rpcV2Disponible ? "" : "\n\nPara poder subir otro culto el mismo día, falta ejecutar el archivo SQL en Supabase."),
                             null
                         );
 
@@ -6403,6 +6536,11 @@ async function subirAsistencia(){
                 hideBusy();
 
                 console.error(e);
+
+                if(esErrorDeRed(e)){
+                    encolarAsistencia(opciones);
+                    return;
+                }
 
                 mostrarPopupConfirm(
                     "❌ Error",
@@ -6493,7 +6631,8 @@ async function descargarMesXLSX(){
 
             const f = new Date(r.fecha);
 
-            return meses[f.getMonth()]===mes;
+            return meses[f.getMonth()]===mes &&
+                f.getFullYear() === anioVer();
 
         });
 
@@ -6517,7 +6656,11 @@ async function descargarMesXLSX(){
             Amigos: r.amigos,
             Adolescentes: r.adolescentes,
             Niños: r.ninos,
-            Total: r.total
+            Total: r.total,
+            Día: DIAS_SEMANA[new Date(r.fecha).getDay()],
+            Culto: r.culto || "",
+            "Visitantes nuevos": Number(r.visitantes) || 0,
+            Nota: r.nota || ""
 
         }));
 
@@ -6531,10 +6674,46 @@ async function descargarMesXLSX(){
             mes
         );
 
+        // Hoja de resumen: por culto, por categoría y totales
+        try{
+
+            const grupos = agruparPorCulto(filas);
+
+            const sumaCat = k => filas.reduce((a, r) => a + (Number(r[k]) || 0), 0);
+
+            const totalMes = filas.reduce((a, r) => a + (Number(r.total) || 0), 0);
+
+            const filasResumen = [
+                [`Resumen de ${mes} ${anioVer()}`],
+                [],
+                ["Culto", "Cantidad de cultos", "Asistencia total", "Promedio por culto"],
+                ...grupos.map(g => [etiquetaGrupo(g), g.cantidad, g.suma, g.promedio]),
+                [],
+                ["Categoría", "Total del mes", "Promedio por culto"],
+                ...[["Hermanos","hermanos"],["Hermanas","hermanas"],["Amigos","amigos"],["Adolescentes","adolescentes"],["Niños","ninos"]]
+                    .map(([n, k]) => [n, sumaCat(k), Math.round(sumaCat(k) / filas.length)]),
+                ["Visitantes nuevos", sumaCat("visitantes"), ""],
+                [],
+                ["Total de cultos", filas.length],
+                ["Asistencia total", totalMes],
+                ["Promedio por culto", Math.round(totalMes / filas.length)]
+            ];
+
+            const hojaResumen = XLSX.utils.aoa_to_sheet(filasResumen);
+
+            hojaResumen["!cols"] = [{ wch: 34 }, { wch: 20 }, { wch: 18 }, { wch: 20 }];
+
+            XLSX.utils.book_append_sheet(libro, hojaResumen, "Resumen");
+
+        }catch(e){
+            console.error("Hoja resumen:", e);
+        }
+
         XLSX.writeFile(
             libro,
-            `Asistencia_${mes}.xlsx`
+            `Asistencia_${mes}_${anioVer()}.xlsx`
         );
+
 
         mostrarAlerta(
             "✅",
@@ -6719,11 +6898,14 @@ async function verAsistencia(mes){
         // FILTRAR POR MES
         // =========================================================
 
+        actualizarSelectAnio(data);
+
         const filas = data.filter(r=>{
 
             const fecha = new Date(r.fecha);
 
-            return meses[fecha.getMonth()] === mes;
+            return meses[fecha.getMonth()] === mes &&
+                fecha.getFullYear() === anioVer();
 
         });
 
@@ -6774,6 +6956,8 @@ async function verAsistencia(mes){
 <strong>👤 ${usuarioEsc}</strong>
 
 <small>📅 ${fechaEsc}</small>
+
+${htmlExtrasRegistro(r, data)}
 
 </div>
 
@@ -6867,6 +7051,9 @@ onclick="eliminarAsistencia('${r.id}')">
             const box = document.getElementById("resumenMesBox");
             if(box) box.innerHTML = htmlResumenMes(filas, data, mes);
             else listado.insertAdjacentHTML("afterbegin", htmlResumenMes(filas, data, mes));
+
+            // Estadísticas: por día de culto, gráficas y categorías
+            listado.insertAdjacentHTML("afterbegin", htmlEstadisticas(filas, data, mes, anioVer()));
         }catch(e){
             console.error("Resumen del mes:", e);
         }
@@ -9013,10 +9200,22 @@ function conteoGuardar(){
 
         CATEGORIAS_MULTI.forEach(c => valores[c.key] = datos[c.key] || 0);
 
+        let ts = Date.now();
+
+        // Conservar la hora del último cambio si los números no cambiaron
+        try{
+            const prev = JSON.parse(localStorage.getItem(CONTEO_STORAGE_KEY) || "null");
+            if(prev && prev.userId === App.usuario.id && JSON.stringify(prev.valores) === JSON.stringify(valores) && prev.ts){
+                ts = prev.ts;
+            }
+        }catch(e){}
+
         localStorage.setItem(CONTEO_STORAGE_KEY, JSON.stringify({
             userId: App.usuario.id,
             fecha: hoyLocal(),
-            valores
+            fechaPendiente: fechaConteoPendiente,
+            valores,
+            ts
         }));
 
     }catch(e){}
@@ -9025,6 +9224,10 @@ function conteoGuardar(){
 
 // 1. Recupera el conteo de hoy (mismo usuario) al abrir la app
 function conteoRestaurar(){
+
+    let anterior = null;
+
+    let restaurado = false;
 
     try{
 
@@ -9047,6 +9250,16 @@ function conteoRestaurar(){
 
             });
 
+            fechaConteoPendiente = s.fechaPendiente || null;
+
+            restaurado = true;
+
+        }
+        else if(s && s.userId === App.usuario?.id && s.fecha && s.fecha < hoyLocal() && !Multi.rol){
+
+            // Conteo de un día anterior que no se subió
+            anterior = s;
+
         }
 
     }catch(e){}
@@ -9056,6 +9269,16 @@ function conteoRestaurar(){
     actualizarTotal();
 
     pedirPantallaEncendida();
+
+    // Subir lo que quedó pendiente sin conexión
+    setTimeout(procesarCola, 1200);
+
+    if(anterior){
+        ofrecerConteoAnterior(anterior);
+    }
+    else if(restaurado){
+        recordarSubir(true);
+    }
 
 }
 
@@ -9117,13 +9340,39 @@ function actualizarAvisoConexion(volvio = false){
 
     if(!bar) return;
 
+    let pendientes = 0;
+
+    try{ pendientes = colaDelUsuario().length; }catch(e){}
+
+    const txtPend = pendientes
+        ? `${pendientes} asistencia${pendientes === 1 ? "" : "s"} por subir`
+        : "";
+
+    bar.classList.remove("pendiente");
+
     if(navigator.onLine === false){
 
         bar.classList.remove("ok");
 
-        bar.textContent = "📡 Sin conexión · tu conteo se conserva";
+        bar.textContent = "📡 Sin conexión · " + (txtPend || "tu conteo se conserva");
 
         bar.classList.add("visible");
+
+        return;
+
+    }
+
+    if(pendientes){
+
+        bar.classList.remove("ok");
+
+        bar.classList.add("pendiente", "visible");
+
+        let subiendo = false;
+
+        try{ subiendo = procesandoCola; }catch(e){}
+
+        bar.textContent = (subiendo ? "⏳ Subiendo " : "⏳ ") + txtPend;
 
         return;
 
@@ -9154,8 +9403,10 @@ window.addEventListener("online", () => actualizarAvisoConexion(true));
 actualizarAvisoConexion();
 
 
-// 11. Resumen y comparativo del mes en "Ver asistencia"
+// 11. Resumen del mes en "Ver asistencia" (comparando cultos del mismo día)
 function htmlResumenMes(filas, todos, mes){
+
+    const anio = anioVer();
 
     const totalDe = r => Number(r.total) || 0;
 
@@ -9168,73 +9419,1257 @@ function htmlResumenMes(filas, todos, mes){
     const maximo = filas.reduce((m, r) => totalDe(r) > totalDe(m) ? r : m, filas[0]);
 
     const fechaCorta = r => new Date(r.fecha)
-        .toLocaleDateString("es-CO", { day: "numeric", month: "short" });
+        .toLocaleDateString("es-CO", { weekday: "short", day: "numeric", month: "short" });
 
-    const lineas = [];
+    // Último culto del mes frente al anterior del MISMO día (y mismo culto si tiene nombre)
+    let tendencia = "";
 
-    // Último registro del mes frente al anterior (de cualquier mes)
-    const ordenados = [...todos].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    const ultimo = [...filas].sort((a, b) => new Date(b.fecha) - new Date(a.fecha))[0];
 
-    const ultimo = ordenados.find(r => filas.includes(r));
-
-    const idx = ordenados.indexOf(ultimo);
-
-    const anterior = idx >= 0 ? ordenados[idx + 1] : null;
+    const anterior = ultimo ? cultoAnteriorMismoDia(ultimo, todos) : null;
 
     if(ultimo && anterior && totalDe(anterior) > 0){
 
-        const dif = totalDe(ultimo) - totalDe(anterior);
+        const pct = pctCambio(totalDe(ultimo), totalDe(anterior));
 
-        const pct = Math.round((dif / totalDe(anterior)) * 100);
+        const dia = DIAS_SEMANA[new Date(ultimo.fecha).getDay()].toLowerCase();
 
-        const clase = dif >= 0 ? "sube" : "baja";
+        tendencia =
+            `Último culto (${escapeHTML(fechaCorta(ultimo))}${ultimo.culto ? " · " + escapeHTML(ultimo.culto) : ""}): ` +
+            `${htmlCambio(pct)} frente al ${escapeHTML(dia)} anterior (${totalDe(anterior)} → ${totalDe(ultimo)}).`;
 
-        lineas.push(
-            `Último registro (${escapeHTML(fechaCorta(ultimo))}): <b class="${clase}">${dif >= 0 ? "▲ +" : "▼ "}${pct}%</b> frente al anterior (${totalDe(anterior)} → ${totalDe(ultimo)}).`
+    }
+
+    // Datos para la imagen de "Compartir"
+    const sumaCat = k => filas.reduce((a, r) => a + (Number(r[k]) || 0), 0);
+
+    ultimoResumenMes = {
+        iglesia: App.iglesiaVisualizada?.nombre || App.iglesia?.nombre || "Asistencia",
+        mes,
+        anio,
+        registros: n,
+        suma,
+        promedio,
+        maximo: totalDe(maximo),
+        maximoFecha: maximo ? fechaCorta(maximo) : "",
+        grupos: agruparPorCulto(filas),
+        cat: {
+            hermanos: sumaCat("hermanos"),
+            hermanas: sumaCat("hermanas"),
+            amigos: sumaCat("amigos"),
+            adolescentes: sumaCat("adolescentes"),
+            ninos: sumaCat("ninos")
+        }
+    };
+
+    return `
+<div class="resumenMes">
+    <div class="resumenTop">
+        <h4>📊 Resumen de ${escapeHTML(mes)} ${anio}</h4>
+        <button type="button" class="btnCompartirResumen" onclick="compartirResumenImagen()">📤 Compartir</button>
+    </div>
+    <div class="resumenGrid">
+        <div><span>Cultos</span><strong>${n}</strong></div>
+        <div><span>Asistencia total</span><strong>${suma}</strong></div>
+        <div><span>Promedio por culto</span><strong>${promedio}</strong></div>
+        <div><span>Mayor asistencia</span><strong>${totalDe(maximo)}</strong> <span>${escapeHTML(fechaCorta(maximo))}</span></div>
+    </div>
+    ${tendencia ? `<div class="resumenTendencia">${tendencia}</div>` : ""}
+</div>`;
+
+}
+
+
+/* ===========================================================
+   CULTOS, COLA SIN CONEXIÓN, RECORDATORIO, ESTADÍSTICAS,
+   COMPARTIR RESUMEN COMO IMAGEN
+=========================================================== */
+
+const DIAS_SEMANA = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+
+// Orden para mostrar (martes, jueves, sábado, domingo… empezando el lunes)
+const ORDEN_DIAS = [1, 2, 3, 4, 5, 6, 0];
+
+// Sugerencias de nombre de culto por día (se combinan con los ya usados)
+const CULTOS_SUGERIDOS = {
+    0: ["Escuela dominical", "Culto dominical"],
+    1: ["Servicio especial"],
+    2: ["Culto de oración"],
+    3: ["Servicio especial"],
+    4: ["Culto de enseñanza"],
+    5: ["Vigilia"],
+    6: ["Culto de jóvenes"]
+};
+
+const CULTOS_USADOS_KEY = "cultosUsados";
+
+const COLA_KEY = "colaAsistencias";
+
+// Fecha (AAAA-MM-DD) de un conteo recuperado de un día anterior
+let fechaConteoPendiente = null;
+
+function normalizarCulto(c){
+    return String(c || "").replace(/\s+/g, " ").trim();
+}
+
+function claveCulto(c){
+    return normalizarCulto(c).toLowerCase();
+}
+
+function fechaDeRegistro(r){
+    return new Date(r.fecha);
+}
+
+function nombreDiaCorto(d){
+    return DIAS_SEMANA[d].slice(0, 3).toLowerCase();
+}
+
+function pctCambio(actual, anterior){
+    if(!anterior) return null;
+    return Math.round(((actual - anterior) / anterior) * 100);
+}
+
+function htmlCambio(pct){
+    if(pct === null || pct === undefined || isNaN(pct)) return "";
+    const clase = pct >= 0 ? "sube" : "baja";
+    return `<b class="${clase}">${pct >= 0 ? "▲ +" : "▼ "}${pct}%</b>`;
+}
+
+
+/* ---------- Cultos usados (para sugerir) ---------- */
+
+function cultosUsados(){
+    try{ return JSON.parse(localStorage.getItem(CULTOS_USADOS_KEY) || "[]"); }
+    catch(e){ return []; }
+}
+
+function registrarCultoUsado(culto){
+
+    const nombre = normalizarCulto(culto);
+
+    if(!nombre) return;
+
+    try{
+
+        const dia = new Date().getDay();
+
+        let lista = cultosUsados().filter(x => claveCulto(x.nombre) !== claveCulto(nombre));
+
+        lista.unshift({ nombre, dia });
+
+        localStorage.setItem(CULTOS_USADOS_KEY, JSON.stringify(lista.slice(0, 20)));
+
+    }catch(e){}
+
+}
+
+function sugerenciasCulto(dia){
+
+    const usados = cultosUsados();
+
+    const delDia = usados.filter(x => x.dia === dia).map(x => x.nombre);
+
+    const otros = usados.filter(x => x.dia !== dia).map(x => x.nombre);
+
+    const todos = [...delDia, ...(CULTOS_SUGERIDOS[dia] || []), ...otros,
+        "Escuela dominical", "Culto dominical", "Culto de oración", "Culto de enseñanza",
+        "Culto de jóvenes", "Culto de damas", "Culto de caballeros", "Vigilia", "Servicio especial"];
+
+    const vistos = new Set();
+
+    return todos.filter(n => {
+        const k = claveCulto(n);
+        if(!k || vistos.has(k)) return false;
+        vistos.add(k);
+        return true;
+    });
+
+}
+
+
+/* ---------- Modal "Subir asistencia" ---------- */
+
+let modalSubirCallback = null;
+
+let modalSubirExtra = {};
+
+function abrirModalSubir(resumen, total, callback, extra = {}){
+
+    modalSubirCallback = callback;
+
+    modalSubirExtra = extra || {};
+
+    const dia = fechaConteoPendiente
+        ? new Date(fechaConteoPendiente + "T12:00:00").getDay()
+        : new Date().getDay();
+
+    // Resumen
+    document.getElementById("subirResumen").innerHTML =
+        String(resumen).split("\n").map(l => `<div>${escapeHTML(l)}</div>`).join("") +
+        `<div class="subirTotal">Total: <b>${total}</b></div>` +
+        (fechaConteoPendiente
+            ? `<div class="subirFecha">📅 Se subirá con fecha del ${escapeHTML(
+                new Date(fechaConteoPendiente + "T12:00:00")
+                    .toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" })
+              )}</div>`
+            : "");
+
+    // Aviso de "ya hay asistencia hoy"
+    const aviso = document.getElementById("subirAviso");
+
+    if(extra.existeHoy){
+
+        aviso.innerHTML =
+            `⚠️ Ya se subió asistencia ${fechaConteoPendiente ? "ese día" : "hoy"}: <b>${escapeHTML(extra.existeHoy)}</b>.<br>` +
+            `Si es <b>otro culto</b>, escribe su nombre para diferenciarlo.`;
+
+        aviso.classList.remove("oculto");
+
+    }else if(extra.mensaje){
+
+        aviso.innerHTML = extra.mensaje;
+
+        aviso.classList.remove("oculto");
+
+    }else{
+
+        aviso.classList.add("oculto");
+
+    }
+
+    // Campos (conservar lo escrito si se reabre)
+    const inCulto = document.getElementById("subirCulto");
+
+    const inVis = document.getElementById("subirVisitantes");
+
+    const inNota = document.getElementById("subirNota");
+
+    if(!extra.conservar){
+        inCulto.value = "";
+        inVis.value = "";
+        inNota.value = "";
+    }
+
+    inCulto.placeholder = extra.existeHoy ? "Nombre del otro culto (obligatorio)" : "Ej: " + (CULTOS_SUGERIDOS[dia]?.[0] || "Culto");
+
+    // Sugerencias
+    const sugerencias = sugerenciasCulto(dia);
+
+    document.getElementById("listaCultos").innerHTML =
+        sugerencias.map(n => `<option value="${escapeHTML(n)}"></option>`).join("");
+
+    document.getElementById("subirChips").innerHTML =
+        sugerencias.slice(0, 4).map(n =>
+            `<button type="button" onclick="elegirCultoChip(this)" data-culto="${escapeHTML(n)}">${escapeHTML(n)}</button>`
+        ).join("");
+
+    document.getElementById("modalSubir").classList.remove("oculto");
+
+    if(extra.existeHoy) setTimeout(() => inCulto.focus(), 150);
+
+}
+
+function elegirCultoChip(btn){
+    document.getElementById("subirCulto").value = btn.dataset.culto || "";
+}
+
+function cerrarModalSubir(){
+    document.getElementById("modalSubir").classList.add("oculto");
+    modalSubirCallback = null;
+}
+
+function confirmarModalSubir(){
+
+    const culto = normalizarCulto(document.getElementById("subirCulto").value);
+
+    const visitantes = Math.max(0, parseInt(document.getElementById("subirVisitantes").value, 10) || 0);
+
+    const nota = String(document.getElementById("subirNota").value || "").trim().slice(0, 140);
+
+    if(modalSubirExtra.existeHoy && !culto){
+
+        document.getElementById("subirCulto").focus();
+
+        return mostrarAlerta("⚠️", "Escribe el nombre de este culto para diferenciarlo del que ya se subió.");
+
+    }
+
+    const callback = modalSubirCallback;
+
+    const opciones = {
+        culto: culto || null,
+        nota: nota || null,
+        visitantes,
+        forzar: !!modalSubirExtra.existeHoy,
+        fecha: fechaConteoPendiente ? `${fechaConteoPendiente}T12:00:00-05:00` : null
+    };
+
+    cerrarModalSubir();
+
+    if(callback) callback(opciones);
+
+}
+
+
+/* ---------- RPC con respaldo a la función original ---------- */
+
+let rpcV2Disponible = true;
+
+function esFuncionInexistente(err){
+    return err && (
+        err.code === "PGRST202" ||
+        err.code === "42883" ||
+        /could not find the function|does not exist/i.test(err.message || "")
+    );
+}
+
+function esErrorDeRed(err){
+    return navigator.onLine === false ||
+        /failed to fetch|networkerror|load failed|network request failed|fetch/i.test(err?.message || String(err || ""));
+}
+
+async function rpcRegistrarAsistencia(valores, opciones = {}){
+
+    if(rpcV2Disponible){
+
+        const r = await supabase.rpc("registrar_asistencia_v2", {
+            ...valores,
+            p_culto: opciones.culto || null,
+            p_nota: opciones.nota || null,
+            p_visitantes: opciones.visitantes || 0,
+            p_forzar: !!opciones.forzar,
+            p_fecha: opciones.fecha || null
+        });
+
+        if(!r.error || !esFuncionInexistente(r.error)) return r;
+
+        // La función nueva aún no está creada en Supabase: usar la de siempre
+        rpcV2Disponible = false;
+
+        console.warn("registrar_asistencia_v2 no existe; se usa registrar_asistencia.");
+
+    }
+
+    return supabase.rpc("registrar_asistencia", valores);
+
+}
+
+// Respuestas nuevas de la función v2 (devuelve true si la atendió)
+function manejarRespuestaCulto(codigo, resumen, total, enviarSubida, opciones){
+
+    if(codigo.startsWith("EXISTE_HOY")){
+
+        const cultos = codigo.split(":").slice(1).join(":") || "otro culto";
+
+        abrirModalSubir(resumen, total, enviarSubida, { existeHoy: cultos, conservar: true });
+
+        document.getElementById("subirCulto").value = opciones.culto || "";
+
+        document.getElementById("subirVisitantes").value = opciones.visitantes || "";
+
+        document.getElementById("subirNota").value = opciones.nota || "";
+
+        return true;
+
+    }
+
+    if(codigo.startsWith("DUPLICADO_CULTO")){
+
+        const culto = codigo.split(":").slice(1).join(":") || "Sin nombre";
+
+        abrirModalSubir(resumen, total, enviarSubida, {
+            conservar: true,
+            existeHoy: modalSubirExtra.existeHoy || culto,
+            mensaje: null
+        });
+
+        document.getElementById("subirAviso").innerHTML =
+            `⛔ El culto <b>${escapeHTML(culto)}</b> ya se subió ${fechaConteoPendiente ? "ese día" : "hoy"}. ` +
+            `No se puede subir dos veces el mismo culto. Si es otro, escribe un nombre diferente.`;
+
+        document.getElementById("subirAviso").classList.remove("oculto");
+
+        document.getElementById("subirCulto").value = "";
+
+        document.getElementById("subirVisitantes").value = opciones.visitantes || "";
+
+        document.getElementById("subirNota").value = opciones.nota || "";
+
+        return true;
+
+    }
+
+    const mensajes = {
+        DUPLICADO_INDICE: "La base de datos todavía tiene una regla de \"una asistencia por día\". Revisa el paso 3 del archivo SQL.",
+        INACTIVO: "Tu usuario no está activo. Contacta al administrador.",
+        SIN_IGLESIA: "Tu cuenta no tiene una iglesia asignada.",
+        NO_AUTH: "Tu sesión expiró. Vuelve a iniciar sesión."
+    };
+
+    if(mensajes[codigo]){
+
+        mostrarPopupConfirm("⚠️ No se pudo subir", mensajes[codigo], null);
+
+        return true;
+
+    }
+
+    return false;
+
+}
+
+
+/* ---------- Reiniciar después de subir (o de guardar en cola) ---------- */
+
+function reiniciarConteoTrasSubir(){
+
+    if(Multi.rol === "anfitrion"){
+        multiFinalizarSesion(true);
+    }
+
+    for(const { key: k } of CATEGORIAS_MULTI){
+
+        datos[k] = 0;
+
+        const el = document.getElementById(k);
+
+        if(el) el.textContent = "0";
+
+    }
+
+    fechaConteoPendiente = null;
+
+    actualizarTotal();
+
+}
+
+
+/* ---------- Cola sin conexión ---------- */
+
+function leerCola(){
+    try{ return JSON.parse(localStorage.getItem(COLA_KEY) || "[]"); }
+    catch(e){ return []; }
+}
+
+function guardarCola(cola){
+    try{ localStorage.setItem(COLA_KEY, JSON.stringify(cola)); }catch(e){}
+    actualizarAvisoConexion();
+}
+
+function colaDelUsuario(){
+    return leerCola().filter(x => x.userId === App.usuario?.id);
+}
+
+function encolarAsistencia(opciones = {}){
+
+    const valores = {
+        p_hermanos: multiValorTotal("hermanos"),
+        p_hermanas: multiValorTotal("hermanas"),
+        p_amigos: multiValorTotal("amigos"),
+        p_adolescentes: multiValorTotal("adolescentes"),
+        p_ninos: multiValorTotal("niños")
+    };
+
+    const total = Object.values(valores).reduce((a, b) => a + b, 0);
+
+    const cola = leerCola();
+
+    cola.push({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        userId: App.usuario?.id,
+        valores,
+        opciones: {
+            culto: opciones.culto || null,
+            nota: opciones.nota || null,
+            visitantes: opciones.visitantes || 0,
+            // La fecha real del culto (no la de cuando vuelva el internet)
+            fecha: opciones.fecha || new Date().toISOString()
+        }
+    });
+
+    guardarCola(cola);
+
+    registrarCultoUsado(opciones.culto);
+
+    reiniciarConteoTrasSubir();
+
+    hideBusy();
+
+    mostrarPopupConfirm(
+        "📡 Guardada sin conexión",
+        `No hay internet. La asistencia (${total} personas${opciones.culto ? " · " + opciones.culto : ""}) quedó guardada en el teléfono y se subirá sola cuando vuelva la conexión.`,
+        null
+    );
+
+}
+
+let procesandoCola = false;
+
+async function procesarCola(){
+
+    if(procesandoCola || navigator.onLine === false || !App.usuario?.id) return;
+
+    const pendientes = colaDelUsuario();
+
+    if(!pendientes.length) return;
+
+    procesandoCola = true;
+
+    actualizarAvisoConexion();
+
+    const subidas = [];
+
+    const rechazadas = [];
+
+    try{
+
+        for(const item of pendientes){
+
+            let r;
+
+            try{
+
+                r = await rpcRegistrarAsistencia(item.valores, { ...item.opciones, forzar: true });
+
+            }catch(e){
+
+                if(esErrorDeRed(e)) break;
+
+                r = { error: e };
+
+            }
+
+            if(r.error && esErrorDeRed(r.error)) break;
+
+            const codigo = String(r.data || "");
+
+            const total = Object.values(item.valores).reduce((a, b) => a + b, 0);
+
+            const etiqueta = `${total} personas${item.opciones.culto ? " · " + item.opciones.culto : ""}`;
+
+            if(!r.error && codigo === "OK"){
+
+                subidas.push(etiqueta);
+
+            }else{
+
+                rechazadas.push(`${etiqueta}: ${r.error?.message || codigo || "error"}`);
+
+            }
+
+            // Quitar de la cola (subida o rechazada definitivamente)
+            guardarCola(leerCola().filter(x => x.id !== item.id));
+
+        }
+
+    }finally{
+
+        procesandoCola = false;
+
+        actualizarAvisoConexion();
+
+    }
+
+    if(subidas.length || rechazadas.length){
+
+        mostrarAlerta(
+            subidas.length ? "✅ Pendientes subidas" : "⚠️ Pendientes",
+            (subidas.length ? `Se subieron: ${subidas.join("; ")}.` : "") +
+            (rechazadas.length ? ` No se pudieron subir: ${rechazadas.join("; ")}.` : "")
         );
 
     }
 
-    // Promedio frente al mes anterior
+}
+
+window.addEventListener("online", () => setTimeout(procesarCola, 1500));
+
+
+/* ---------- Recordatorio para subir ---------- */
+
+let ultimoRecordatorio = 0;
+
+function totalContadoLocal(){
+    return CATEGORIAS_MULTI.reduce((a, c) => a + (datos[c.key] || 0), 0);
+}
+
+function recordarSubir(forzado = false){
+
+    if(!App.usuario?.id || Multi.rol === "participante") return;
+
+    const total = totalContadoLocal();
+
+    if(!total) return;
+
+    const ahora = Date.now();
+
+    if(!forzado && ahora - ultimoRecordatorio < 60 * 60 * 1000) return;
+
+    let ts = 0;
+
+    try{ ts = JSON.parse(localStorage.getItem(CONTEO_STORAGE_KEY) || "{}").ts || 0; }catch(e){}
+
+    // Al volver a la app: solo si lleva más de 90 min sin tocar el conteo
+    if(!forzado && ts && ahora - ts < 90 * 60 * 1000) return;
+
+    ultimoRecordatorio = ahora;
+
+    mostrarAlerta(
+        "📌 Recordatorio",
+        `Tienes ${total} personas contadas sin subir. No olvides tocar "Subir asistencia" al terminar el culto.`
+    );
+
+}
+
+document.addEventListener("visibilitychange", () => {
+
+    if(document.visibilityState !== "visible") return;
+
+    procesarCola();
+
+    recordarSubir();
+
+});
+
+
+/* ---------- Conteo de un día anterior sin subir ---------- */
+
+function ofrecerConteoAnterior(s){
+
+    const valores = {};
+
+    let total = 0;
+
+    CATEGORIAS_MULTI.forEach(c => {
+        valores[c.key] = Math.max(0, parseInt(s.valores?.[c.key], 10) || 0);
+        total += valores[c.key];
+    });
+
+    if(!total) return;
+
+    const fechaTxt = new Date(s.fecha + "T12:00:00")
+        .toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+
+    const dias = Math.round((new Date(hoyLocal() + "T12:00:00") - new Date(s.fecha + "T12:00:00")) / 86400000);
+
+    if(dias > 7) return;
+
+    mostrarPopupConfirm(
+        "📌 Conteo sin subir",
+        `Tienes un conteo del ${fechaTxt} que no se subió (${total} personas).\n\n¿Quieres recuperarlo para subirlo con esa fecha?`,
+        () => {
+
+            CATEGORIAS_MULTI.forEach(c => {
+                datos[c.key] = valores[c.key];
+                const el = document.getElementById(c.key);
+                if(el) el.textContent = datos[c.key];
+            });
+
+            fechaConteoPendiente = s.fecha;
+
+            actualizarTotal();
+
+            mostrarAlerta("✅ Recuperado", `Toca "Subir asistencia" para subirlo con fecha del ${fechaTxt}.`);
+
+        }
+    );
+
+}
+
+
+/* ---------- Año en "Ver asistencia" ---------- */
+
+let anioVerSeleccionado = new Date().getFullYear();
+
+function anioVer(){
+    return anioVerSeleccionado;
+}
+
+function anioSeleccionado(){
+
+    const v = parseInt(document.getElementById("selectAnio")?.value, 10);
+
+    if(v) anioVerSeleccionado = v;
+
+    verAsistencia(document.getElementById("selectMes").value);
+
+}
+
+function actualizarSelectAnio(data){
+
+    const sel = document.getElementById("selectAnio");
+
+    if(!sel) return;
+
+    const anios = new Set([new Date().getFullYear(), anioVerSeleccionado]);
+
+    (data || []).forEach(r => {
+        const y = fechaDeRegistro(r).getFullYear();
+        if(y) anios.add(y);
+    });
+
+    const lista = [...anios].sort((a, b) => b - a);
+
+    const actual = lista.map(String).join(",");
+
+    if(sel.dataset.anios !== actual){
+
+        sel.innerHTML = lista.map(y => `<option value="${y}">${y}</option>`).join("");
+
+        sel.dataset.anios = actual;
+
+    }
+
+    sel.value = String(anioVerSeleccionado);
+
+}
+
+function registrosDelMes(todos, mesNombre, anio){
+
+    const iMes = meses.indexOf(mesNombre);
+
+    return (todos || []).filter(r => {
+        const f = fechaDeRegistro(r);
+        return f.getMonth() === iMes && f.getFullYear() === anio;
+    });
+
+}
+
+function mesAnteriorDe(mesNombre, anio){
+
+    const iMes = meses.indexOf(mesNombre);
+
+    return iMes === 0
+        ? { mes: meses[11], anio: anio - 1 }
+        : { mes: meses[iMes - 1], anio };
+
+}
+
+
+/* ---------- Comparación con el culto anterior del mismo día ---------- */
+
+// Busca el registro anterior del mismo día de la semana (y mismo culto si tiene nombre)
+function cultoAnteriorMismoDia(r, todos){
+
+    const f = fechaDeRegistro(r);
+
+    const dia = f.getDay();
+
+    const clave = claveCulto(r.culto);
+
+    const anteriores = (todos || [])
+        .filter(x => x !== r && fechaDeRegistro(x) < f && fechaDeRegistro(x).getDay() === dia)
+        .sort((a, b) => fechaDeRegistro(b) - fechaDeRegistro(a));
+
+    if(clave){
+
+        const mismo = anteriores.find(x => claveCulto(x.culto) === clave);
+
+        if(mismo) return mismo;
+
+    }
+
+    return anteriores.find(x => !claveCulto(x.culto)) || anteriores[0] || null;
+
+}
+
+// Información extra de cada registro (culto, visitantes, nota y comparación)
+function htmlExtrasRegistro(r, todos){
+
+    const partes = [];
+
+    if(r.culto){
+        partes.push(`<small>⛪ ${escapeHTML(r.culto)}</small>`);
+    }
+
+    if(Number(r.visitantes) > 0){
+        partes.push(`<small>🌱 ${Number(r.visitantes)} visitante${Number(r.visitantes) === 1 ? "" : "s"} nuevo${Number(r.visitantes) === 1 ? "" : "s"}</small>`);
+    }
+
+    if(r.nota){
+        partes.push(`<small>📝 ${escapeHTML(r.nota)}</small>`);
+    }
+
+    try{
+
+        const ant = cultoAnteriorMismoDia(r, todos);
+
+        if(ant && Number(ant.total) > 0){
+
+            const pct = pctCambio(Number(r.total) || 0, Number(ant.total));
+
+            partes.push(
+                `<small class="extraComparacion">${htmlCambio(pct)} vs ${escapeHTML(DIAS_SEMANA[fechaDeRegistro(r).getDay()].toLowerCase())} anterior (${Number(ant.total)})</small>`
+            );
+
+        }
+
+    }catch(e){}
+
+    return partes.join("");
+
+}
+
+
+/* ---------- Agrupar por día de culto ---------- */
+
+function agruparPorCulto(filas){
+
+    const grupos = new Map();
+
+    filas.forEach(r => {
+
+        const dia = fechaDeRegistro(r).getDay();
+
+        const culto = normalizarCulto(r.culto);
+
+        const clave = dia + "|" + claveCulto(culto);
+
+        if(!grupos.has(clave)){
+            grupos.set(clave, { dia, culto, registros: [] });
+        }
+
+        grupos.get(clave).registros.push(r);
+
+    });
+
+    return [...grupos.values()]
+        .map(g => {
+            const suma = g.registros.reduce((a, r) => a + (Number(r.total) || 0), 0);
+            return { ...g, cantidad: g.registros.length, suma, promedio: Math.round(suma / g.registros.length) };
+        })
+        .sort((a, b) => ORDEN_DIAS.indexOf(a.dia) - ORDEN_DIAS.indexOf(b.dia) || a.culto.localeCompare(b.culto));
+
+}
+
+function etiquetaGrupo(g){
+    return DIAS_SEMANA[g.dia] + (g.culto ? " · " + g.culto : "");
+}
+
+
+/* ---------- Tarjeta de estadísticas (gráficas, días, categorías) ---------- */
+
+let ultimoResumenMes = null;
+
+const COLORES_DIA = ["#2f65ff", "#94a3b8", "#06b6d4", "#94a3b8", "#a855f7", "#94a3b8", "#f59e0b"];
+
+function svgBarras(items, opciones = {}){
+
+    // items: [{ etiqueta, sub, valor, color, resaltar }]
+    const n = items.length;
+
+    if(!n) return "";
+
+    const anchoBarra = opciones.anchoBarra || 34;
+
+    const gap = opciones.gap || 10;
+
+    const alto = 150;
+
+    const base = 118;
+
+    const max = Math.max(...items.map(i => i.valor), 1);
+
+    const ancho = Math.max(n * (anchoBarra + gap) + gap, 280);
+
+    const barras = items.map((it, i) => {
+
+        const h = Math.round((it.valor / max) * 92);
+
+        const x = gap + i * (anchoBarra + gap);
+
+        const y = base - h;
+
+        if(!it.valor){
+            return `<text x="${x + anchoBarra / 2}" y="${base + 15}" text-anchor="middle" font-size="11" fill="currentColor" opacity=".45">${escapeHTML(it.etiqueta)}</text>`;
+        }
+
+        return `
+            <g>
+                <rect x="${x}" y="${y}" width="${anchoBarra}" height="${Math.max(h, 2)}" rx="6"
+                      fill="${it.color || "var(--primary)"}" opacity="${it.atenuar ? .35 : 1}"></rect>
+                <text x="${x + anchoBarra / 2}" y="${y - 5}" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">${it.valor || ""}</text>
+                <text x="${x + anchoBarra / 2}" y="${base + 15}" text-anchor="middle" font-size="11" fill="currentColor">${escapeHTML(it.etiqueta)}</text>
+                <text x="${x + anchoBarra / 2}" y="${base + 28}" text-anchor="middle" font-size="9" fill="currentColor" opacity=".6">${escapeHTML(it.sub || "")}</text>
+            </g>`;
+
+    }).join("");
+
+    // Si cabe en pantalla se ajusta al ancho; si no, se desliza de lado
+    const ajustar = opciones.ajustar || ancho <= 340;
+
+    return `<div class="graficaScroll"><svg ${ajustar ? `width="100%" preserveAspectRatio="xMidYMid meet"` : `width="${ancho}"`} height="${alto}" viewBox="0 0 ${ancho} ${alto}" role="img">${barras}</svg></div>`;
+
+}
+
+function htmlEstadisticas(filas, todos, mes, anio){
+
+    const prev = mesAnteriorDe(mes, anio);
+
+    const filasAnt = registrosDelMes(todos, prev.mes, prev.anio);
+
+    // --- Por día de culto (comparado con el mismo día del mes anterior)
+    const grupos = agruparPorCulto(filas);
+
+    const gruposAnt = agruparPorCulto(filasAnt);
+
+    const filasDias = grupos.map(g => {
+
+        let ant = gruposAnt.find(x => x.dia === g.dia && claveCulto(x.culto) === claveCulto(g.culto));
+
+        if(!ant && g.culto) ant = gruposAnt.find(x => x.dia === g.dia && !x.culto);
+
+        if(!ant) ant = gruposAnt.find(x => x.dia === g.dia);
+
+        const pct = ant ? pctCambio(g.promedio, ant.promedio) : null;
+
+        return `
+            <tr>
+                <td><span class="puntoDia" style="background:${COLORES_DIA[g.dia]}"></span>${escapeHTML(etiquetaGrupo(g))}</td>
+                <td>${g.cantidad}</td>
+                <td><b>${g.promedio}</b></td>
+                <td>${pct === null ? "—" : htmlCambio(pct)}</td>
+            </tr>`;
+
+    }).join("");
+
+    // --- Gráfica del mes (cada culto en orden de fecha)
+    const ordenadas = [...filas].sort((a, b) => fechaDeRegistro(a) - fechaDeRegistro(b));
+
+    const graficaMes = svgBarras(ordenadas.map(r => {
+        const f = fechaDeRegistro(r);
+        return {
+            etiqueta: String(f.getDate()),
+            sub: nombreDiaCorto(f.getDay()),
+            valor: Number(r.total) || 0,
+            color: COLORES_DIA[f.getDay()]
+        };
+    }), { anchoBarra: 30 });
+
+    // --- Gráfica del año (promedio por culto de cada mes)
     const iMes = meses.indexOf(mes);
 
-    if(iMes >= 0){
+    const graficaAnio = svgBarras(meses.map((m, i) => {
+        const del = registrosDelMes(todos, m, anio);
+        const prom = del.length ? Math.round(del.reduce((a, r) => a + (Number(r.total) || 0), 0) / del.length) : 0;
+        return { etiqueta: m.slice(0, 3), sub: del.length ? del.length + " c." : "", valor: prom, atenuar: i !== iMes };
+    }), { anchoBarra: 21, gap: 5, ajustar: true });
 
-        const mesAnt = meses[(iMes + 11) % 12];
+    // --- Categorías (promedio por culto vs mes anterior)
+    const cats = [
+        { k: "hermanos", n: "Hermanos" },
+        { k: "hermanas", n: "Hermanas" },
+        { k: "amigos", n: "Amigos" },
+        { k: "adolescentes", n: "Adolescentes" },
+        { k: "ninos", n: "Niños" }
+    ];
 
-        const filasAnt = todos.filter(r => meses[new Date(r.fecha).getMonth()] === mesAnt);
+    const promCat = (lista, k) => lista.length
+        ? Math.round(lista.reduce((a, r) => a + (Number(r[k]) || 0), 0) / lista.length)
+        : 0;
 
-        if(filasAnt.length){
+    const ranking = cats.map(c => {
+        const actual = promCat(filas, c.k);
+        const anterior = promCat(filasAnt, c.k);
+        return { ...c, actual, anterior, pct: filasAnt.length ? pctCambio(actual, anterior) : null };
+    }).sort((a, b) => (b.pct ?? -9999) - (a.pct ?? -9999));
 
-            const promAnt = Math.round(filasAnt.reduce((a, r) => a + totalDe(r), 0) / filasAnt.length);
+    const filasRanking = ranking.map((c, i) => `
+        <tr>
+            <td>${i === 0 && c.pct !== null && c.pct > 0 ? "🏆 " : ""}${c.n}</td>
+            <td><b>${c.actual}</b></td>
+            <td>${c.pct === null ? "—" : htmlCambio(c.pct)}</td>
+        </tr>`).join("");
 
-            if(promAnt > 0){
+    const visitantes = filas.reduce((a, r) => a + (Number(r.visitantes) || 0), 0);
 
-                const pct = Math.round(((promedio - promAnt) / promAnt) * 100);
+    return `
+<div class="estadisticasMes">
 
-                const clase = pct >= 0 ? "sube" : "baja";
+    <h4>📅 Por día de culto <small>(promedio vs mismo día de ${escapeHTML(prev.mes)})</small></h4>
+    <table class="tablaStats">
+        <thead><tr><th>Culto</th><th>Cultos</th><th>Prom.</th><th>Cambio</th></tr></thead>
+        <tbody>${filasDias}</tbody>
+    </table>
 
-                lineas.push(
-                    `Promedio frente a ${escapeHTML(mesAnt)}: <b class="${clase}">${pct >= 0 ? "▲ +" : "▼ "}${pct}%</b> (${promAnt} → ${promedio}).`
-                );
+    <h4>📈 Asistencia de ${escapeHTML(mes)}</h4>
+    ${graficaMes}
 
-            }
+    <h4>📆 Promedio por mes · ${anio}</h4>
+    ${graficaAnio}
 
+    <h4>🏆 Categorías <small>(promedio por culto vs ${escapeHTML(prev.mes)})</small></h4>
+    <table class="tablaStats">
+        <thead><tr><th>Categoría</th><th>Prom.</th><th>Cambio</th></tr></thead>
+        <tbody>${filasRanking}</tbody>
+    </table>
+
+    ${visitantes ? `<div class="statsVisitantes">🌱 <b>${visitantes}</b> visitante${visitantes === 1 ? "" : "s"} nuevo${visitantes === 1 ? "" : "s"} este mes</div>` : ""}
+
+</div>`;
+
+}
+
+
+/* ---------- Compartir el resumen como imagen ---------- */
+
+function cargarImagen(src, ms = 2000){
+
+    return new Promise(resolve => {
+
+        const img = new Image();
+
+        const t = setTimeout(() => resolve(null), ms);
+
+        img.onload = () => { clearTimeout(t); resolve(img); };
+
+        img.onerror = () => { clearTimeout(t); resolve(null); };
+
+        img.src = src;
+
+    });
+
+}
+
+function rectRedondo(ctx, x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+}
+
+async function dibujarResumen(conLogo){
+
+    const R = ultimoResumenMes;
+
+    const W = 1080, H = 1350;
+
+    const cv = document.createElement("canvas");
+
+    cv.width = W;
+    cv.height = H;
+
+    const ctx = cv.getContext("2d");
+
+    // Fondo
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, "#071430");
+    g.addColorStop(.55, "#123a9c");
+    g.addColorStop(1, "#2f65ff");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    // Brillos
+    const b = ctx.createRadialGradient(W * .85, 140, 10, W * .85, 140, 420);
+    b.addColorStop(0, "rgba(167,139,250,.45)");
+    b.addColorStop(1, "rgba(167,139,250,0)");
+    ctx.fillStyle = b;
+    ctx.fillRect(0, 0, W, H);
+
+    const fuente = "Inter, Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif";
+
+    // Logo + iglesia
+    let xTexto = 80;
+
+    if(conLogo){
+
+        const logo = await cargarImagen("icon-512.png");
+
+        if(logo){
+            ctx.save();
+            rectRedondo(ctx, 80, 80, 130, 130, 30);
+            ctx.clip();
+            ctx.drawImage(logo, 80, 80, 130, 130);
+            ctx.restore();
+            xTexto = 240;
         }
 
     }
 
-    return `
-<div class="resumenMes">
-    <h4>📊 Resumen de ${escapeHTML(mes)}</h4>
-    <div class="resumenGrid">
-        <div><span>Registros</span><strong>${n}</strong></div>
-        <div><span>Asistencia total</span><strong>${suma}</strong></div>
-        <div><span>Promedio por registro</span><strong>${promedio}</strong></div>
-        <div><span>Mayor asistencia</span><strong>${totalDe(maximo)}</strong> <span>${escapeHTML(fechaCorta(maximo))}</span></div>
-    </div>
-    ${lineas.length ? `<div class="resumenTendencia">${lineas.join("<br>")}</div>` : ""}
-</div>`;
+    ctx.fillStyle = "#fff";
+    ctx.font = `800 52px ${fuente}`;
+    ctx.fillText(R.iglesia, xTexto, 140, W - xTexto - 60);
+
+    ctx.fillStyle = "rgba(255,255,255,.8)";
+    ctx.font = `500 34px ${fuente}`;
+    ctx.fillText(`Resumen de asistencia · ${R.mes} ${R.anio}`, xTexto, 192, W - xTexto - 60);
+
+    // Tarjetas de datos
+    const datosTarjeta = [
+        ["Cultos", R.registros],
+        ["Asistencia total", R.suma],
+        ["Promedio por culto", R.promedio],
+        ["Mayor asistencia", `${R.maximo}`]
+    ];
+
+    datosTarjeta.forEach((d, i) => {
+
+        const x = 80 + (i % 2) * 470;
+        const y = 270 + Math.floor(i / 2) * 200;
+
+        ctx.fillStyle = "rgba(255,255,255,.12)";
+        rectRedondo(ctx, x, y, 450, 175, 28);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255,255,255,.75)";
+        ctx.font = `500 30px ${fuente}`;
+        ctx.fillText(d[0], x + 34, y + 58);
+
+        ctx.fillStyle = "#fff";
+        ctx.font = `800 70px ${fuente}`;
+        ctx.fillText(String(d[1]), x + 34, y + 138);
+
+        if(i === 3 && R.maximoFecha){
+            ctx.fillStyle = "rgba(255,255,255,.7)";
+            ctx.font = `500 26px ${fuente}`;
+            ctx.fillText(R.maximoFecha, x + 34 + ctx.measureText(String(d[1])).width + 160, y + 138);
+        }
+
+    });
+
+    // Por día de culto
+    let y = 720;
+
+    ctx.fillStyle = "#fff";
+    ctx.font = `700 36px ${fuente}`;
+    ctx.fillText("Promedio por culto", 80, y);
+
+    y += 30;
+
+    const maxProm = Math.max(...R.grupos.map(g => g.promedio), 1);
+
+    R.grupos.slice(0, 6).forEach(gr => {
+
+        y += 62;
+
+        ctx.fillStyle = "rgba(255,255,255,.85)";
+        ctx.font = `500 30px ${fuente}`;
+        ctx.fillText(etiquetaGrupo(gr), 80, y, 400);
+
+        const barW = Math.round((gr.promedio / maxProm) * 380);
+
+        ctx.fillStyle = "rgba(255,255,255,.15)";
+        rectRedondo(ctx, 500, y - 30, 380, 36, 18);
+        ctx.fill();
+
+        ctx.fillStyle = COLORES_DIA[gr.dia] === "#94a3b8" ? "#93c5fd" : COLORES_DIA[gr.dia];
+        rectRedondo(ctx, 500, y - 30, Math.max(barW, 36), 36, 18);
+        ctx.fill();
+
+        ctx.fillStyle = "#fff";
+        ctx.font = `800 32px ${fuente}`;
+        ctx.fillText(String(gr.promedio), 900, y);
+
+    });
+
+    // Categorías
+    y = Math.max(y + 90, 1130);
+
+    const cats = [["Hermanos", R.cat.hermanos], ["Hermanas", R.cat.hermanas], ["Amigos", R.cat.amigos], ["Adolesc.", R.cat.adolescentes], ["Niños", R.cat.ninos]];
+
+    cats.forEach((c, i) => {
+
+        const x = 80 + i * 188;
+
+        ctx.fillStyle = "rgba(255,255,255,.12)";
+        rectRedondo(ctx, x, y - 70, 172, 110, 22);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255,255,255,.75)";
+        ctx.font = `500 24px ${fuente}`;
+        ctx.fillText(c[0], x + 20, y - 32);
+
+        ctx.fillStyle = "#fff";
+        ctx.font = `800 38px ${fuente}`;
+        ctx.fillText(String(c[1]), x + 20, y + 16);
+
+    });
+
+    // Pie
+    ctx.fillStyle = "rgba(255,255,255,.55)";
+    ctx.font = `500 24px ${fuente}`;
+    ctx.fillText("Generado con DECOMDH · Asistencia", 80, H - 50);
+
+    return cv;
+
+}
+
+function canvasABlob(cv){
+    return new Promise((resolve, reject) => {
+        try{ cv.toBlob(b => b ? resolve(b) : reject(new Error("blob")), "image/png"); }
+        catch(e){ reject(e); }
+    });
+}
+
+async function compartirResumenImagen(){
+
+    if(!ultimoResumenMes) return;
+
+    showBusy("Creando imagen...", "Resumen del mes");
+
+    try{
+
+        let blob;
+
+        try{
+            blob = await canvasABlob(await dibujarResumen(true));
+        }catch(e){
+            // Si el logo no se puede usar, se genera sin él
+            blob = await canvasABlob(await dibujarResumen(false));
+        }
+
+        const nombre = `Resumen_${ultimoResumenMes.mes}_${ultimoResumenMes.anio}.png`;
+
+        const archivo = new File([blob], nombre, { type: "image/png" });
+
+        hideBusy();
+
+        if(navigator.canShare && navigator.canShare({ files: [archivo] })){
+
+            try{
+
+                await navigator.share({
+                    files: [archivo],
+                    title: `Asistencia ${ultimoResumenMes.mes} ${ultimoResumenMes.anio}`,
+                    text: `Resumen de asistencia · ${ultimoResumenMes.iglesia}`
+                });
+
+            }catch(e){
+                if(e?.name !== "AbortError") throw e;
+            }
+
+            return;
+
+        }
+
+        // Sin "compartir": descargar la imagen
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+
+        a.href = url;
+        a.download = nombre;
+
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+
+        mostrarAlerta("✅", "Imagen del resumen descargada.");
+
+    }catch(e){
+
+        hideBusy();
+
+        console.error(e);
+
+        mostrarAlerta("⚠️", "No fue posible crear la imagen del resumen.");
+
+    }
 
 }
 
