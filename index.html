@@ -4,6 +4,17 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <script>
+  // Detecta Android WebView sin alterar el comportamiento de otros navegadores.
+  (function(){
+    try {
+      var ua = navigator.userAgent || "";
+      if (/Android/i.test(ua) && /; wv\)|\bwv\b/i.test(ua)) {
+        document.documentElement.classList.add("android-webview");
+      }
+    } catch(e) {}
+  })();
+</script>
+<script>
   // ✅ MODO DEPURACIÓN
   // En false, los console.log no se muestran (no se exponen datos del
   // perfil/iglesia en la consola). Los errores y avisos sí se ven.
@@ -1435,11 +1446,44 @@ body {
 
 /* Accesibilidad: menos movimiento si el teléfono lo pide */
 @media (prefers-reduced-motion:reduce){
-    #splashScreen *, #splashScreen *::before, #splashScreen *::after{
+    /* Se respeta la preferencia del sistema en navegadores normales.
+       En Android WebView se conservan las animaciones del splash solicitado. */
+    html:not(.android-webview) #splashScreen *,
+    html:not(.android-webview) #splashScreen *::before,
+    html:not(.android-webview) #splashScreen *::after{
         animation-duration:.01ms !important;
         animation-iteration-count:1 !important;
     }
 }
+
+/* Optimización limitada al splash dentro de Android WebView.
+   No se desactivan animaciones ni se cambian tiempos, contenido o lógica. */
+html.android-webview #splashScreen .splashAurora{
+    filter:none;
+    mix-blend-mode:normal;
+    will-change:transform;
+}
+html.android-webview #splashScreen .splashCard{
+    /* Evita el blur de fondo costoso; conserva la tarjeta translúcida y su animación. */
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+    transform:translateZ(0);
+}
+html.android-webview #splashScreen .splashHalo{
+    filter:none;
+}
+html.android-webview #splashScreen .splashAnillo{
+    filter:none;
+}
+html.android-webview #splashScreen,
+html.android-webview #splashScreen .splashLogoInner,
+html.android-webview #splashScreen .splashAnillo,
+html.android-webview #splashScreen .splashAnillo2,
+html.android-webview #splashScreen .splashOnda{
+    -webkit-backface-visibility:hidden;
+    backface-visibility:hidden;
+}
+
 
 
 
@@ -2576,7 +2620,6 @@ ADMINISTRAR USUARIOS
 
 <!-- Corrección de área segura superior/inferior para móviles -->
 
-
 <style id="mobile-safe-area-fix">
   html {
     width: 100%;
@@ -2613,147 +2656,6 @@ ADMINISTRAR USUARIOS
     overflow-x: hidden !important;
   }
 </style>
-
-<!-- Optimización del splash para Android WebView -->
-<script>
-(function () {
-  try {
-    if (window.AndroidApp) {
-      document.documentElement.classList.add("android-webview");
-    }
-  } catch (e) {}
-})();
-</script>
-
-<style id="android-webview-splash-fix">
-
-  /* Fondo y salida del splash */
-  html.android-webview #splashScreen {
-    background: #050b18 !important;
-    transform: none !important;
-    filter: none !important;
-    isolation: isolate;
-    transition: opacity .25s ease, visibility .25s ease !important;
-  }
-
-  html.android-webview #splashScreen.oculto {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    transform: none !important;
-    filter: none !important;
-  }
-
-  /* Reducir animaciones y efectos costosos */
-  html.android-webview #splashScreen *,
-  html.android-webview #splashScreen *::before,
-  html.android-webview #splashScreen *::after {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  /* Auroras */
-  html.android-webview #splashScreen .splashAurora {
-    filter: none !important;
-    mix-blend-mode: normal !important;
-    opacity: .22 !important;
-    transform: none !important;
-    will-change: auto !important;
-  }
-
-  /* Rejilla */
-  html.android-webview #splashScreen .splashGrid {
-    animation: none !important;
-    transform: none !important;
-    opacity: .35 !important;
-  }
-
-  /* Partículas */
-  html.android-webview #splashScreen .splashParticulas {
-    display: none !important;
-  }
-
-  /* Tarjeta del splash */
-  html.android-webview #splashScreen .splashCard {
-    animation: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: linear-gradient(
-      160deg,
-      rgba(255,255,255,.10),
-      rgba(255,255,255,.035)
-    ) !important;
-    box-shadow: 0 12px 35px rgba(0,0,0,.35) !important;
-    transform: none !important;
-    filter: none !important;
-  }
-
-  html.android-webview #splashScreen .splashCard::before {
-    animation: none !important;
-    display: none !important;
-  }
-
-  /* Anillos y efectos luminosos */
-  html.android-webview #splashScreen .splashAnillo,
-  html.android-webview #splashScreen .splashAnillo2,
-  html.android-webview #splashScreen .splashOnda,
-  html.android-webview #splashScreen .splashHalo {
-    animation: none !important;
-    filter: none !important;
-    transform: none !important;
-  }
-
-  html.android-webview #splashScreen .splashAnillo2 {
-    border-style: solid !important;
-    opacity: .35 !important;
-  }
-
-  html.android-webview #splashScreen .splashOnda {
-    display: none !important;
-  }
-
-  html.android-webview #splashScreen .splashHalo {
-    opacity: .3 !important;
-  }
-
-  /* Logo */
-  html.android-webview #splashScreen .splashLogoInner {
-    animation: none !important;
-    transform: none !important;
-    filter: none !important;
-  }
-
-  html.android-webview #splashScreen .splashLogo {
-    filter: none !important;
-  }
-
-  html.android-webview #splashScreen .splashLogoInner::after {
-    display: none !important;
-  }
-
-  /* Textos estáticos y visibles */
-  html.android-webview #splashScreen .splashTitulo span,
-  html.android-webview #splashScreen .splashSub,
-  html.android-webview #splashScreen .splashChip,
-  html.android-webview #splashScreen .splashVersion,
-  html.android-webview #splashScreen .splashCarga {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-    filter: none !important;
-  }
-
-  /* Barra de carga estable */
-  html.android-webview #splashScreen .splashCarga::before {
-    animation: none !important;
-    transform: none !important;
-    width: 55% !important;
-    box-shadow: none !important;
-  }
-
-</style>
-</head>
-<body>
-
 
 
 </head>
@@ -11495,10 +11397,19 @@ async function verificarActualizacion(enInicio = false){
         // Primera vez que se usa este sistema: solo se registra la versión
         if(!conocido) return;
 
-        // Hay versión nueva. Nunca recargar automáticamente desde el splash:
-        // el usuario decide cuándo actualizar para no interrumpir el conteo.
-        actualizacionPendiente = true;
-        document.getElementById("updateBar")?.classList.add("visible");
+        // Hay versión nueva
+        if(enInicio && typeof splashVisible !== "undefined" && splashVisible){
+
+            // Todavía en el splash: actualizar de una vez (casi no se nota)
+            aplicarActualizacion();
+
+        }else{
+
+            actualizacionPendiente = true;
+
+            document.getElementById("updateBar")?.classList.add("visible");
+
+        }
 
     }catch(e){
         // Sin red o GitHub no responde: se intenta en la próxima revisión
@@ -11890,175 +11801,6 @@ if(esRecuperacion){
     }
 
 });
-
-
-/* ===========================================================
-   NAVEGACIÓN DEL BOTÓN ATRÁS EN ANDROID
-   Cierra una capa a la vez; en la pantalla principal solicita
-   confirmación nativa para salir. No modifica estilos ni sesión.
-=========================================================== */
-(function configurarBotonAtrasAndroid(){
-  if (window.__contadorDHBackHandlerInstalled) return;
-  window.__contadorDHBackHandlerInstalled = true;
-
-  const SELECTOR = [
-    '.modalOverlay', '#menu', '#menuOverlay',
-    '#superAdminScreen', '#editarUsuarioScreen', '#usuariosAdminScreen',
-    '#verPantalla', '#popupUsuario', '#popupSobre', '#popupAlert', '#popupConfirm',
-    '#modalNuevaPassword', '#modalRecuperarPassword', '#modalCambiarPin',
-    '#modalVerificarCodigoRegistro', '#registroScreen', '#modalSuperAdmin',
-    '#modalSubir', '#modalMulti'
-  ].join(',');
-
-  function visible(el){
-    if(!el) return false;
-    const st = getComputedStyle(el);
-    return st.display !== 'none' && st.visibility !== 'hidden' &&
-      !el.classList.contains('oculto') && el.getAttribute('aria-hidden') !== 'true';
-  }
-
-  function tomarEstado(){
-    return Array.from(document.querySelectorAll(SELECTOR)).map(el => ({
-      id: el.id,
-      active: el.classList.contains('active'),
-      oculto: el.classList.contains('oculto'),
-      display: el.style.display,
-      ariaHidden: el.getAttribute('aria-hidden'),
-      visible: visible(el)
-    }));
-  }
-  function firmaEstado(estado){
-    return JSON.stringify(estado.map(x => [x.id,x.active,x.oculto,x.display,x.ariaHidden,x.visible]));
-  }
-  function restaurarEstado(estado){
-    if(!Array.isArray(estado)) return;
-    estado.forEach(item => {
-      const el = document.getElementById(item.id);
-      if(!el) return;
-      el.classList.toggle('active', !!item.active);
-      el.classList.toggle('oculto', !!item.oculto);
-      el.style.display = item.display || '';
-      if(item.ariaHidden == null) el.removeAttribute('aria-hidden');
-      else el.setAttribute('aria-hidden', item.ariaHidden);
-    });
-  }
-
-  const pilaNavegacion = [];
-  let estadoActual = tomarEstado();
-  let firmaActual = firmaEstado(estadoActual);
-  let restaurando = false;
-  let timerCaptura = null;
-
-  function cambioEsAvance(antes, despues){
-    const prev = new Map(antes.map(x => [x.id,x]));
-    return despues.some(x => { const p=prev.get(x.id); return x.visible && (!p || !p.visible); });
-  }
-  function capturarCambio(){
-    if(restaurando) return;
-    const nuevo=tomarEstado(), firma=firmaEstado(nuevo);
-    if(firma===firmaActual) return;
-    if(cambioEsAvance(estadoActual,nuevo)) pilaNavegacion.push(estadoActual);
-    estadoActual=nuevo; firmaActual=firma;
-  }
-  document.addEventListener('click', function(){
-    clearTimeout(timerCaptura);
-    timerCaptura=setTimeout(capturarCambio,120);
-    setTimeout(capturarCambio,450);
-  }, true);
-
-  function cerrarPrimeraCapa(){
-    // Primero las pantallas más profundas; así Super Administrador no queda
-    // bloqueado por un menú que estuviera debajo.
-    const pantallas = [
-      ['editarUsuarioScreen', () => cerrarEditarUsuario()],
-      ['usuariosAdminScreen', () => cerrarUsuariosAdmin()],
-      ['superAdminScreen', () => cerrarPanelSuperAdmin()],
-      ['verPantalla', () => cerrarVerPantalla()]
-    ];
-    for(const [id,cerrar] of pantallas){
-      const el=document.getElementById(id);
-      if(el && el.classList.contains('active')){ cerrar(); return true; }
-    }
-
-    const popupConfirm=document.getElementById('popupConfirm');
-    if(visible(popupConfirm)){
-      document.getElementById('popupConfirmNo')?.click();
-      if(visible(popupConfirm)) popupConfirm.style.display='none';
-      return true;
-    }
-    const popupAlert=document.getElementById('popupAlert');
-    if(visible(popupAlert)){
-      document.getElementById('popupAlertOk')?.click();
-      if(visible(popupAlert)) popupAlert.style.display='none';
-      return true;
-    }
-    const popupUsuario=document.getElementById('popupUsuario');
-    if(visible(popupUsuario)){ cerrarPopupUsuario(); return true; }
-    const popupSobre=document.getElementById('popupSobre');
-    if(visible(popupSobre)){ cerrarSobreNosotros(); return true; }
-
-    const capas = [
-      ['modalVerificarCodigoRegistro', () => cerrarSesionPorCodigoRegistro()],
-      ['modalSuperAdmin', () => document.getElementById('modalSuperAdmin')?.classList.add('oculto')],
-      ['modalSubir', () => cerrarModalSubir()],
-      ['modalMulti', () => cerrarModalMulti()],
-      ['modalCambiarPin', () => cerrarModalPin()],
-      ['modalRecuperarPassword', () => cerrarModalRecuperarPassword()],
-      ['registroScreen', () => cerrarRegistro()],
-      ['modalNuevaPassword', () => cerrarNuevaPassword()]
-    ];
-    for(const [id,cerrar] of capas){
-      const el=document.getElementById(id);
-      if(el && visible(el)){ cerrar(); return true; }
-    }
-
-    const menu=document.getElementById('menu');
-    if(menu?.classList.contains('active')){ toggleMenu(); return true; }
-    return false;
-  }
-
-  function fijarEstado(){
-    try{ history.pushState({contadorDHBackGuard:true},'',location.href); }catch(e){}
-  }
-  function actualizarEstado(){ estadoActual=tomarEstado(); firmaActual=firmaEstado(estadoActual); }
-
-  fijarEstado();
-  window.addEventListener('popstate', function(){
-    let gestionado=false;
-    try{
-      if(cerrarPrimeraCapa()){
-        gestionado=true;
-        // Consumir un paso guardado si el cierre normal dejó exactamente
-        // el estado anterior de navegación.
-        if(pilaNavegacion.length && firmaEstado(tomarEstado())===firmaEstado(pilaNavegacion[pilaNavegacion.length-1])){
-          pilaNavegacion.pop();
-        }
-      }else if(pilaNavegacion.length){
-        restaurando=true;
-        restaurarEstado(pilaNavegacion.pop());
-        restaurando=false;
-        gestionado=true;
-      }
-    }catch(e){
-      restaurando=false;
-      console.warn('No se pudo retroceder en la navegación:',e);
-    }
-    actualizarEstado();
-    fijarEstado();
-
-    // Si no había panel, modal ni paso interno pendiente, estamos en el inicio.
-    if(!gestionado){
-      try{
-        if(window.AndroidApp && typeof window.AndroidApp.confirmExit==='function'){
-          window.AndroidApp.confirmExit();
-        }else if(window.confirm('¿Deseas salir de ContadorDH?')){
-          window.close();
-        }
-      }catch(e){}
-    }
-  });
-})();
-
 </script>
 </body>
 </html>
