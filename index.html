@@ -2576,6 +2576,7 @@ ADMINISTRAR USUARIOS
 
 <!-- Corrección de área segura superior/inferior para móviles -->
 
+
 <style id="mobile-safe-area-fix">
   html {
     width: 100%;
@@ -2612,6 +2613,147 @@ ADMINISTRAR USUARIOS
     overflow-x: hidden !important;
   }
 </style>
+
+<!-- Optimización del splash para Android WebView -->
+<script>
+(function () {
+  try {
+    if (window.AndroidApp) {
+      document.documentElement.classList.add("android-webview");
+    }
+  } catch (e) {}
+})();
+</script>
+
+<style id="android-webview-splash-fix">
+
+  /* Fondo y salida del splash */
+  html.android-webview #splashScreen {
+    background: #050b18 !important;
+    transform: none !important;
+    filter: none !important;
+    isolation: isolate;
+    transition: opacity .25s ease, visibility .25s ease !important;
+  }
+
+  html.android-webview #splashScreen.oculto {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  /* Reducir animaciones y efectos costosos */
+  html.android-webview #splashScreen *,
+  html.android-webview #splashScreen *::before,
+  html.android-webview #splashScreen *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Auroras */
+  html.android-webview #splashScreen .splashAurora {
+    filter: none !important;
+    mix-blend-mode: normal !important;
+    opacity: .22 !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+
+  /* Rejilla */
+  html.android-webview #splashScreen .splashGrid {
+    animation: none !important;
+    transform: none !important;
+    opacity: .35 !important;
+  }
+
+  /* Partículas */
+  html.android-webview #splashScreen .splashParticulas {
+    display: none !important;
+  }
+
+  /* Tarjeta del splash */
+  html.android-webview #splashScreen .splashCard {
+    animation: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: linear-gradient(
+      160deg,
+      rgba(255,255,255,.10),
+      rgba(255,255,255,.035)
+    ) !important;
+    box-shadow: 0 12px 35px rgba(0,0,0,.35) !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  html.android-webview #splashScreen .splashCard::before {
+    animation: none !important;
+    display: none !important;
+  }
+
+  /* Anillos y efectos luminosos */
+  html.android-webview #splashScreen .splashAnillo,
+  html.android-webview #splashScreen .splashAnillo2,
+  html.android-webview #splashScreen .splashOnda,
+  html.android-webview #splashScreen .splashHalo {
+    animation: none !important;
+    filter: none !important;
+    transform: none !important;
+  }
+
+  html.android-webview #splashScreen .splashAnillo2 {
+    border-style: solid !important;
+    opacity: .35 !important;
+  }
+
+  html.android-webview #splashScreen .splashOnda {
+    display: none !important;
+  }
+
+  html.android-webview #splashScreen .splashHalo {
+    opacity: .3 !important;
+  }
+
+  /* Logo */
+  html.android-webview #splashScreen .splashLogoInner {
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  html.android-webview #splashScreen .splashLogo {
+    filter: none !important;
+  }
+
+  html.android-webview #splashScreen .splashLogoInner::after {
+    display: none !important;
+  }
+
+  /* Textos estáticos y visibles */
+  html.android-webview #splashScreen .splashTitulo span,
+  html.android-webview #splashScreen .splashSub,
+  html.android-webview #splashScreen .splashChip,
+  html.android-webview #splashScreen .splashVersion,
+  html.android-webview #splashScreen .splashCarga {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  /* Barra de carga estable */
+  html.android-webview #splashScreen .splashCarga::before {
+    animation: none !important;
+    transform: none !important;
+    width: 55% !important;
+    box-shadow: none !important;
+  }
+
+</style>
+</head>
+<body>
+
 
 
 </head>
