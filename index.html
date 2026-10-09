@@ -11757,6 +11757,93 @@ if(esRecuperacion){
     }
 
 });
+
+
+/* ===========================================================
+   NAVEGACIÓN DEL BOTÓN ATRÁS EN ANDROID
+   Cierra primero ventanas/paneles visibles y mantiene abierta
+   la aplicación cuando ya está en la pantalla principal.
+   No reemplaza las funciones de sesión ni la limpieza de URL.
+=========================================================== */
+(function configurarBotonAtrasAndroid(){
+  if (window.__contadorDHBackHandlerInstalled) return;
+  window.__contadorDHBackHandlerInstalled = true;
+
+  function visible(el){
+    if(!el) return false;
+    const st = window.getComputedStyle(el);
+    return st.display !== 'none' && st.visibility !== 'hidden' &&
+           !el.classList.contains('oculto') && el.getAttribute('aria-hidden') !== 'true';
+  }
+
+  function cerrarPrimeraCapa(){
+    const popupConfirm = document.getElementById('popupConfirm');
+    if(visible(popupConfirm)){
+      document.getElementById('popupConfirmNo')?.click();
+      if(visible(popupConfirm)) popupConfirm.style.display = 'none';
+      return true;
+    }
+
+    const popupAlert = document.getElementById('popupAlert');
+    if(visible(popupAlert)){
+      document.getElementById('popupAlertOk')?.click();
+      popupAlert.style.display = 'none';
+      return true;
+    }
+
+    const popupUsuario = document.getElementById('popupUsuario');
+    if(visible(popupUsuario)){ cerrarPopupUsuario(); return true; }
+
+    const popupSobre = document.getElementById('popupSobre');
+    if(visible(popupSobre)){ cerrarSobreNosotros(); return true; }
+
+    const menu = document.getElementById('menu');
+    if(menu?.classList.contains('active')){ toggleMenu(); return true; }
+
+    const capas = [
+      ['modalSubir', () => cerrarModalSubir()],
+      ['modalMulti', () => cerrarModalMulti()],
+      ['modalCambiarPin', () => cerrarModalPin()],
+      ['modalRecuperarPassword', () => cerrarModalRecuperarPassword()],
+      ['registroScreen', () => cerrarRegistro()],
+      ['modalNuevaPassword', () => { cerrarNuevaPassword(); }]
+    ];
+    for(const [id, cerrar] of capas){
+      const el = document.getElementById(id);
+      if(el && !el.classList.contains('oculto') && visible(el)){
+        cerrar();
+        return true;
+      }
+    }
+
+    const pantallas = [
+      ['editarUsuarioScreen', () => cerrarEditarUsuario()],
+      ['usuariosAdminScreen', () => cerrarUsuariosAdmin()],
+      ['superAdminScreen', () => cerrarPanelSuperAdmin()],
+      ['verPantalla', () => cerrarVerPantalla()]
+    ];
+    for(const [id, cerrar] of pantallas){
+      const el = document.getElementById(id);
+      if(el && el.classList.contains('active')){ cerrar(); return true; }
+    }
+
+    return false;
+  }
+
+  function fijarEstado(){
+    try{ history.pushState({ contadorDHBackGuard: true }, '', location.href); }catch(e){}
+  }
+
+  // No modifica los replaceState usados por la recuperación de contraseña.
+  fijarEstado();
+  window.addEventListener('popstate', function(){
+    try{ cerrarPrimeraCapa(); }
+    catch(e){ console.warn('No se pudo cerrar la capa al volver:', e); }
+    // Conserva la aplicación abierta incluso cuando no hay capas abiertas.
+    fijarEstado();
+  });
+})();
+
 </script>
 </body>
 </html>
