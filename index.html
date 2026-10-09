@@ -2573,6 +2573,32 @@ ADMINISTRAR USUARIOS
 .modalCard input.multiCodigoInput{ font-size:28px; text-align:center; letter-spacing:10px; }
 
   </style>
+
+<!-- Corrección de área segura superior/inferior para móviles -->
+<style id="mobile-safe-area-fix">
+  html {
+    min-height: 100%;
+  }
+
+  body {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100dvh;
+    height: var(--app-height, 100dvh);
+  }
+
+  /* El contenido ocupa el espacio que queda después del encabezado;
+     evita restar 64px dos veces o cortar el contenido en móviles. */
+  #principal {
+    height: auto !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+</style>
+
 </head>
 <body>
 
@@ -11719,12 +11745,3 @@ if(esRecuperacion){
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
