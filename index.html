@@ -11353,19 +11353,10 @@ async function verificarActualizacion(enInicio = false){
         // Primera vez que se usa este sistema: solo se registra la versión
         if(!conocido) return;
 
-        // Hay versión nueva
-        if(enInicio && typeof splashVisible !== "undefined" && splashVisible){
-
-            // Todavía en el splash: actualizar de una vez (casi no se nota)
-            aplicarActualizacion();
-
-        }else{
-
-            actualizacionPendiente = true;
-
-            document.getElementById("updateBar")?.classList.add("visible");
-
-        }
+        // Hay versión nueva. Nunca recargar automáticamente desde el splash:
+        // el usuario decide cuándo actualizar para no interrumpir el conteo.
+        actualizacionPendiente = true;
+        document.getElementById("updateBar")?.classList.add("visible");
 
     }catch(e){
         // Sin red o GitHub no responde: se intenta en la próxima revisión
@@ -11761,15 +11752,13 @@ if(esRecuperacion){
 
 /* ===========================================================
    NAVEGACIÓN DEL BOTÓN ATRÁS EN ANDROID
-   Cierra primero ventanas/paneles visibles y mantiene abierta
-   la aplicación cuando ya está en la pantalla principal.
-   No reemplaza las funciones de sesión ni la limpieza de URL.
+   Cierra una capa a la vez; en la pantalla principal solicita
+   confirmación nativa para salir. No modifica estilos ni sesión.
 =========================================================== */
 (function configurarBotonAtrasAndroid(){
   if (window.__contadorDHBackHandlerInstalled) return;
   window.__contadorDHBackHandlerInstalled = true;
 
-  // Elementos cuya visibilidad representa una pantalla, panel o ventana navegable.
   const SELECTOR = [
     '.modalOverlay', '#menu', '#menuOverlay',
     '#superAdminScreen', '#editarUsuarioScreen', '#usuariosAdminScreen',
@@ -11789,35 +11778,29 @@ if(esRecuperacion){
   function tomarEstado(){
     return Array.from(document.querySelectorAll(SELECTOR)).map(el => ({
       id: el.id,
-      classes: {
-        active: el.classList.contains('active'),
-        oculto: el.classList.contains('oculto')
-      },
+      active: el.classList.contains('active'),
+      oculto: el.classList.contains('oculto'),
       display: el.style.display,
       ariaHidden: el.getAttribute('aria-hidden'),
       visible: visible(el)
     }));
   }
-
   function firmaEstado(estado){
-    return JSON.stringify(estado.map(x => [x.id, x.classes.active, x.classes.oculto, x.display, x.ariaHidden, x.visible]));
+    return JSON.stringify(estado.map(x => [x.id,x.active,x.oculto,x.display,x.ariaHidden,x.visible]));
   }
-
   function restaurarEstado(estado){
     if(!Array.isArray(estado)) return;
     estado.forEach(item => {
       const el = document.getElementById(item.id);
       if(!el) return;
-      el.classList.toggle('active', !!item.classes?.active);
-      el.classList.toggle('oculto', !!item.classes?.oculto);
+      el.classList.toggle('active', !!item.active);
+      el.classList.toggle('oculto', !!item.oculto);
       el.style.display = item.display || '';
-      if(item.ariaHidden === null || item.ariaHidden === undefined) el.removeAttribute('aria-hidden');
+      if(item.ariaHidden == null) el.removeAttribute('aria-hidden');
       else el.setAttribute('aria-hidden', item.ariaHidden);
     });
   }
 
-  // Historial visual propio: guarda el estado anterior solo cuando una acción
-  // abre una capa o avanza a otra pantalla. Cerrar una capa no crea un paso nuevo.
   const pilaNavegacion = [];
   let estadoActual = tomarEstado();
   let firmaActual = firmaEstado(estadoActual);
@@ -11825,53 +11808,56 @@ if(esRecuperacion){
   let timerCaptura = null;
 
   function cambioEsAvance(antes, despues){
-    const prev = new Map(antes.map(x => [x.id, x]));
-    return despues.some(x => {
-      const p = prev.get(x.id);
-      return x.visible && (!p || !p.visible);
-    });
+    const prev = new Map(antes.map(x => [x.id,x]));
+    return despues.some(x => { const p=prev.get(x.id); return x.visible && (!p || !p.visible); });
   }
-
   function capturarCambio(){
     if(restaurando) return;
-    const nuevo = tomarEstado();
-    const nuevaFirma = firmaEstado(nuevo);
-    if(nuevaFirma === firmaActual) return;
-    if(cambioEsAvance(estadoActual, nuevo)) pilaNavegacion.push(estadoActual);
-    estadoActual = nuevo;
-    firmaActual = nuevaFirma;
+    const nuevo=tomarEstado(), firma=firmaEstado(nuevo);
+    if(firma===firmaActual) return;
+    if(cambioEsAvance(estadoActual,nuevo)) pilaNavegacion.push(estadoActual);
+    estadoActual=nuevo; firmaActual=firma;
   }
-
-  // Espera a que las funciones de la app terminen de abrir/cerrar la interfaz.
   document.addEventListener('click', function(){
     clearTimeout(timerCaptura);
-    timerCaptura = setTimeout(capturarCambio, 80);
-    setTimeout(capturarCambio, 350);
+    timerCaptura=setTimeout(capturarCambio,120);
+    setTimeout(capturarCambio,450);
   }, true);
 
   function cerrarPrimeraCapa(){
-    const popupConfirm = document.getElementById('popupConfirm');
+    // Primero las pantallas más profundas; así Super Administrador no queda
+    // bloqueado por un menú que estuviera debajo.
+    const pantallas = [
+      ['editarUsuarioScreen', () => cerrarEditarUsuario()],
+      ['usuariosAdminScreen', () => cerrarUsuariosAdmin()],
+      ['superAdminScreen', () => cerrarPanelSuperAdmin()],
+      ['verPantalla', () => cerrarVerPantalla()]
+    ];
+    for(const [id,cerrar] of pantallas){
+      const el=document.getElementById(id);
+      if(el && el.classList.contains('active')){ cerrar(); return true; }
+    }
+
+    const popupConfirm=document.getElementById('popupConfirm');
     if(visible(popupConfirm)){
       document.getElementById('popupConfirmNo')?.click();
-      if(visible(popupConfirm)) popupConfirm.style.display = 'none';
+      if(visible(popupConfirm)) popupConfirm.style.display='none';
       return true;
     }
-    const popupAlert = document.getElementById('popupAlert');
+    const popupAlert=document.getElementById('popupAlert');
     if(visible(popupAlert)){
       document.getElementById('popupAlertOk')?.click();
-      popupAlert.style.display = 'none';
+      if(visible(popupAlert)) popupAlert.style.display='none';
       return true;
     }
-    const popupUsuario = document.getElementById('popupUsuario');
+    const popupUsuario=document.getElementById('popupUsuario');
     if(visible(popupUsuario)){ cerrarPopupUsuario(); return true; }
-    const popupSobre = document.getElementById('popupSobre');
+    const popupSobre=document.getElementById('popupSobre');
     if(visible(popupSobre)){ cerrarSobreNosotros(); return true; }
-    const menu = document.getElementById('menu');
-    if(menu?.classList.contains('active')){ toggleMenu(); return true; }
 
     const capas = [
       ['modalVerificarCodigoRegistro', () => cerrarSesionPorCodigoRegistro()],
-      ['modalSuperAdmin', () => { document.getElementById('modalSuperAdmin')?.classList.add('oculto'); }],
+      ['modalSuperAdmin', () => document.getElementById('modalSuperAdmin')?.classList.add('oculto')],
       ['modalSubir', () => cerrarModalSubir()],
       ['modalMulti', () => cerrarModalMulti()],
       ['modalCambiarPin', () => cerrarModalPin()],
@@ -11879,57 +11865,57 @@ if(esRecuperacion){
       ['registroScreen', () => cerrarRegistro()],
       ['modalNuevaPassword', () => cerrarNuevaPassword()]
     ];
-    for(const [id, cerrar] of capas){
-      const el = document.getElementById(id);
+    for(const [id,cerrar] of capas){
+      const el=document.getElementById(id);
       if(el && visible(el)){ cerrar(); return true; }
     }
 
-    const pantallas = [
-      ['editarUsuarioScreen', () => cerrarEditarUsuario()],
-      ['usuariosAdminScreen', () => cerrarUsuariosAdmin()],
-      ['superAdminScreen', () => cerrarPanelSuperAdmin()],
-      ['verPantalla', () => cerrarVerPantalla()]
-    ];
-    for(const [id, cerrar] of pantallas){
-      const el = document.getElementById(id);
-      if(el && el.classList.contains('active')){ cerrar(); return true; }
-    }
+    const menu=document.getElementById('menu');
+    if(menu?.classList.contains('active')){ toggleMenu(); return true; }
     return false;
   }
 
   function fijarEstado(){
-    try{ history.pushState({ contadorDHBackGuard: true }, '', location.href); }catch(e){}
+    try{ history.pushState({contadorDHBackGuard:true},'',location.href); }catch(e){}
   }
-
-  function actualizarEstadoTrasAtras(){
-    estadoActual = tomarEstado();
-    firmaActual = firmaEstado(estadoActual);
-  }
+  function actualizarEstado(){ estadoActual=tomarEstado(); firmaActual=firmaEstado(estadoActual); }
 
   fijarEstado();
-  window.addEventListener('popstate', function(event){
+  window.addEventListener('popstate', function(){
+    let gestionado=false;
     try{
-      // Primero cerrar la capa actual de forma normal. Si hay navegación previa
-      // guardada, restaurar exactamente el estado anterior (p. ej. volver al menú).
-      if(!cerrarPrimeraCapa() && pilaNavegacion.length){
-        restaurando = true;
-        restaurarEstado(pilaNavegacion.pop());
-        restaurando = false;
+      if(cerrarPrimeraCapa()){
+        gestionado=true;
+        // Consumir un paso guardado si el cierre normal dejó exactamente
+        // el estado anterior de navegación.
+        if(pilaNavegacion.length && firmaEstado(tomarEstado())===firmaEstado(pilaNavegacion[pilaNavegacion.length-1])){
+          pilaNavegacion.pop();
+        }
       }else if(pilaNavegacion.length){
-        // Si el cierre normal ya llevó al mismo estado previo, consumir ese paso.
-        const anterior = pilaNavegacion[pilaNavegacion.length - 1];
-        const actual = tomarEstado();
-        if(firmaEstado(actual) === firmaEstado(anterior)) pilaNavegacion.pop();
+        restaurando=true;
+        restaurarEstado(pilaNavegacion.pop());
+        restaurando=false;
+        gestionado=true;
       }
     }catch(e){
-      restaurando = false;
-      console.warn('No se pudo retroceder en la navegación:', e);
+      restaurando=false;
+      console.warn('No se pudo retroceder en la navegación:',e);
     }
-    actualizarEstadoTrasAtras();
-    // Mantiene abierta la app al llegar a la pantalla principal.
+    actualizarEstado();
     fijarEstado();
+
+    // Si no había panel, modal ni paso interno pendiente, estamos en el inicio.
+    if(!gestionado){
+      try{
+        if(window.AndroidApp && typeof window.AndroidApp.confirmExit==='function'){
+          window.AndroidApp.confirmExit();
+        }else if(window.confirm('¿Deseas salir de ContadorDH?')){
+          window.close();
+        }
+      }catch(e){}
+    }
   });
-})();;
+})();
 
 </script>
 </body>
