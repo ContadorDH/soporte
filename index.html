@@ -11769,12 +11769,85 @@ if(esRecuperacion){
   if (window.__contadorDHBackHandlerInstalled) return;
   window.__contadorDHBackHandlerInstalled = true;
 
+  // Elementos cuya visibilidad representa una pantalla, panel o ventana navegable.
+  const SELECTOR = [
+    '.modalOverlay', '#menu', '#menuOverlay',
+    '#superAdminScreen', '#editarUsuarioScreen', '#usuariosAdminScreen',
+    '#verPantalla', '#popupUsuario', '#popupSobre', '#popupAlert', '#popupConfirm',
+    '#modalNuevaPassword', '#modalRecuperarPassword', '#modalCambiarPin',
+    '#modalVerificarCodigoRegistro', '#registroScreen', '#modalSuperAdmin',
+    '#modalSubir', '#modalMulti'
+  ].join(',');
+
   function visible(el){
     if(!el) return false;
-    const st = window.getComputedStyle(el);
+    const st = getComputedStyle(el);
     return st.display !== 'none' && st.visibility !== 'hidden' &&
-           !el.classList.contains('oculto') && el.getAttribute('aria-hidden') !== 'true';
+      !el.classList.contains('oculto') && el.getAttribute('aria-hidden') !== 'true';
   }
+
+  function tomarEstado(){
+    return Array.from(document.querySelectorAll(SELECTOR)).map(el => ({
+      id: el.id,
+      classes: {
+        active: el.classList.contains('active'),
+        oculto: el.classList.contains('oculto')
+      },
+      display: el.style.display,
+      ariaHidden: el.getAttribute('aria-hidden'),
+      visible: visible(el)
+    }));
+  }
+
+  function firmaEstado(estado){
+    return JSON.stringify(estado.map(x => [x.id, x.classes.active, x.classes.oculto, x.display, x.ariaHidden, x.visible]));
+  }
+
+  function restaurarEstado(estado){
+    if(!Array.isArray(estado)) return;
+    estado.forEach(item => {
+      const el = document.getElementById(item.id);
+      if(!el) return;
+      el.classList.toggle('active', !!item.classes?.active);
+      el.classList.toggle('oculto', !!item.classes?.oculto);
+      el.style.display = item.display || '';
+      if(item.ariaHidden === null || item.ariaHidden === undefined) el.removeAttribute('aria-hidden');
+      else el.setAttribute('aria-hidden', item.ariaHidden);
+    });
+  }
+
+  // Historial visual propio: guarda el estado anterior solo cuando una acción
+  // abre una capa o avanza a otra pantalla. Cerrar una capa no crea un paso nuevo.
+  const pilaNavegacion = [];
+  let estadoActual = tomarEstado();
+  let firmaActual = firmaEstado(estadoActual);
+  let restaurando = false;
+  let timerCaptura = null;
+
+  function cambioEsAvance(antes, despues){
+    const prev = new Map(antes.map(x => [x.id, x]));
+    return despues.some(x => {
+      const p = prev.get(x.id);
+      return x.visible && (!p || !p.visible);
+    });
+  }
+
+  function capturarCambio(){
+    if(restaurando) return;
+    const nuevo = tomarEstado();
+    const nuevaFirma = firmaEstado(nuevo);
+    if(nuevaFirma === firmaActual) return;
+    if(cambioEsAvance(estadoActual, nuevo)) pilaNavegacion.push(estadoActual);
+    estadoActual = nuevo;
+    firmaActual = nuevaFirma;
+  }
+
+  // Espera a que las funciones de la app terminen de abrir/cerrar la interfaz.
+  document.addEventListener('click', function(){
+    clearTimeout(timerCaptura);
+    timerCaptura = setTimeout(capturarCambio, 80);
+    setTimeout(capturarCambio, 350);
+  }, true);
 
   function cerrarPrimeraCapa(){
     const popupConfirm = document.getElementById('popupConfirm');
@@ -11783,37 +11856,32 @@ if(esRecuperacion){
       if(visible(popupConfirm)) popupConfirm.style.display = 'none';
       return true;
     }
-
     const popupAlert = document.getElementById('popupAlert');
     if(visible(popupAlert)){
       document.getElementById('popupAlertOk')?.click();
       popupAlert.style.display = 'none';
       return true;
     }
-
     const popupUsuario = document.getElementById('popupUsuario');
     if(visible(popupUsuario)){ cerrarPopupUsuario(); return true; }
-
     const popupSobre = document.getElementById('popupSobre');
     if(visible(popupSobre)){ cerrarSobreNosotros(); return true; }
-
     const menu = document.getElementById('menu');
     if(menu?.classList.contains('active')){ toggleMenu(); return true; }
 
     const capas = [
+      ['modalVerificarCodigoRegistro', () => cerrarSesionPorCodigoRegistro()],
+      ['modalSuperAdmin', () => { document.getElementById('modalSuperAdmin')?.classList.add('oculto'); }],
       ['modalSubir', () => cerrarModalSubir()],
       ['modalMulti', () => cerrarModalMulti()],
       ['modalCambiarPin', () => cerrarModalPin()],
       ['modalRecuperarPassword', () => cerrarModalRecuperarPassword()],
       ['registroScreen', () => cerrarRegistro()],
-      ['modalNuevaPassword', () => { cerrarNuevaPassword(); }]
+      ['modalNuevaPassword', () => cerrarNuevaPassword()]
     ];
     for(const [id, cerrar] of capas){
       const el = document.getElementById(id);
-      if(el && !el.classList.contains('oculto') && visible(el)){
-        cerrar();
-        return true;
-      }
+      if(el && visible(el)){ cerrar(); return true; }
     }
 
     const pantallas = [
@@ -11826,7 +11894,6 @@ if(esRecuperacion){
       const el = document.getElementById(id);
       if(el && el.classList.contains('active')){ cerrar(); return true; }
     }
-
     return false;
   }
 
@@ -11834,15 +11901,35 @@ if(esRecuperacion){
     try{ history.pushState({ contadorDHBackGuard: true }, '', location.href); }catch(e){}
   }
 
-  // No modifica los replaceState usados por la recuperación de contraseña.
+  function actualizarEstadoTrasAtras(){
+    estadoActual = tomarEstado();
+    firmaActual = firmaEstado(estadoActual);
+  }
+
   fijarEstado();
-  window.addEventListener('popstate', function(){
-    try{ cerrarPrimeraCapa(); }
-    catch(e){ console.warn('No se pudo cerrar la capa al volver:', e); }
-    // Conserva la aplicación abierta incluso cuando no hay capas abiertas.
+  window.addEventListener('popstate', function(event){
+    try{
+      // Primero cerrar la capa actual de forma normal. Si hay navegación previa
+      // guardada, restaurar exactamente el estado anterior (p. ej. volver al menú).
+      if(!cerrarPrimeraCapa() && pilaNavegacion.length){
+        restaurando = true;
+        restaurarEstado(pilaNavegacion.pop());
+        restaurando = false;
+      }else if(pilaNavegacion.length){
+        // Si el cierre normal ya llevó al mismo estado previo, consumir ese paso.
+        const anterior = pilaNavegacion[pilaNavegacion.length - 1];
+        const actual = tomarEstado();
+        if(firmaEstado(actual) === firmaEstado(anterior)) pilaNavegacion.pop();
+      }
+    }catch(e){
+      restaurando = false;
+      console.warn('No se pudo retroceder en la navegación:', e);
+    }
+    actualizarEstadoTrasAtras();
+    // Mantiene abierta la app al llegar a la pantalla principal.
     fijarEstado();
   });
-})();
+})();;
 
 </script>
 </body>
