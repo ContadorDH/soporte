@@ -1720,6 +1720,151 @@ CENTRO ADMINISTRADOR
 
 
 
+/* =========================================================
+   NOTIFICACIONES (SOLICITUDES DE CLAVE) — SUPERADMIN
+========================================================= */
+#superAdminHeader .right{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+#btnNotifAdmin{
+    position:relative;
+    border:1px solid rgba(255,255,255,.28);
+    background:rgba(255,255,255,.14);
+    color:#fff;
+    border-radius:14px;
+    padding:0 16px;
+    height:48px;
+    font-weight:700;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+#btnNotifAdmin:hover{ background:rgba(255,255,255,.23); }
+@media (max-width:560px){
+    #btnNotifAdmin{ padding:0 12px; }
+    #btnNotifAdmin .notifTxt{ display:none; }
+}
+#badgeNotifAdmin{
+    min-width:20px;
+    height:20px;
+    padding:0 6px;
+    border-radius:10px;
+    background:#e53935;
+    color:#fff;
+    font-size:12px;
+    font-weight:800;
+    display:none;
+    align-items:center;
+    justify-content:center;
+}
+#notifAdminScreen{
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    background:var(--bg);
+    display:none;
+    flex-direction:column;
+    z-index:10000;
+    overflow:hidden;
+}
+#notifAdminScreen.active{ display:flex; }
+#notifAdminHeader{
+    background:var(--primary);
+    color:#fff;
+    padding:18px 22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    box-shadow:0 3px 12px rgba(0,0,0,.18);
+}
+#notifAdminHeader .left{ display:flex; align-items:center; gap:16px; }
+#notifAdminHeader .titulo{ font-size:22px; font-weight:700; }
+#notifAdminHeader .btnAtras,
+#notifAdminHeader .btnRefrescar{
+    width:48px; height:48px; min-width:48px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.28);
+    background:rgba(255,255,255,.14);
+    color:#fff;
+    cursor:pointer;
+    font-size:20px;
+    display:flex; align-items:center; justify-content:center;
+}
+#notifAdminHeader .btnAtras:hover,
+#notifAdminHeader .btnRefrescar:hover{ background:rgba(255,255,255,.23); }
+.notifFiltros{
+    display:flex; gap:8px; padding:14px 22px 0; flex-wrap:wrap;
+}
+.notifFiltros button{
+    border:1px solid var(--spinner-border, #ddd);
+    background:var(--card);
+    color:var(--text);
+    padding:8px 14px;
+    border-radius:20px;
+    font-weight:700;
+    cursor:pointer;
+}
+.notifFiltros button.activo{
+    background:var(--primary);
+    color:#fff;
+    border-color:var(--primary);
+}
+#notifAdminLista{
+    flex:1;
+    overflow:auto;
+    padding:16px 22px 22px;
+    display:grid;
+    gap:14px;
+    align-content:start;
+}
+.notifVacio{
+    text-align:center;
+    color:var(--muted);
+    padding:40px 10px;
+    font-weight:600;
+}
+.notifCard{
+    background:var(--card);
+    color:var(--text);
+    border-radius:16px;
+    padding:16px;
+    box-shadow:0 8px 22px rgba(0,0,0,.08);
+    border-left:6px solid #f59e0b;
+}
+.notifCard.atendida{ border-left-color:#22863a; opacity:.9; }
+.notifTop{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+}
+.notifTop strong{ font-size:18px; }
+.notifEstado{
+    padding:3px 10px; border-radius:20px; font-size:.8rem; font-weight:800;
+    background:#fff3d6; color:#b45309; white-space:nowrap;
+}
+.notifCard.atendida .notifEstado{ background:#e9f9ee; color:#22863a; }
+.notifMeta{ margin-top:8px; color:var(--muted); font-size:.92rem; line-height:1.6; }
+.notifIglesia{ margin-top:12px; }
+.notifIglesia label{ display:block; font-size:.8rem; font-weight:700; color:var(--muted); margin-bottom:4px; }
+.notifIglesia select{ width:100%; box-sizing:border-box; }
+.notifClave{
+    margin-top:8px;
+    font-size:.9rem;
+    font-weight:700;
+}
+.notifAcciones{
+    display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;
+}
+.notifAcciones button{
+    border:none;
+    padding:10px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+}
+.notifAcciones .btnWa{ background:#25D366; color:#fff; }
+
 .cardAdminHeader{
 
     display:flex;
@@ -3446,11 +3591,51 @@ style="
 
   
 
+        <div class="right">
+
+            <button id="btnNotifAdmin" onclick="abrirNotificacionesAdmin()" title="Solicitudes de clave de invitación">
+                🔔<span class="notifTxt">Notificaciones</span>
+                <span id="badgeNotifAdmin"></span>
+            </button>
+
+        </div>
+
     </div>
 
     <div id="contenedorIglesiasAdmin">
 
     </div>
+
+</section>
+
+
+
+<section id="notifAdminScreen" aria-hidden="true">
+
+    <div id="notifAdminHeader">
+
+        <div class="left">
+
+            <button class="btnAtras" onclick="cerrarNotificacionesAdmin()" aria-label="Volver">←</button>
+
+            <div>
+                <div class="titulo">🔔 Notificaciones</div>
+                <small>Solicitudes de clave de invitación</small>
+            </div>
+
+        </div>
+
+        <button class="btnRefrescar" onclick="cargarNotificacionesAdmin()" title="Actualizar" aria-label="Actualizar">⟳</button>
+
+    </div>
+
+    <div class="notifFiltros" id="notifFiltros">
+        <button data-f="pendiente" class="activo" onclick="notifFiltrar('pendiente')">Pendientes</button>
+        <button data-f="atendida" onclick="notifFiltrar('atendida')">Atendidas</button>
+        <button data-f="todas" onclick="notifFiltrar('todas')">Todas</button>
+    </div>
+
+    <div id="notifAdminLista"></div>
 
 </section>
 
@@ -3695,10 +3880,16 @@ style="
 
             <div id="pinActualAviso" style="display:none;margin-top:8px;font-size:12.5px;color:var(--muted);text-align:center;"></div>
 
-            <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+            <div id="pinEstadoClave" style="margin-top:12px;text-align:center;font-size:13px;font-weight:700;"></div>
+
+            <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
 
                 <button onclick="cerrarModalPin()">
                     Cerrar
+                </button>
+
+                <button id="btnPinToggle" onclick="toggleEstadoClavePin()">
+                    Desactivar clave
                 </button>
 
                 <button onclick="mostrarCambioPin()">
@@ -4113,6 +4304,11 @@ async function abrirPanelSuperAdmin(){
         document
             .getElementById("superAdminScreen")
             .classList.add("active");
+
+        try{
+            actualizarBadgeNotif();
+            cargarEstadosClave();
+        }catch(e){}
 
     }
     catch(err){
@@ -5096,6 +5292,520 @@ async function cerrarSesionPorCodigoRegistro(){
 
 
 
+
+/* =========================================================
+   ESTADO DE LA CLAVE (activa / desactivada) + NOTIFICACIONES
+   Requiere ejecutar supabase_solicitudes_clave.sql
+========================================================= */
+const EstadoClave = { ok: null, mapa: {} };
+
+async function cargarEstadosClave(){
+
+    try{
+
+        const { data, error } = await supabase
+            .from("iglesias")
+            .select("id,codigo_activo");
+
+        if(error) throw error;
+
+        EstadoClave.mapa = {};
+
+        (data || []).forEach(r => {
+            EstadoClave.mapa[String(r.id)] = r.codigo_activo !== false;
+        });
+
+        EstadoClave.ok = (data || []).length === 0
+            ? true
+            : Object.prototype.hasOwnProperty.call(data[0], "codigo_activo");
+
+    }
+    catch(e){
+
+        console.warn("No se pudo leer el estado de las claves:", e);
+
+        EstadoClave.ok = false;
+
+    }
+
+}
+
+function claveActiva(idIglesia){
+    return EstadoClave.mapa[String(idIglesia)] !== false;
+}
+
+async function cambiarEstadoClave(idIglesia, activo){
+
+    showBusy(
+        activo ? "Activando clave..." : "Desactivando clave...",
+        "Guardando cambios"
+    );
+
+    try{
+
+        const { data, error } = await supabase.rpc(
+            "cambiar_estado_codigo",
+            { p_iglesia: String(idIglesia), p_activo: activo }
+        );
+
+        hideBusy();
+
+        if(error){
+            console.error(error);
+            mostrarAlerta("❌", error.message);
+            return false;
+        }
+
+        if(!data){
+            mostrarAlerta("⚠️", "No se encontró la iglesia.");
+            return false;
+        }
+
+        EstadoClave.mapa[String(idIglesia)] = activo;
+        EstadoClave.ok = true;
+
+        return true;
+
+    }
+    catch(err){
+
+        hideBusy();
+        console.error(err);
+        mostrarAlerta("❌", "No fue posible cambiar el estado de la clave.");
+        return false;
+
+    }
+
+}
+
+/* ---------- Modal "Código de invitación" ---------- */
+
+function pintarEstadoClavePin(){
+
+    const lbl = document.getElementById("pinEstadoClave");
+    const btn = document.getElementById("btnPinToggle");
+
+    if(!lbl || !btn) return;
+
+    if(EstadoClave.ok === false){
+        lbl.textContent = "Estado de la clave no disponible (falta ejecutar el SQL).";
+        lbl.style.color = "var(--muted)";
+        btn.style.display = "none";
+        return;
+    }
+
+    const activa = claveActiva(iglesiaSeleccionadaAdmin);
+
+    lbl.textContent = activa ? "🟢 Clave activa" : "🔴 Clave desactivada";
+    lbl.style.color = activa ? "#22863a" : "#c62828";
+
+    btn.style.display = "";
+    btn.textContent = activa ? "Desactivar clave" : "Activar clave";
+
+}
+
+async function toggleEstadoClavePin(){
+
+    const id = iglesiaSeleccionadaAdmin;
+    const activa = claveActiva(id);
+
+    const ejecutar = async () => {
+        if(await cambiarEstadoClave(id, !activa)){
+            pintarEstadoClavePin();
+            try{ if(document.getElementById("notifAdminScreen").classList.contains("active")) pintarNotificaciones(); }catch(e){}
+        }
+    };
+
+    if(activa){
+        mostrarPopupConfirm(
+            "Desactivar clave",
+            "Nadie podrá crear cuentas con esta clave hasta que la actives de nuevo. ¿Continuar?",
+            ejecutar
+        );
+    }
+    else{
+        ejecutar();
+    }
+
+}
+
+/* ---------- Pantalla de notificaciones ---------- */
+
+const Notif = { lista: [], filtro: "pendiente", sel: {} };
+
+const WA_APP_URL = "https://contadordh.github.io/soporte/index.html";
+
+function normTxt(t){
+    return String(t || "")
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9 ]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function iglesiaQueCoincide(nombre){
+
+    const n = normTxt(nombre);
+
+    if(!n) return "";
+
+    const lista = App.adminIglesias || [];
+
+    const hit = lista.find(i => {
+        const m = normTxt(i.nombre);
+        return m && (m === n || m.includes(n) || n.includes(m));
+    });
+
+    return hit ? String(hit.id) : "";
+
+}
+
+async function actualizarBadgeNotif(){
+
+    const badge = document.getElementById("badgeNotifAdmin");
+
+    if(!badge) return;
+
+    try{
+
+        const { count, error } = await supabase
+            .from("solicitudes_clave")
+            .select("id", { count: "exact", head: true })
+            .eq("estado", "pendiente");
+
+        if(error) throw error;
+
+        if(count > 0){
+            badge.textContent = count > 99 ? "99+" : String(count);
+            badge.style.display = "flex";
+        }
+        else{
+            badge.style.display = "none";
+        }
+
+    }
+    catch(e){
+        console.warn("No se pudo leer el contador de solicitudes:", e);
+        badge.style.display = "none";
+    }
+
+}
+
+async function abrirNotificacionesAdmin(){
+
+    document.getElementById("notifAdminScreen").classList.add("active");
+
+    await cargarNotificacionesAdmin();
+
+}
+
+function cerrarNotificacionesAdmin(){
+
+    document.getElementById("notifAdminScreen").classList.remove("active");
+
+    actualizarBadgeNotif();
+
+}
+
+async function cargarNotificacionesAdmin(){
+
+    const cont = document.getElementById("notifAdminLista");
+
+    cont.innerHTML = '<div class="notifVacio">Cargando…</div>';
+
+    try{
+
+        await cargarEstadosClave();
+
+        const { data, error } = await supabase
+            .from("solicitudes_clave")
+            .select("*")
+            .order("creada_en", { ascending: false })
+            .limit(200);
+
+        if(error) throw error;
+
+        Notif.lista = data || [];
+
+        // Preseleccionar la iglesia cuyo nombre coincide con lo escrito
+        Notif.lista.forEach(r => {
+            if(Notif.sel[r.id] === undefined){
+                Notif.sel[r.id] = iglesiaQueCoincide(r.iglesia_nombre);
+            }
+        });
+
+        pintarNotificaciones();
+
+        actualizarBadgeNotif();
+
+    }
+    catch(e){
+
+        console.error(e);
+
+        cont.innerHTML = '<div class="notifVacio">No se pudieron cargar las solicitudes.<br>' +
+            'Verifica que ejecutaste el SQL (supabase_solicitudes_clave.sql).</div>';
+
+    }
+
+}
+
+function notifFiltrar(f){
+
+    Notif.filtro = f;
+
+    document.querySelectorAll("#notifFiltros button").forEach(b => {
+        b.classList.toggle("activo", b.dataset.f === f);
+    });
+
+    pintarNotificaciones();
+
+}
+
+function pintarNotificaciones(){
+
+    const cont = document.getElementById("notifAdminLista");
+
+    const lista = Notif.lista.filter(r =>
+        Notif.filtro === "todas" ? true : r.estado === Notif.filtro
+    );
+
+    if(!lista.length){
+        cont.innerHTML = '<div class="notifVacio">' +
+            (Notif.filtro === "pendiente"
+                ? "No hay solicitudes pendientes 🎉"
+                : "No hay solicitudes para mostrar.") +
+            '</div>';
+        return;
+    }
+
+    const iglesias = App.adminIglesias || [];
+
+    cont.innerHTML = lista.map(r => {
+
+        const id = escapeHTML(r.id);
+        const selId = Notif.sel[r.id] || "";
+        const atendida = r.estado === "atendida";
+
+        const fecha = r.creada_en
+            ? new Date(r.creada_en).toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" })
+            : "";
+
+        const opciones = ['<option value="">— Elegir iglesia —</option>']
+            .concat(iglesias.map(i =>
+                '<option value="' + escapeHTML(i.id) + '"' +
+                (String(i.id) === String(selId) ? " selected" : "") + '>' +
+                escapeHTML(i.nombre) + '</option>'
+            )).join("");
+
+        let infoClave = "";
+        let textoToggle = "🔒 Desactivar clave";
+
+        if(selId){
+            if(EstadoClave.ok === false){
+                infoClave = '<span style="color:var(--muted)">Estado de la clave no disponible (falta ejecutar el SQL)</span>';
+            }
+            else{
+                const act = claveActiva(selId);
+                infoClave = act
+                    ? '<span style="color:#22863a">🟢 Clave activa</span>'
+                    : '<span style="color:#c62828">🔴 Clave desactivada</span>';
+                textoToggle = act ? "🔒 Desactivar clave" : "🔓 Activar clave";
+            }
+        }
+        else{
+            infoClave = '<span style="color:var(--muted)">Elige la iglesia para ver y gestionar su clave</span>';
+        }
+
+        return `
+        <div class="notifCard ${atendida ? "atendida" : ""}">
+
+            <div class="notifTop">
+                <strong>🏛 ${escapeHTML(r.iglesia_nombre)}</strong>
+                <span class="notifEstado">${atendida ? "Atendida" : "Pendiente"}</span>
+            </div>
+
+            <div class="notifMeta">
+                👤 ${escapeHTML(r.solicitante || "Sin nombre")}<br>
+                📱 +${escapeHTML(r.whatsapp)}<br>
+                🕒 ${escapeHTML(fecha)}
+            </div>
+
+            <div class="notifIglesia">
+                <label>Iglesia en el sistema</label>
+                <select onchange="notifElegirIglesia('${id}', this.value)">${opciones}</select>
+            </div>
+
+            <div class="notifClave">${infoClave}</div>
+
+            <div class="notifAcciones">
+                <button class="btnWa" onclick="notifResponder('${id}')">💬 Responder por WhatsApp</button>
+                ${selId && EstadoClave.ok !== false
+                    ? `<button onclick="notifToggleClave('${id}')">${textoToggle}</button>`
+                    : ""}
+                <button onclick="notifMarcar('${id}', ${atendida ? "false" : "true"})">
+                    ${atendida ? "↩ Marcar pendiente" : "✔ Marcar atendida"}
+                </button>
+                <button onclick="notifEliminar('${id}')">🗑 Eliminar</button>
+            </div>
+
+        </div>`;
+
+    }).join("");
+
+}
+
+function notifBuscar(id){
+    return Notif.lista.find(r => String(r.id) === String(id));
+}
+
+function notifElegirIglesia(id, valor){
+
+    Notif.sel[id] = valor;
+
+    pintarNotificaciones();
+
+}
+
+function notifResponder(id){
+
+    const r = notifBuscar(id);
+
+    if(!r) return;
+
+    const selId = Notif.sel[id];
+    const igl = selId ? (App.adminIglesias || []).find(i => String(i.id) === String(selId)) : null;
+
+    const saludo = "Hola" + (r.solicitante ? " " + r.solicitante : "") + " 👋, te escribimos del equipo DECOM.";
+
+    let msg;
+
+    if(igl){
+
+        if(EstadoClave.ok !== false && !claveActiva(igl.id)){
+            return mostrarAlerta(
+                "⚠️",
+                "La clave de esa iglesia está desactivada. Actívala para poder enviarla."
+            );
+        }
+
+        const codigo = igl.codigo ? String(igl.codigo) : "";
+
+        msg = saludo + "\n\n" +
+            "Recibimos tu solicitud de la clave de invitación para *" + igl.nombre + "*.\n" +
+            (codigo ? "🔑 Tu clave de invitación es: *" + codigo + "*\n" : "") +
+            "\n1) Abre " + WA_APP_URL + "\n" +
+            "2) Toca *Crear cuenta*, elige tu iglesia e ingresa la clave.\n" +
+            "3) Instala la app desde el botón *Instalar*.\n\n" +
+            "Cualquier duda, aquí estamos.";
+
+    }
+    else{
+
+        msg = saludo + "\n\n" +
+            "Recibimos tu solicitud de clave de invitación para *" + r.iglesia_nombre + "*. " +
+            "¿Nos confirmas algunos datos para ayudarte?";
+
+    }
+
+    window.open(
+        "https://wa.me/" + String(r.whatsapp).replace(/\D/g, "") + "?text=" + encodeURIComponent(msg),
+        "_blank",
+        "noopener"
+    );
+
+}
+
+async function notifToggleClave(id){
+
+    const selId = Notif.sel[id];
+
+    if(!selId){
+        return mostrarAlerta("⚠️", "Elige primero la iglesia en el sistema.");
+    }
+
+    const activa = claveActiva(selId);
+
+    const ejecutar = async () => {
+        if(await cambiarEstadoClave(selId, !activa)){
+            pintarNotificaciones();
+        }
+    };
+
+    if(activa){
+        mostrarPopupConfirm(
+            "Desactivar clave",
+            "Nadie podrá crear cuentas con esta clave hasta que la actives de nuevo. ¿Continuar?",
+            ejecutar
+        );
+    }
+    else{
+        ejecutar();
+    }
+
+}
+
+async function notifMarcar(id, atendida){
+
+    try{
+
+        const { error } = await supabase
+            .from("solicitudes_clave")
+            .update({
+                estado: atendida ? "atendida" : "pendiente",
+                atendida_en: atendida ? new Date().toISOString() : null
+            })
+            .eq("id", id);
+
+        if(error) throw error;
+
+        const r = notifBuscar(id);
+        if(r) r.estado = atendida ? "atendida" : "pendiente";
+
+        pintarNotificaciones();
+        actualizarBadgeNotif();
+
+    }
+    catch(e){
+        console.error(e);
+        mostrarAlerta("❌", "No se pudo actualizar la solicitud.");
+    }
+
+}
+
+function notifEliminar(id){
+
+    mostrarPopupConfirm(
+        "Eliminar solicitud",
+        "Se eliminará esta solicitud de forma permanente. ¿Continuar?",
+        async () => {
+
+            try{
+
+                const { error } = await supabase
+                    .from("solicitudes_clave")
+                    .delete()
+                    .eq("id", id);
+
+                if(error) throw error;
+
+                Notif.lista = Notif.lista.filter(r => String(r.id) !== String(id));
+
+                pintarNotificaciones();
+                actualizarBadgeNotif();
+
+            }
+            catch(e){
+                console.error(e);
+                mostrarAlerta("❌", "No se pudo eliminar la solicitud.");
+            }
+
+        }
+    );
+
+}
+
 async function cambiarPinIglesia(id){
 
     iglesiaSeleccionadaAdmin = id;
@@ -5134,6 +5844,10 @@ async function cambiarPinIglesia(id){
         }
 
     }
+
+    // Estado (activa/desactivada) de la clave
+    await cargarEstadosClave();
+    pintarEstadoClavePin();
 
     inputActual.value = codigo || "No disponible";
 
@@ -5857,6 +6571,27 @@ function validarFormularioRegistro(){
 
 async function verificarCodigoRegistro(idIglesia,codigo){
 
+    App.claveDesactivada = false;
+
+    // Si el superadmin desactivó la clave de esa iglesia, no se permite registrarse
+    try{
+
+        const { data: ig } = await supabase
+            .from("iglesias")
+            .select("codigo_activo")
+            .eq("id", idIglesia)
+            .single();
+
+        if(ig && ig.codigo_activo === false){
+            App.claveDesactivada = true;
+            return false;
+        }
+
+    }
+    catch(e){
+        console.warn("No se pudo comprobar si la clave está activa:", e);
+    }
+
     const { data, error } = await supabase.rpc(
         "verificar_codigo_registro",
         {
@@ -5902,7 +6637,12 @@ async function registrarUsuarioSupabase(){
 
         if(!codigoCorrecto){
             hideBusy();
-            mostrarAlerta("❌","La clave de invitación es incorrecta.");
+            mostrarAlerta(
+                "❌",
+                App.claveDesactivada
+                    ? "La clave de invitación de esta iglesia está desactivada. Solicita una nueva al administrador."
+                    : "La clave de invitación es incorrecta."
+            );
             return;
         }
 
