@@ -3666,23 +3666,69 @@ style="
 
     <div class="modalCard" style="max-width:420px;">
 
-        <h2>🔑 Cambiar código de registro</h2>
+        <h2>🔑 Código de invitación</h2>
 
-        <input
-            id="nuevoPinIglesia"
-            type="text"
-            maxlength="20"
-            placeholder="Nuevo Código de invitación">
+        <p id="pinIglesiaNombre" style="margin:4px 0 14px;font-weight:700;"></p>
 
-        <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+        <!-- VISTA 1: código actual -->
+        <div id="pinVistaActual">
 
-            <button onclick="cerrarModalPin()">
-                Cancelar
-            </button>
+            <label for="pinActualIglesia" style="font-size:13px;font-weight:700;color:var(--muted);">
+                Código actual
+            </label>
 
-            <button onclick="guardarNuevoPin()">
-                Guardar
-            </button>
+            <div class="passwordField" style="margin-top:6px;">
+                <input
+                    id="pinActualIglesia"
+                    type="text"
+                    readonly
+                    style="width:100%;box-sizing:border-box;font-weight:800;letter-spacing:1px;text-align:center;">
+                <button
+                    type="button"
+                    class="togglePassword"
+                    aria-label="Copiar código"
+                    title="Copiar código"
+                    onclick="copiarPinActual()">
+                    <i class="fa-solid fa-copy"></i>
+                </button>
+            </div>
+
+            <div id="pinActualAviso" style="display:none;margin-top:8px;font-size:12.5px;color:var(--muted);text-align:center;"></div>
+
+            <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+
+                <button onclick="cerrarModalPin()">
+                    Cerrar
+                </button>
+
+                <button onclick="mostrarCambioPin()">
+                    Cambiar código
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- VISTA 2: ingresar el nuevo -->
+        <div id="pinVistaNuevo" style="display:none;">
+
+            <input
+                id="nuevoPinIglesia"
+                type="text"
+                maxlength="20"
+                placeholder="Nuevo Código de invitación">
+
+            <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+
+                <button onclick="volverVistaPinActual()">
+                    Cancelar
+                </button>
+
+                <button onclick="guardarNuevoPin()">
+                    Guardar
+                </button>
+
+            </div>
 
         </div>
 
@@ -4189,7 +4235,7 @@ function crearTarjetaIglesia(iglesia){
 
                 <span>🔑 Código</span>
 
-                <strong>${escapeHTML(iglesia.codigo)}</strong>
+                <strong>${escapeHTML(iglesia.codigo || "—")}</strong>
 
             </div>
 
@@ -5050,15 +5096,96 @@ async function cerrarSesionPorCodigoRegistro(){
 
 
 
-function cambiarPinIglesia(id){
+async function cambiarPinIglesia(id){
 
     iglesiaSeleccionadaAdmin = id;
 
+    const igl = (App.adminIglesias || []).find(x => x.id === id);
+
+    document.getElementById("pinIglesiaNombre").textContent =
+        igl && igl.nombre ? "🏛 " + igl.nombre : "";
+
     document.getElementById("nuevoPinIglesia").value = "";
+
+    // Mostrar primero el código ACTUAL
+    volverVistaPinActual();
+
+    const inputActual = document.getElementById("pinActualIglesia");
+    const aviso = document.getElementById("pinActualAviso");
+
+    let codigo = igl && igl.codigo ? String(igl.codigo) : "";
+
+    // Si el listado no trajo el código, se consulta directamente
+    if(!codigo){
+
+        try{
+
+            const { data } = await supabase
+                .from("iglesias")
+                .select("codigo")
+                .eq("id", id)
+                .single();
+
+            if(data && data.codigo) codigo = String(data.codigo);
+
+        }
+        catch(e){
+            console.warn("No se pudo leer el código actual:", e);
+        }
+
+    }
+
+    inputActual.value = codigo || "No disponible";
+
+    if(aviso){
+        aviso.style.display = codigo ? "none" : "block";
+        aviso.textContent = codigo
+            ? ""
+            : "No se pudo leer el código actual. Aun así puedes asignar uno nuevo.";
+    }
 
     document
         .getElementById("modalCambiarPin")
         .classList.remove("oculto");
+
+}
+
+function volverVistaPinActual(){
+
+    document.getElementById("pinVistaActual").style.display = "block";
+    document.getElementById("pinVistaNuevo").style.display = "none";
+
+    document.getElementById("nuevoPinIglesia").value = "";
+
+}
+
+function mostrarCambioPin(){
+
+    document.getElementById("pinVistaActual").style.display = "none";
+    document.getElementById("pinVistaNuevo").style.display = "block";
+
+    const inp = document.getElementById("nuevoPinIglesia");
+    inp.value = "";
+    setTimeout(() => { try{ inp.focus(); }catch(e){} }, 50);
+
+}
+
+async function copiarPinActual(){
+
+    const v = document.getElementById("pinActualIglesia").value;
+
+    if(!v || v === "No disponible") return;
+
+    try{
+        await navigator.clipboard.writeText(v);
+    }
+    catch(e){
+        const inp = document.getElementById("pinActualIglesia");
+        inp.select();
+        try{ document.execCommand("copy"); }catch(e2){}
+    }
+
+    mostrarAlerta("✅", "Código copiado.");
 
 }
 
@@ -5119,6 +5246,15 @@ async function guardarNuevoPin(){
         }
 
   cerrarModalPin();
+
+// Mantener actualizado el código que se ve en la tarjeta
+try{
+    const igl = (App.adminIglesias || []).find(x => x.id === iglesiaSeleccionadaAdmin);
+    if(igl){
+        igl.codigo = pin;
+        pintarIglesiasAdmin(App.adminIglesias);
+    }
+}catch(e){ console.warn(e); }
 
 // Mostrar ventana de verificación
 document
