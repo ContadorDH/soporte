@@ -2761,7 +2761,74 @@ ADMINISTRAR USUARIOS
 .modalCard .multiOpcion.multiOpcionSuma{ border:2px solid var(--primary); }
 .modalCard input.multiCodigoInput{ font-size:28px; text-align:center; letter-spacing:10px; }
 
-  </style>
+  
+/* =========================================================
+   SUPERADMINISTRADOR: nada debe salirse de la pantalla
+   (si un texto es muy largo se corta con "...")
+========================================================= */
+#superAdminScreen,
+#notifAdminScreen,
+#usuariosAdminScreen{ overflow-x:hidden; }
+
+#contenedorIglesiasAdmin,
+#notifAdminLista,
+#listaUsuariosAdmin{
+    grid-template-columns:minmax(0,1fr);
+    overflow-x:hidden;
+    box-sizing:border-box;
+}
+
+.tarjetaIglesia,
+.notifCard,
+.tarjetaUsuarioAdmin{ min-width:0; max-width:100%; box-sizing:border-box; }
+
+.cardAdminHeader > div{ min-width:0; max-width:100%; }
+.tarjetaIglesia h3{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.cardResumen{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+.datoAdmin{ min-width:0; overflow:hidden; box-sizing:border-box; }
+.datoAdmin span,
+.datoAdmin strong{
+    display:block;
+    max-width:100%;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+@media (max-width:480px){
+    .cardResumen{ gap:8px; }
+    .datoAdmin{ padding:10px 6px; }
+    .datoAdmin strong{ font-size:1.1rem; }
+}
+
+.notifTop > strong{
+    min-width:0; flex:1;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.notifMeta,
+.notifClave{ overflow-wrap:anywhere; }
+.notifIglesia select{ max-width:100%; text-overflow:ellipsis; }
+
+.avatarUsuario{ flex-shrink:0; }
+.usuarioHeader{ min-width:0; }
+.usuarioInfo{ min-width:0; flex:1; }
+.usuarioInfo h3,
+.usuarioInfo div,
+.usuarioDatos > div{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+#modalCambiarPin .modalCard{ overflow-x:hidden; }
+#modalCambiarPin #pinIglesiaNombre{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+#modalCambiarPin input{ text-overflow:ellipsis; }
+
+</style>
 
 <!-- Corrección de área segura superior/inferior para móviles -->
 
@@ -5806,6 +5873,28 @@ function notifEliminar(id){
 
 }
 
+async function leerCodigoIglesiaFresco(id){
+
+    try{
+
+        const { data, error } = await supabase
+            .from("iglesias")
+            .select("codigo")
+            .eq("id", id)
+            .single();
+
+        if(error) throw error;
+
+        return data && data.codigo ? String(data.codigo) : "";
+
+    }
+    catch(e){
+        console.warn("No se pudo leer el código actual:", e);
+        return "";
+    }
+
+}
+
 async function cambiarPinIglesia(id){
 
     iglesiaSeleccionadaAdmin = id;
@@ -5825,22 +5914,17 @@ async function cambiarPinIglesia(id){
 
     let codigo = igl && igl.codigo ? String(igl.codigo) : "";
 
-    // Si el listado no trajo el código, se consulta directamente
-    if(!codigo){
+    // Siempre se consulta el valor real guardado en la base de datos
+    // (no se confía solo en el listado cargado al abrir el panel)
+    const fresco = await leerCodigoIglesiaFresco(id);
 
-        try{
+    if(fresco){
 
-            const { data } = await supabase
-                .from("iglesias")
-                .select("codigo")
-                .eq("id", id)
-                .single();
+        codigo = fresco;
 
-            if(data && data.codigo) codigo = String(data.codigo);
-
-        }
-        catch(e){
-            console.warn("No se pudo leer el código actual:", e);
+        if(igl && igl.codigo !== fresco){
+            igl.codigo = fresco;
+            try{ pintarIglesiasAdmin(App.adminIglesias); }catch(e){}
         }
 
     }
@@ -5965,8 +6049,30 @@ async function guardarNuevoPin(){
 try{
     const igl = (App.adminIglesias || []).find(x => x.id === iglesiaSeleccionadaAdmin);
     if(igl){
-        igl.codigo = pin;
+        // Se muestra lo que realmente quedó guardado en la base de datos
+        let fresco = await leerCodigoIglesiaFresco(iglesiaSeleccionadaAdmin);
+
+        // Si la función de la base solo guardó el hash y dejó el campo «codigo»
+        // con otro valor, se sincroniza aquí para que Supabase y la app queden iguales
+        if(fresco && fresco.trim().toLowerCase() !== pin.trim().toLowerCase()){
+            try{
+                await supabase
+                    .from("iglesias")
+                    .update({ codigo: pin })
+                    .eq("id", iglesiaSeleccionadaAdmin);
+            }catch(e){ console.warn("No se pudo sincronizar el campo codigo:", e); }
+            fresco = await leerCodigoIglesiaFresco(iglesiaSeleccionadaAdmin);
+        }
+
+        igl.codigo = fresco || pin;
+        if(App.iglesia && String(App.iglesia.id) === String(igl.id)) App.iglesia.codigo = igl.codigo;
         pintarIglesiasAdmin(App.adminIglesias);
+        if(fresco && fresco.trim().toLowerCase() !== pin.trim().toLowerCase()){
+            mostrarAlerta(
+                "⚠️",
+                "El código se guardó, pero en la base de datos el campo «codigo» muestra otro valor. Revisa la función cambiar_codigo_registro."
+            );
+        }
     }
 }catch(e){ console.warn(e); }
 
