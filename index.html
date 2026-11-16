@@ -2850,6 +2850,27 @@ ADMINISTRAR USUARIOS
     .cardResumen .datoAdmin:nth-child(3) strong{ font-size:.95rem; }
 }
 
+/* Administración de iglesias: barra superior, estado y segunda fila de botones */
+#superAdminToolbar{ padding:14px 22px 0; display:flex; }
+#superAdminToolbar button{
+    border:none;
+    padding:12px 18px;
+    border-radius:12px;
+    background:var(--primary);
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+}
+@media (max-width:480px){ #superAdminToolbar button{ width:100%; } }
+
+.cardEstado.off{ background:#fdecea; color:#c62828; }
+.tarjetaIglesia.inactiva h3{ opacity:.6; }
+.tarjetaIglesia .accionesIglesia.fila2{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    margin-top:10px;
+}
+.tarjetaIglesia .accionesIglesia.fila2 button:last-child{ color:#c62828; }
+
 </style>
 
 <!-- Corrección de área segura superior/inferior para móviles -->
@@ -3691,6 +3712,10 @@ style="
 
     </div>
 
+    <div id="superAdminToolbar">
+        <button type="button" onclick="abrirModalNuevaIglesia()">➕ Nueva iglesia</button>
+    </div>
+
     <div id="contenedorIglesiasAdmin">
 
     </div>
@@ -3935,6 +3960,33 @@ style="
     <div class="modalCard" id="multiContenido" style="max-width:440px;"></div>
 </div>
 
+
+<div id="modalNuevaIglesia" class="modalOverlay oculto">
+
+    <div class="modalCard" style="max-width:420px;">
+
+        <h2>🏛 Nueva iglesia</h2>
+
+        <label for="nuevaIglNombre" style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px;">Nombre de la iglesia *</label>
+        <input id="nuevaIglNombre" type="text" maxlength="80" placeholder="Ej.: IPUC Nombre de la iglesia" autocomplete="off">
+
+        <label for="nuevaIglCodigo" style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px;">Clave de invitación * (única por iglesia)</label>
+        <input id="nuevaIglCodigo" type="text" maxlength="20" placeholder="Mínimo 4 caracteres" autocomplete="off">
+
+        <label for="nuevaIglColor" style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px;">Color</label>
+        <input id="nuevaIglColor" type="color" value="#0066ff" style="height:44px;padding:4px;">
+
+        <label for="nuevaIglDescripcion" style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px;">Descripción (opcional)</label>
+        <input id="nuevaIglDescripcion" type="text" maxlength="120" placeholder="Ciudad, barrio, etc." autocomplete="off">
+
+        <div style="margin-top:8px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+            <button onclick="cerrarModalNuevaIglesia()">Cancelar</button>
+            <button onclick="crearIglesiaNueva()">Crear iglesia</button>
+        </div>
+
+    </div>
+
+</div>
 
 <div id="modalCambiarPin" class="modalOverlay oculto">
 
@@ -4474,7 +4526,7 @@ function crearTarjetaIglesia(iglesia){
 
     const card = document.createElement("div");
 
-    card.className = "tarjetaIglesia";
+    card.className = "tarjetaIglesia" + (iglesia.activa === false ? " inactiva" : "");
 
     card.innerHTML = `
 
@@ -4488,11 +4540,7 @@ function crearTarjetaIglesia(iglesia){
 
                 </h3>
 
-                <div class="cardEstado">
-
-                    🟢 Activa
-
-                </div>
+                <div class="cardEstado ${iglesia.activa === false ? 'off' : ''}">${iglesia.activa === false ? "🔴 Desactivada" : "🟢 Activa"}</div>
 
             </div>
 
@@ -4549,6 +4597,11 @@ function crearTarjetaIglesia(iglesia){
 
             </button>
 
+        </div>
+
+        <div class="accionesIglesia fila2">
+            <button onclick="cambiarEstadoIglesia('${iglesia.id}')">${iglesia.activa === false ? "▶️ Activar" : "⏸ Desactivar"}</button>
+            <button onclick="eliminarIglesiaAdmin('${iglesia.id}')">🗑 Eliminar</button>
         </div>
 
     `;
@@ -5335,6 +5388,26 @@ async function verificarCodigoRegistroActual(){
 
     }
 
+    // Iglesia desactivada por el superadministrador: no se permite entrar
+    if(
+        App.iglesia &&
+        App.iglesia.activa === false &&
+        App.perfil.rol !== "superadmin"
+    ){
+
+        App.sesionLista = false;
+
+        try{ await supabase.auth.signOut({ scope: "local" }); }catch(e){}
+
+        mostrarAlerta(
+            "⚠️",
+            "Esta iglesia está desactivada. Comunícate con el administrador del sistema."
+        );
+
+        return false;
+
+    }
+
     const versionGuardada =
         obtenerVersionCodigoRegistro(
             App.iglesia.id
@@ -5895,6 +5968,203 @@ function notifEliminar(id){
 
 }
 
+function abrirModalNuevaIglesia(){
+
+    ["nuevaIglNombre","nuevaIglCodigo","nuevaIglDescripcion"].forEach(id => {
+        const e = document.getElementById(id);
+        if(e) e.value = "";
+    });
+
+    const c = document.getElementById("nuevaIglColor");
+    if(c) c.value = "#0066ff";
+
+    document.getElementById("modalNuevaIglesia").classList.remove("oculto");
+
+    setTimeout(() => {
+        try{ document.getElementById("nuevaIglNombre").focus(); }catch(e){}
+    }, 50);
+
+}
+
+function cerrarModalNuevaIglesia(){
+    document.getElementById("modalNuevaIglesia").classList.add("oculto");
+}
+
+async function crearIglesiaNueva(){
+
+    const nombre = document.getElementById("nuevaIglNombre").value.trim();
+    const codigo = document.getElementById("nuevaIglCodigo").value.trim();
+    const color = document.getElementById("nuevaIglColor").value || "#0066ff";
+    const descripcion = document.getElementById("nuevaIglDescripcion").value.trim();
+
+    if(nombre.length < 3){
+        return mostrarAlerta("⚠️", "Escribe el nombre de la iglesia (mínimo 3 caracteres).");
+    }
+
+    if(codigo.length < 4){
+        return mostrarAlerta("⚠️", "La clave de invitación debe tener mínimo 4 caracteres.");
+    }
+
+    showBusy("Creando iglesia...", "Guardando datos");
+
+    let creada = false;
+
+    try{
+
+        const { error } = await supabase.rpc("crear_iglesia", {
+            p_nombre: nombre,
+            p_codigo: codigo,
+            p_color: color,
+            p_descripcion: descripcion || null
+        });
+
+        hideBusy();
+
+        if(error){
+
+            console.error(error);
+
+            if(error.code === "23505" || /iglesias_codigo_key|duplicate key/i.test(error.message || "")){
+                return mostrarAlerta("⚠️", "Esa clave ya la usa otra iglesia. Escribe una diferente.");
+            }
+
+            return mostrarAlerta("❌", error.message);
+
+        }
+
+        creada = true;
+
+    }
+    catch(err){
+        hideBusy();
+        console.error(err);
+        return mostrarAlerta("❌", "No fue posible crear la iglesia.");
+    }
+
+    if(!creada) return;
+
+    cerrarModalNuevaIglesia();
+
+    try{
+        pintarIglesiasAdmin(await cargarDashboardIglesias());
+        await cargarEstadosClave();
+    }catch(e){ console.warn(e); }
+
+    try{ cargarIglesiasSupabase(); }catch(e){}
+
+    mostrarAlerta("✅", "Iglesia creada. Clave de invitación: " + codigo);
+
+}
+
+async function cambiarEstadoIglesia(id){
+
+    const igl = (App.adminIglesias || []).find(x => String(x.id) === String(id));
+    if(!igl) return;
+
+    const activar = igl.activa === false;
+
+    const ejecutar = async () => {
+
+        showBusy(
+            activar ? "Activando iglesia..." : "Desactivando iglesia...",
+            "Guardando cambios"
+        );
+
+        try{
+
+            const { data, error } = await supabase.rpc("cambiar_estado_iglesia", {
+                p_iglesia: id,
+                p_activa: activar
+            });
+
+            hideBusy();
+
+            if(error){
+                console.error(error);
+                return mostrarAlerta("❌", error.message);
+            }
+
+            if(!data){
+                return mostrarAlerta("⚠️", "No fue posible cambiar el estado de la iglesia.");
+            }
+
+            igl.activa = activar;
+            pintarIglesiasAdmin(App.adminIglesias);
+
+            try{ cargarIglesiasSupabase(); }catch(e){}
+
+            mostrarAlerta("✅", activar ? "Iglesia activada." : "Iglesia desactivada.");
+
+        }
+        catch(err){
+            hideBusy();
+            console.error(err);
+            mostrarAlerta("❌", "No fue posible cambiar el estado de la iglesia.");
+        }
+
+    };
+
+    if(!activar){
+        mostrarPopupConfirm(
+            "Desactivar iglesia",
+            "Nadie de esta iglesia podrá iniciar sesión ni crear cuentas hasta que la actives de nuevo. Sus datos no se borran. ¿Continuar?",
+            ejecutar
+        );
+    }
+    else{
+        ejecutar();
+    }
+
+}
+
+function eliminarIglesiaAdmin(id){
+
+    const igl = (App.adminIglesias || []).find(x => String(x.id) === String(id));
+    if(!igl) return;
+
+    mostrarPopupConfirm(
+        "Eliminar iglesia",
+        "Se eliminará «" + igl.nombre + "». Solo se puede eliminar si no tiene usuarios ni asistencias; si ya tiene datos, desactívala. Esta acción no se puede deshacer. ¿Continuar?",
+        async () => {
+
+            showBusy("Eliminando iglesia...", "Guardando cambios");
+
+            try{
+
+                const { data, error } = await supabase.rpc("eliminar_iglesia", {
+                    p_iglesia: id
+                });
+
+                hideBusy();
+
+                if(error){
+                    console.error(error);
+                    return mostrarAlerta("❌", error.message);
+                }
+
+                if(!data){
+                    return mostrarAlerta("⚠️", "No fue posible eliminar la iglesia.");
+                }
+
+                App.adminIglesias = (App.adminIglesias || []).filter(x => String(x.id) !== String(id));
+                pintarIglesiasAdmin(App.adminIglesias);
+
+                try{ cargarIglesiasSupabase(); }catch(e){}
+
+                mostrarAlerta("✅", "Iglesia eliminada.");
+
+            }
+            catch(err){
+                hideBusy();
+                console.error(err);
+                mostrarAlerta("❌", "No fue posible eliminar la iglesia.");
+            }
+
+        }
+    );
+
+}
+
 async function leerCodigoIglesiaFresco(id){
 
     try{
@@ -6432,6 +6702,7 @@ async function cargarPerfil(){
                             codigo,
                             color,
                             logo,
+                            activa,
                             version_sesion
                         )
                     `)
@@ -6622,7 +6893,8 @@ async function cargarIglesiasSupabase(){
 
     const { data, error } = await supabase
         .from("iglesias")
-        .select("*");
+        .select("id,nombre,activa")
+        .or("activa.is.null,activa.eq.true");
 
     console.log("DATA:", data);
     console.log("ERROR:", error);
@@ -6708,15 +6980,21 @@ function validarFormularioRegistro(){
 async function verificarCodigoRegistro(idIglesia,codigo){
 
     App.claveDesactivada = false;
+    App.iglesiaDesactivada = false;
 
     // Si el superadmin desactivó la clave de esa iglesia, no se permite registrarse
     try{
 
         const { data: ig } = await supabase
             .from("iglesias")
-            .select("codigo_activo")
+            .select("codigo_activo,activa")
             .eq("id", idIglesia)
             .single();
+
+        if(ig && ig.activa === false){
+            App.iglesiaDesactivada = true;
+            return false;
+        }
 
         if(ig && ig.codigo_activo === false){
             App.claveDesactivada = true;
@@ -6775,7 +7053,9 @@ async function registrarUsuarioSupabase(){
             hideBusy();
             mostrarAlerta(
                 "❌",
-                App.claveDesactivada
+                App.iglesiaDesactivada
+                    ? "Esta iglesia está desactivada. Comunícate con el administrador del sistema."
+                    : App.claveDesactivada
                     ? "La clave de invitación de esta iglesia está desactivada. Solicita una nueva al administrador."
                     : "La clave de invitación es incorrecta."
             );
