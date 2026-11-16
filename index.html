@@ -2828,6 +2828,28 @@ ADMINISTRAR USUARIOS
 }
 #modalCambiarPin input{ text-overflow:ellipsis; }
 
+/* Los tres botones quedan cada uno debajo de su card (Usuarios, Asistencias, Código) */
+.tarjetaIglesia .cardResumen{ margin-bottom:10px; }
+.tarjetaIglesia .accionesIglesia{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:16px;
+    margin-top:0;
+}
+.tarjetaIglesia .accionesIglesia button{
+    width:100%;
+    min-width:0;
+    padding:10px 6px;
+    line-height:1.2;
+    white-space:normal;
+    overflow-wrap:anywhere;
+}
+@media (max-width:480px){
+    .tarjetaIglesia .accionesIglesia{ gap:8px; }
+    .tarjetaIglesia .accionesIglesia button{ font-size:.85rem; padding:10px 4px; }
+    .cardResumen .datoAdmin:nth-child(3) strong{ font-size:.95rem; }
+}
+
 </style>
 
 <!-- Corrección de área segura superior/inferior para móviles -->
@@ -6026,6 +6048,14 @@ async function guardarNuevoPin(){
         if(error){
 
             console.error(error);
+
+            // El campo «codigo» es único: dos iglesias no pueden tener la misma clave
+            if(error.code === "23505" || /iglesias_codigo_key|duplicate key/i.test(error.message || "")){
+                return mostrarAlerta(
+                    "⚠️",
+                    "Ese código ya lo usa otra iglesia. No se hizo ningún cambio: escribe uno diferente."
+                );
+            }
 
             return mostrarAlerta(
                 "❌",
