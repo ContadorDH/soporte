@@ -2863,6 +2863,18 @@ ADMINISTRAR USUARIOS
 }
 @media (max-width:480px){ #superAdminToolbar button{ width:100%; } }
 
+/* Contador de instalaciones de la app de proyección (solo superadmin) */
+#superAdminToolbar{ align-items:center; gap:12px; flex-wrap:wrap; }
+#contadorInstalacionesProy{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 16px; border-radius:12px;
+    background:var(--card); color:var(--text);
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
+    font-weight:600; font-size:.95rem;
+}
+#contadorInstalacionesProy strong{ font-size:1.15rem; color:var(--primary); }
+@media (max-width:480px){ #contadorInstalacionesProy{ width:100%; justify-content:center; } }
+
 .cardEstado.off{ background:#fdecea; color:#c62828; }
 .tarjetaIglesia.inactiva h3{ opacity:.6; }
 .tarjetaIglesia .accionesIglesia.fila2{
@@ -3714,6 +3726,7 @@ style="
 
     <div id="superAdminToolbar">
         <button type="button" onclick="abrirModalNuevaIglesia()">➕ Nueva iglesia</button>
+        <div id="contadorInstalacionesProy" title="Computadores que instalaron la app de proyección (ProyIPUC)">💻 ProyIPUC instalada: <strong>…</strong></div>
     </div>
 
     <div id="contenedorIglesiasAdmin">
@@ -4451,6 +4464,8 @@ async function abrirPanelSuperAdmin(){
             cargarEstadosClave();
         }catch(e){}
 
+        try{ cargarContadorInstalacionesProy(); }catch(e){}
+
     }
     catch(err){
 
@@ -4470,6 +4485,39 @@ async function abrirPanelSuperAdmin(){
 
 }
 
+
+// Número de PCs que instalaron la app de proyección (ProyIPUC).
+// Lee la tabla "instalaciones" a través de la función contar_instalaciones()
+// (solo responde al superadmin). No bloquea la apertura del panel.
+async function cargarContadorInstalacionesProy(){
+
+    const el = document.getElementById("contadorInstalacionesProy");
+
+    if(!el) return;
+
+    const num = el.querySelector("strong");
+
+    try{
+
+        const { data, error } = await supabase.rpc("contar_instalaciones");
+
+        if(error) throw error;
+
+        const n = parseInt(Array.isArray(data) ? data[0] : data, 10);
+
+        if(isNaN(n)) throw new Error("respuesta sin número");
+
+        if(num) num.textContent = String(n);
+
+    }catch(err){
+
+        console.warn("Contador de instalaciones:", err);
+
+        if(num) num.textContent = "—";
+
+    }
+
+}
 
 function cerrarPanelSuperAdmin(){
 
