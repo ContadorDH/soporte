@@ -2863,7 +2863,7 @@ ADMINISTRAR USUARIOS
 }
 @media (max-width:480px){ #superAdminToolbar button{ width:100%; } }
 
-/* Contador de instalaciones de la app de proyección (solo superadmin) */
+/* Instalaciones de la app de proyección (ProyIPUC) — solo superadmin */
 #superAdminToolbar{ align-items:center; gap:12px; flex-wrap:wrap; }
 #contadorInstalacionesProy{
     display:inline-flex; align-items:center; gap:8px;
@@ -2871,9 +2871,32 @@ ADMINISTRAR USUARIOS
     background:var(--card); color:var(--text);
     box-shadow:0 4px 12px rgba(0,0,0,.08);
     font-weight:600; font-size:.95rem;
+    cursor:pointer; user-select:none;
 }
+#contadorInstalacionesProy:hover{ box-shadow:0 6px 16px rgba(0,0,0,.14); }
+#contadorInstalacionesProy:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
 #contadorInstalacionesProy strong{ font-size:1.15rem; color:var(--primary); }
+#contadorInstalacionesProy .instProyVer{ opacity:.55; font-size:1.2rem; line-height:1; }
 @media (max-width:480px){ #contadorInstalacionesProy{ width:100%; justify-content:center; } }
+
+.instProyItem{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:12px 14px; margin-bottom:8px; border-radius:12px;
+    background:var(--bg); color:var(--text);
+    border:1px solid rgba(128,128,128,.22);
+    cursor:pointer;
+}
+.instProyItem:hover{ border-color:var(--primary); }
+.instProyItem .instProyNombre{ font-weight:700; word-break:break-word; }
+.instProyItem small{ display:block; color:var(--muted); font-weight:500; margin-top:2px; }
+.instProyItem .instProyFlecha{ opacity:.5; font-size:1.3rem; }
+.instProyFila{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:14px;
+    padding:10px 0; border-bottom:1px solid rgba(128,128,128,.22);
+}
+.instProyFila span{ color:var(--muted); font-size:13px; font-weight:700; flex:0 0 auto; }
+.instProyFila strong{ text-align:right; word-break:break-word; }
+.instProyVacio{ text-align:center; color:var(--muted); padding:14px 0; }
 
 .cardEstado.off{ background:#fdecea; color:#c62828; }
 .tarjetaIglesia.inactiva h3{ opacity:.6; }
@@ -3726,7 +3749,7 @@ style="
 
     <div id="superAdminToolbar">
         <button type="button" onclick="abrirModalNuevaIglesia()">➕ Nueva iglesia</button>
-        <div id="contadorInstalacionesProy" title="Computadores que instalaron la app de proyección (ProyIPUC)">💻 ProyIPUC instalada: <strong>…</strong></div>
+        <div id="contadorInstalacionesProy" role="button" tabindex="0" title="Toca para ver dónde está instalada la app de proyección (ProyIPUC)" onclick="abrirListaInstalacionesProy()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();abrirListaInstalacionesProy();}">💻 ProyIPUC instalada: <strong>…</strong> <span class="instProyVer">›</span></div>
     </div>
 
     <div id="contenedorIglesiasAdmin">
@@ -3995,6 +4018,43 @@ style="
         <div style="margin-top:8px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
             <button onclick="cerrarModalNuevaIglesia()">Cancelar</button>
             <button onclick="crearIglesiaNueva()">Crear iglesia</button>
+        </div>
+
+    </div>
+
+</div>
+
+<div id="modalInstalacionesProy" class="modalOverlay oculto">
+
+    <div class="modalCard" style="max-width:460px;">
+
+        <!-- VISTA 1: lista de instalaciones -->
+        <div id="instProyVistaLista">
+
+            <h2>💻 ProyIPUC instalada</h2>
+
+            <p id="instProyResumen" style="margin:0 0 12px;text-align:center;color:var(--muted);font-size:14px;"></p>
+
+            <div id="instProyLista"></div>
+
+            <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+                <button onclick="cerrarListaInstalacionesProy()">Cerrar</button>
+            </div>
+
+        </div>
+
+        <!-- VISTA 2: detalle de una instalación -->
+        <div id="instProyVistaDetalle" class="oculto">
+
+            <h2 id="instProyDetalleTitulo">🏛 Iglesia</h2>
+
+            <div id="instProyDetalle"></div>
+
+            <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+                <button onclick="volverListaInstalacionesProy()">← Volver</button>
+                <button onclick="cerrarListaInstalacionesProy()">Cerrar</button>
+            </div>
+
         </div>
 
     </div>
@@ -4486,9 +4546,36 @@ async function abrirPanelSuperAdmin(){
 }
 
 
-// Número de PCs que instalaron la app de proyección (ProyIPUC).
-// Lee la tabla "instalaciones" a través de la función contar_instalaciones()
-// (solo responde al superadmin). No bloquea la apertura del panel.
+/* =========================================================
+   INSTALACIONES DE PROYIPUC (solo superadmin)
+   Lee la tabla "instalaciones" mediante funciones de Supabase
+   que solo responden al superadmin.
+========================================================= */
+
+let instalacionesProy = [];
+
+function fechaInstProy(valor, largo){
+
+    if(!valor) return "—";
+
+    try{
+
+        const d = new Date(valor);
+
+        if(isNaN(d.getTime())) return "—";
+
+        return largo
+            ? d.toLocaleString("es-CO", { dateStyle:"long", timeStyle:"short" })
+            : d.toLocaleDateString("es-CO", { day:"numeric", month:"short", year:"numeric" });
+
+    }catch(e){
+
+        return "—";
+
+    }
+
+}
+
 async function cargarContadorInstalacionesProy(){
 
     const el = document.getElementById("contadorInstalacionesProy");
@@ -4499,23 +4586,158 @@ async function cargarContadorInstalacionesProy(){
 
     try{
 
-        const { data, error } = await supabase.rpc("contar_instalaciones");
+        const { data, error } = await supabase.rpc("listar_instalaciones");
 
         if(error) throw error;
 
-        const n = parseInt(Array.isArray(data) ? data[0] : data, 10);
+        instalacionesProy = Array.isArray(data) ? data : [];
 
-        if(isNaN(n)) throw new Error("respuesta sin número");
+        if(num) num.textContent = String(instalacionesProy.length);
 
-        if(num) num.textContent = String(n);
+        return true;
 
     }catch(err){
 
-        console.warn("Contador de instalaciones:", err);
+        console.warn("Lista de instalaciones:", err);
 
-        if(num) num.textContent = "—";
+        // Respaldo: si solo existe contar_instalaciones(), al menos mostrar el número
+        try{
+
+            const r = await supabase.rpc("contar_instalaciones");
+
+            const n = parseInt(Array.isArray(r.data) ? r.data[0] : r.data, 10);
+
+            if(r.error || isNaN(n)) throw (r.error || new Error("sin número"));
+
+            if(num) num.textContent = String(n);
+
+        }catch(e2){
+
+            if(num) num.textContent = "—";
+
+        }
+
+        return false;
 
     }
+
+}
+
+async function abrirListaInstalacionesProy(){
+
+    document.getElementById("modalInstalacionesProy").classList.remove("oculto");
+
+    volverListaInstalacionesProy();
+
+    const lista = document.getElementById("instProyLista");
+    const resumen = document.getElementById("instProyResumen");
+
+    if(lista) lista.innerHTML = '<div class="instProyVacio">Cargando…</div>';
+    if(resumen) resumen.textContent = "";
+
+    const ok = await cargarContadorInstalacionesProy();
+
+    pintarListaInstalacionesProy(ok);
+
+}
+
+function pintarListaInstalacionesProy(ok){
+
+    const lista = document.getElementById("instProyLista");
+    const resumen = document.getElementById("instProyResumen");
+
+    if(!lista) return;
+
+    if(ok === false){
+
+        lista.innerHTML = '<div class="instProyVacio">No se pudo cargar la lista. Ejecuta el SQL de instalaciones en Supabase.</div>';
+
+        if(resumen) resumen.textContent = "";
+
+        return;
+
+    }
+
+    if(resumen){
+        resumen.textContent = instalacionesProy.length === 1
+            ? "1 equipo con la app instalada"
+            : instalacionesProy.length + " equipos con la app instalada";
+    }
+
+    if(!instalacionesProy.length){
+
+        lista.innerHTML = '<div class="instProyVacio">Aún no hay instalaciones registradas.</div>';
+
+        return;
+
+    }
+
+    lista.innerHTML = instalacionesProy.map((f, i) => {
+
+        const nombre = f.nombre_iglesia || "Sin nombre";
+        const ver = f.version_actual || f.primera_version || "—";
+
+        return `
+            <div class="instProyItem" role="button" tabindex="0"
+                 onclick="verDetalleInstalacionProy(${i})"
+                 onkeydown="if(event.key==='Enter'){verDetalleInstalacionProy(${i});}">
+                <div>
+                    <div class="instProyNombre">🏛 ${escapeHTML(nombre)}</div>
+                    <small>v${escapeHTML(String(ver))} · ${escapeHTML(fechaInstProy(f.creado_en, false))}</small>
+                </div>
+                <span class="instProyFlecha">›</span>
+            </div>`;
+
+    }).join("");
+
+}
+
+function verDetalleInstalacionProy(i){
+
+    const f = instalacionesProy[i];
+
+    if(!f) return;
+
+    const nombre = f.nombre_iglesia || "Sin nombre";
+    const verActual = f.version_actual || f.primera_version || "—";
+    const hash = String(f.pc_hash || "");
+
+    const filas = [
+        ["Iglesia", nombre],
+        ["Versión actual", verActual],
+        ["Versión al instalar", f.primera_version || "—"],
+        ["Fecha de instalación", fechaInstProy(f.creado_en, true)]
+    ];
+
+    if(f.actualizado_en){
+        filas.push(["Última actualización", fechaInstProy(f.actualizado_en, true)]);
+    }
+
+    if(hash){
+        filas.push(["ID del equipo", hash.slice(0, 8) + "…"]);
+    }
+
+    document.getElementById("instProyDetalleTitulo").textContent = "🏛 " + nombre;
+
+    document.getElementById("instProyDetalle").innerHTML = filas.map(([k, v]) =>
+        `<div class="instProyFila"><span>${escapeHTML(k)}</span><strong>${escapeHTML(String(v))}</strong></div>`
+    ).join("");
+
+    document.getElementById("instProyVistaLista").classList.add("oculto");
+    document.getElementById("instProyVistaDetalle").classList.remove("oculto");
+
+}
+
+function volverListaInstalacionesProy(){
+
+    document.getElementById("instProyVistaDetalle").classList.add("oculto");
+    document.getElementById("instProyVistaLista").classList.remove("oculto");
+
+}
+
+function cerrarListaInstalacionesProy(){
+
+    document.getElementById("modalInstalacionesProy").classList.add("oculto");
 
 }
 
