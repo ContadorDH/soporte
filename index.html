@@ -2830,6 +2830,8 @@ ADMINISTRAR USUARIOS
 
 /* Los tres botones quedan cada uno debajo de su card (Usuarios, Asistencias, Código) */
 .tarjetaIglesia .cardResumen{ margin-bottom:10px; }
+.tarjetaIglesia .cardDistrito{ display:inline-block; margin-top:6px; font-size:.82rem; font-weight:700; color:var(--muted); cursor:pointer; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tarjetaIglesia .cardDistrito:hover{ text-decoration:underline; }
 .tarjetaIglesia .accionesIglesia{
     display:grid;
     grid-template-columns:repeat(3,minmax(0,1fr));
@@ -4015,9 +4017,32 @@ style="
         <label for="nuevaIglDescripcion" style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px;">Descripción (opcional)</label>
         <input id="nuevaIglDescripcion" type="text" maxlength="120" placeholder="Ciudad, barrio, etc." autocomplete="off">
 
+        <label for="nuevaIglDistrito" style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px;">Distrito</label>
+        <select id="nuevaIglDistrito"><option value="">Sin distrito (se asigna después)</option></select>
+
         <div style="margin-top:8px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
             <button onclick="cerrarModalNuevaIglesia()">Cancelar</button>
             <button onclick="crearIglesiaNueva()">Crear iglesia</button>
+        </div>
+
+    </div>
+
+</div>
+
+<div id="modalDistritoIglesia" class="modalOverlay oculto">
+
+    <div class="modalCard" style="max-width:420px;">
+
+        <h2>📍 Distrito de la iglesia</h2>
+
+        <p id="distritoIglNombre" style="margin:4px 0 12px;font-weight:700;"></p>
+
+        <label for="distritoIglSelect" style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px;">Distrito</label>
+        <select id="distritoIglSelect"></select>
+
+        <div style="margin-top:8px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+            <button onclick="cerrarModalDistritoIglesia()">Cancelar</button>
+            <button onclick="guardarDistritoIglesia()">Guardar</button>
         </div>
 
     </div>
@@ -4759,6 +4784,13 @@ async function cargarDashboardIglesias(){
 
     if(error) throw error;
 
+    try{
+        await cargarDistritos(true);
+        const r = await supabase.from("iglesias").select("id,distrito_id");
+        App.distritoPorIglesia = {};
+        (r.data || []).forEach(x => { App.distritoPorIglesia[String(x.id)] = x.distrito_id; });
+    }catch(e){ console.warn("No se pudieron leer los distritos:", e); }
+
     return data || [];
 
 }
@@ -4811,6 +4843,8 @@ function crearTarjetaIglesia(iglesia){
                 </h3>
 
                 <div class="cardEstado ${iglesia.activa === false ? 'off' : ''}">${iglesia.activa === false ? "🔴 Desactivada" : "🟢 Activa"}</div>
+
+                <div class="cardDistrito" role="button" tabindex="0" title="Toca para cambiar el distrito" onclick="editarDistritoIglesia('${iglesia.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();editarDistritoIglesia('${iglesia.id}');}">📍 ${escapeHTML(textoDistrito(App.distritoPorIglesia ? App.distritoPorIglesia[String(iglesia.id)] : null))} ✏️</div>
 
             </div>
 
@@ -6240,6 +6274,8 @@ function notifEliminar(id){
 
 function abrirModalNuevaIglesia(){
 
+    llenarSelectDistritos("nuevaIglDistrito", null, "Sin distrito (se asigna después)");
+
     ["nuevaIglNombre","nuevaIglCodigo","nuevaIglDescripcion"].forEach(id => {
         const e = document.getElementById(id);
         if(e) e.value = "";
@@ -6260,12 +6296,96 @@ function cerrarModalNuevaIglesia(){
     document.getElementById("modalNuevaIglesia").classList.add("oculto");
 }
 
+// ===== Distritos de las iglesias =====
+async function cargarDistritos(forzar){
+    if(App.distritos && !forzar) return App.distritos;
+    try{
+        const { data, error } = await supabase.from("distritos").select("id,nombre,activo").order("id");
+        if(!error && data) App.distritos = data;
+    }catch(e){ console.warn(e); }
+    return App.distritos || [];
+}
+
+function textoDistrito(id){
+    if(id === null || id === undefined) return "Sin distrito";
+    const d = (App.distritos || []).find(x => x.id === id);
+    return d ? d.nombre : "Distrito " + id;
+}
+
+async function llenarSelectDistritos(selectId, valorActual, textoVacio){
+    const sel = document.getElementById(selectId);
+    if(!sel) return;
+    const lista = await cargarDistritos();
+    sel.innerHTML = "";
+    const o0 = document.createElement("option");
+    o0.value = "";
+    o0.textContent = textoVacio || "Sin distrito";
+    sel.appendChild(o0);
+    lista.filter(d => d.activo !== false || d.id === valorActual).forEach(d => {
+        const o = document.createElement("option");
+        o.value = d.id;
+        o.textContent = d.nombre;
+        sel.appendChild(o);
+    });
+    sel.value = (valorActual === null || valorActual === undefined) ? "" : String(valorActual);
+}
+
+async function llenarDistritoPopup(){
+    const el = document.getElementById("popupDistrito");
+    if(!el) return;
+    const id = App.iglesia ? App.iglesia.distrito_id : null;
+    if(id === null || id === undefined){ el.textContent = "Sin asignar"; return; }
+    el.textContent = "Distrito " + id;
+    await cargarDistritos();
+    el.textContent = textoDistrito(id);
+}
+
+let distritoIglesiaEditando = null;
+
+async function editarDistritoIglesia(id){
+    const igl = (App.adminIglesias || []).find(x => String(x.id) === String(id));
+    if(!igl) return;
+    distritoIglesiaEditando = String(id);
+    document.getElementById("distritoIglNombre").textContent = "🏛 " + (igl.nombre || "");
+    const actual = App.distritoPorIglesia ? App.distritoPorIglesia[String(id)] : null;
+    document.getElementById("modalDistritoIglesia").classList.remove("oculto");
+    await llenarSelectDistritos("distritoIglSelect", actual === undefined ? null : actual, "Sin distrito");
+}
+
+function cerrarModalDistritoIglesia(){
+    document.getElementById("modalDistritoIglesia").classList.add("oculto");
+    distritoIglesiaEditando = null;
+}
+
+async function guardarDistritoIglesia(){
+    if(!distritoIglesiaEditando) return;
+    const val = document.getElementById("distritoIglSelect").value;
+    const id = distritoIglesiaEditando;
+    showBusy("Guardando distrito...", "Actualizando la iglesia");
+    try{
+        const { error } = await supabase.rpc("asignar_distrito_iglesia", {
+            p_iglesia: id,
+            p_distrito: val === "" ? null : Number(val)
+        });
+        hideBusy();
+        if(error){ console.error(error); return mostrarAlerta("❌", error.message); }
+    }catch(e){
+        hideBusy();
+        console.error(e);
+        return mostrarAlerta("❌", "No fue posible guardar el distrito.");
+    }
+    cerrarModalDistritoIglesia();
+    try{ pintarIglesiasAdmin(await cargarDashboardIglesias()); }catch(e){ console.warn(e); }
+    mostrarAlerta("✅", "Distrito actualizado.");
+}
+
 async function crearIglesiaNueva(){
 
     const nombre = document.getElementById("nuevaIglNombre").value.trim();
     const codigo = document.getElementById("nuevaIglCodigo").value.trim();
     const color = document.getElementById("nuevaIglColor").value || "#0066ff";
     const descripcion = document.getElementById("nuevaIglDescripcion").value.trim();
+    const distritoSel = document.getElementById("nuevaIglDistrito")?.value || "";
 
     if(nombre.length < 3){
         return mostrarAlerta("⚠️", "Escribe el nombre de la iglesia (mínimo 3 caracteres).");
@@ -6278,10 +6398,11 @@ async function crearIglesiaNueva(){
     showBusy("Creando iglesia...", "Guardando datos");
 
     let creada = false;
+    let idCreada = null;
 
     try{
 
-        const { error } = await supabase.rpc("crear_iglesia", {
+        const { data: respCrear, error } = await supabase.rpc("crear_iglesia", {
             p_nombre: nombre,
             p_codigo: codigo,
             p_color: color,
@@ -6303,6 +6424,7 @@ async function crearIglesiaNueva(){
         }
 
         creada = true;
+        idCreada = (typeof respCrear === "string" && /^[0-9a-f-]{36}$/i.test(respCrear)) ? respCrear : null;
 
     }
     catch(err){
@@ -6313,6 +6435,25 @@ async function crearIglesiaNueva(){
 
     if(!creada) return;
 
+    let avisoDistrito = "";
+    if(distritoSel){
+        try{
+            if(!idCreada){
+                const r = await supabase.from("iglesias").select("id").ilike("codigo", codigo).limit(1);
+                idCreada = r.data && r.data[0] ? r.data[0].id : null;
+            }
+            if(!idCreada) throw new Error("No se encontró la iglesia recién creada");
+            const { error: eD } = await supabase.rpc("asignar_distrito_iglesia", {
+                p_iglesia: String(idCreada),
+                p_distrito: Number(distritoSel)
+            });
+            if(eD) throw eD;
+        }catch(e){
+            console.warn(e);
+            avisoDistrito = " No se pudo asignar el distrito; hazlo desde la tarjeta de la iglesia.";
+        }
+    }
+
     cerrarModalNuevaIglesia();
 
     try{
@@ -6322,7 +6463,7 @@ async function crearIglesiaNueva(){
 
     try{ cargarIglesiasSupabase(); }catch(e){}
 
-    mostrarAlerta("✅", "Iglesia creada. Clave de invitación: " + codigo);
+    mostrarAlerta("✅", "Iglesia creada. Clave de invitación: " + codigo + avisoDistrito);
 
 }
 
@@ -6973,6 +7114,7 @@ async function cargarPerfil(){
                             color,
                             logo,
                             activa,
+                            distrito_id,
                             version_sesion
                         )
                     `)
@@ -8103,6 +8245,11 @@ function mostrarNombreUsuario(){
             </div>
 
             <div>
+                <strong>📍 Distrito</strong><br>
+                <span id="popupDistrito">…</span>
+            </div>
+
+            <div>
                 <strong>📱 Teléfono</strong><br>
                 ${escapeHTML(p.telefono || "-")}
             </div>
@@ -8112,6 +8259,8 @@ function mostrarNombreUsuario(){
     `;
 
     document.getElementById("popupUsuario").style.display = "flex";
+
+    llenarDistritoPopup();
 
 }
 
